@@ -2,4 +2,4 @@ const Lexer = require('./Lexer')
 
 new Lexer()
 
-console.log(Lexer)
+console.log()

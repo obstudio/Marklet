@@ -21,7 +21,9 @@ export interface LexerToken {
 }
 
 export class Lexer {
+    /** Lexing options */
     options: object
+    /** Lexing rules */
     rules: { [key: string]: LexerContext }
 
     /** Marklet lexer constructor */

@@ -1,53 +1,45 @@
-/** Marklet Main Lexer */
 class Lexer {
-  /** Lexer Constructor */
   constructor(rules, macros = {}, options = {}) {
     function resolve(rule) {
       if (rule.regex) {
-        let src = rule.regex.source
+        let src = rule.regex.source || rule.regex
         for (const key in macros) {
           src = src.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${macros[key]})`)
         }
-        rule.regex = new RegExp(src)
+        rule.regex = new RegExp(`^` + src)
       }
       if (rule.push instanceof Array) rule.push.forEach(resolve)
       return rule
     }
-
-    /** Lexing rules */
     this.rules = {}
     for (const key in rules) {
       this.rules[key] = rules[key].map(resolve)
     }
-
-    /** Lexing options */
     this.options = options
   }
 
-  /** @private */
   getContext(context) {
-    function* walk(context) {
-      let result = typeof context === 'string'
-        ? this.rules[context]
-        : context
-      for (const rule of result) {
-        if (rule.include) {
-          yield* walk(rule.include)
-        } else {
-          yield rule
-        }
+    const result = typeof context === 'string'
+      ? this.rules[context]
+      : context
+    for (let i = result.length - 1; i >= 0; i -= 1) {
+      if (result[i].include) {
+        result.splice(i, 1, ...this.getContext(result[i].include))
       }
     }
-    return Array.from(walk(context))
+    return result
   }
 
-  /** @private */
   getToken(token, capture, content) {
     let result
     if (typeof token === 'string') {
       result = token
     } else if (token instanceof Function) {
       result = token.call(this, capture, content)
+    } else if (content.length > 0) {
+      result = content.map(token => token.text).join('')
+    } else {
+      result = capture[0]
     }
     if (result instanceof Array) {
       result = { content: result }
@@ -57,9 +49,8 @@ class Lexer {
     return result
   }
 
-  /** parse */
-  parse(source, context) {
-    let index = 0
+  parse(source, context = 'main') {
+    let index = 0, unmatch = ''
     const result = []
     const rules = this.getContext(context)
     while (source) {
@@ -92,10 +83,15 @@ class Lexer {
         }
       }
       if (!status && source) {
-        throw new Error('Infinite loop encountered.')
+        unmatch += source.charAt(0)
+        source = source.slice(1)
+      } else if (unmatch) {
+        result.splice(-1, 0, { type: 'default', text: unmatch })
+        unmatch = ''
       }
       if (status === 2) break
     }
+    if (unmatch) result.push({ type: 'default', text: unmatch })
     return {
       index: index,
       content: result
