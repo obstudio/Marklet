@@ -1,3 +1,5 @@
 const Lexer = require('./Lexer')
 
-console.log('succeed')
+new Lexer()
+
+console.log(Lexer)
