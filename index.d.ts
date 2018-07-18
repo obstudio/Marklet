@@ -1,11 +1,15 @@
-export type LexerContext = (LexerRule | { include: string })[]
+export type LexerContext = (LexerRegexRule | LexerIncludeRule)[]
+
+export interface LexerIncludeRule {
+    include: string
+}
 
 export type LexerRuleToken = string | LexerToken | ((
     capture: RegExpExecArray,
     content: LexerToken[]
 ) => string | LexerToken)
 
-export interface LexerRule {
+export interface LexerRegexRule {
     type?: string
     regex: string | RegExp
     token: LexerRuleToken
@@ -25,14 +29,16 @@ export class Lexer {
     options: object
     /** Lexing rules */
     rules: { [key: string]: LexerContext }
+    /** Lexing context */
+    context: string | LexerContext
 
     /** Marklet lexer constructor */
     constructor(rules: object, macros: object, options: object) 
 
-    private getContext(context: string | LexerContext): LexerRule[]
+    private getContext(context: string | LexerContext): LexerRegexRule[]
 
     private getToken(
-        token: LexerRuleToken,
+        rule: LexerRegexRule,
         capture: RegExpExecArray,
         content: LexerToken[]
     ): LexerToken

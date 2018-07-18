@@ -16,6 +16,7 @@ class Lexer {
       this.rules[key] = rules[key].map(resolve)
     }
     this.options = options
+    this.context = 'main'
   }
 
   getContext(context) {
@@ -30,16 +31,18 @@ class Lexer {
     return result
   }
 
-  getToken(token, capture, content) {
+  getToken(rule, capture, content) {
     let result
-    if (typeof token === 'string') {
-      result = token
-    } else if (token instanceof Function) {
-      result = token.call(this, capture, content)
-    } else if (content.length > 0) {
-      result = content.map(token => token.text).join('')
-    } else {
-      result = capture[0]
+    if (typeof rule.token === 'string') {
+      result = rule.token
+    } else if (rule.token instanceof Function) {
+      const getters = this.options.getters || {}
+      for (const key in getters) {
+        Object.defineProperty(capture, key, {
+          get: () => getters[key].call(this, capture)
+        })
+      }
+      result = rule.token.call(this, capture, content)
     }
     if (result instanceof Array) {
       result = { content: result }
@@ -49,10 +52,14 @@ class Lexer {
     return result
   }
 
-  parse(source, context = 'main') {
+  parse(source, context = this.context) {
     let index = 0, unmatch = ''
     const result = []
     const rules = this.getContext(context)
+    const _context = this.context
+    this.context = context
+    
+    source = source.replace(/\r\n/g, '\n')
     while (source) {
       /**
        * Matching status:
@@ -74,7 +81,11 @@ class Lexer {
             index += subtoken.index
             content = subtoken.content
           }
-          let data = this.getToken(rule.token, capture, content)
+          if (unmatch) {
+            result.push({ type: 'default', text: unmatch })
+            unmatch = ''
+          }
+          let data = this.getToken(rule, capture, content)
           if (data) {
             data.type = data.type || rule.type
             result.push(data)
@@ -85,13 +96,13 @@ class Lexer {
       if (!status && source) {
         unmatch += source.charAt(0)
         source = source.slice(1)
-      } else if (unmatch) {
-        result.splice(-1, 0, { type: 'default', text: unmatch })
-        unmatch = ''
+        index += 1
       }
       if (status === 2) break
     }
     if (unmatch) result.push({ type: 'default', text: unmatch })
+
+    this.context = _context
     return {
       index: index,
       content: result
