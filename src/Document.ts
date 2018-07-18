@@ -1,4 +1,4 @@
-import Lexer, {LexerOptions, LexerRules, StringMap} from './Lexer'
+import {Lexer, LexerOptions, LexerRules, StringMap} from './Lexer'
 
 function escape(html) {
     return html
@@ -9,7 +9,7 @@ function escape(html) {
         .replace(/'/g, '&#39;')
 }
 
-export default class DocLexer extends Lexer {
+export class DocLexer extends Lexer {
     static Rules: LexerRules = {
         main: [
             {

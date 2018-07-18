@@ -1,3 +1,4 @@
-import Document from './Document'
+import { DocLexer } from './Document';
+import { Lexer } from './Lexer';
 
-console.log(new Document().parse('aaa'))
+export { Lexer, DocLexer }

@@ -42,7 +42,7 @@ export type LexerRuleToken = string | LexerToken | ((
     content: LexerToken[]
 ) => string | LexerToken)
 
-export default class Lexer {
+export class Lexer {
     /** Lexing options */
     options: LexerOptions
     /** Lexing rules */
