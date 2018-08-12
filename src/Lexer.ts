@@ -4,12 +4,9 @@ type ResultMap<T extends StringMap<(...arg: any[]) => any>> = {
 }
 
 type StringLike = string | RegExp
-export type LexerMacros = StringMap<StringLike>
-
-type Capture = RegExpExecArray & GetterResults
+type Capture = RegExpExecArray & ResultMap<GetterFunctionMap>
 type GetterFunction = (capture: Capture) => TokenLike
 type GetterFunctionMap = StringMap<GetterFunction>
-type GetterResults = ResultMap<GetterFunctionMap>
 export interface LexerOptions {
     getters?: GetterFunctionMap
     macros?: StringMap<StringLike>
@@ -26,10 +23,24 @@ interface LexerToken {
 type TokenLike = string | LexerToken
 interface LexerIncludeRule { include: string }
 interface LexerRegexRule<S extends StringLike> {
+    /** the regular expression to execute */
     regex: S
+    /**
+     * a string containing all the rule flags
+     * - `b`: when the context begins
+     * - `i`: ignore case
+     * - `t`: top level context
+     */
+    flags?: string
+    /** default type of the token */
     type?: string
+    /** whether the rule is to be executed */
+    test?: string | boolean | ((options: LexerOptions) => boolean)
+    /** a result token */
     token?: TokenLike | ((capture: Capture, content: LexerToken[]) => TokenLike)
+    /** the inner context */
     push?: string | LexerRule<S>[]
+    /** whether to pop from the current context */
     pop?: boolean
 }
 
@@ -49,14 +60,12 @@ function getString(string: StringLike): string {
 }
 
 export class Lexer {
-    options: LexerOptions
     rules: StringMap<NativeLexerRule[]>
-    context: LexerContext
+    options: LexerOptions
     
     constructor(rules: LexerRules, options: LexerOptions = {}) {
         this.rules = {}
         this.options = options
-        this.context = 'main'
 
         const _macros: StringMap<string> = {}
         options.getters || (options.getters = {})
@@ -71,7 +80,10 @@ export class Lexer {
                 for (const key in _macros) {
                     src = src.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${_macros[key]})`)
                 }
-                rule.regex = new RegExp(`^` + src)
+                rule.flags = rule.flags || ''
+                if (typeof rule.test === 'undefined') rule.test = true
+                if (rule.flags.replace(/ibt/g, '')) throw new Error('Invalid rule flags.')
+                rule.regex = new RegExp('^' + src, rule.flags.includes('i') ? 'i' : '')
                 if (rule.push instanceof Array) rule.push.forEach(resolve)
             }
             return <NativeLexerRule> rule
@@ -93,12 +105,22 @@ export class Lexer {
         return <LexerRegexRule<RegExp>[]> result
     }
 
+    private getTestResult(rule: LexerRegexRule<RegExp>): boolean {
+        if (typeof rule.test === 'boolean') {
+            return rule.test
+        } else if (typeof rule.test === 'string') {
+            return this.options[rule.test]
+        } else {
+            return rule.test(this.options)
+        }
+    }
+
     private getToken(
         rule: LexerRegexRule<RegExp>,
         capture: RegExpExecArray,
         content: TokenLike[]
     ): TokenLike {
-        if (typeof rule.token === "function") {
+        if (typeof rule.token === 'function') {
             for (const key in this.options.getters) {
                 Object.defineProperty(capture, key, {
                     get: () => this.options.getters[key].call(this, capture)
@@ -110,12 +132,15 @@ export class Lexer {
         }
     }
 
-    parse(source: string, context: LexerContext = this.context): LexerResult {
+    /**
+     * @param source the string to test
+     * @param context the lexing context
+     * @param isTop the top level status
+     **/
+    parse(source: string, context: LexerContext = 'main', isTop = true): LexerResult {
         let index = 0, unmatch = ''
         const result = []
         const rules = this.getContext(context)
-        const _context = this.context
-        this.context = context
         source = source.replace(/\r\n/g, '\n')
         while (source) {
             /**
@@ -126,6 +151,9 @@ export class Lexer {
              */
             let status = 0
             for (const rule of rules) {
+                if (rule.flags.includes('t') && !isTop) continue
+                if (rule.flags.includes('b') && index) continue
+                if (!this.getTestResult(rule)) continue
                 const capture = rule.regex.exec(source)
                 if (!capture) continue
                 source = source.slice(capture[0].length)
@@ -133,13 +161,13 @@ export class Lexer {
                 index += capture[0].length
                 let content: TokenLike[] = []
                 if (rule.push) {
-                    const subtoken = this.parse(source, rule.push)
+                    const subtoken = this.parse(source, rule.push, false)
                     source = source.slice(subtoken.index)
                     index += subtoken.index
                     content = subtoken.result
                 }
                 if (unmatch) {
-                    result.push({ type: 'default', text: unmatch })
+                    result.push(unmatch)
                     unmatch = ''
                 }
                 const token = this.getToken(rule, capture, content)
@@ -156,8 +184,7 @@ export class Lexer {
             }
             if (status === 2) break
         }
-        if (unmatch) result.push({ type: 'default', text: unmatch })
-        this.context = _context
+        if (unmatch) result.push(unmatch)
         return { index, result }
     }
 }

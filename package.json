@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/obstudio/Marklet#readme",
   "devDependencies": {
-    "eslint": "^5.1.0"
+    "eslint": "^5.1.0",
+    "typescript": "^3.0.1"
   }
 }

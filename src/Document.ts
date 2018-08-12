@@ -16,13 +16,13 @@ export class DocLexer extends Lexer {
                 // blockquote
                 regex: /> +/,
                 push: 'text',
-                token: (_, cont) => `<blockquote>${cont.map(tok => tok.text).join('')}</blockquote>`
+                token: (_, cont) => `<blockquote>${cont.map(tok => tok.text || tok).join('')}</blockquote>`
             },
             {
                 // paragraph
                 regex: /(?=.)/,
                 push: 'text',
-                token: (_, cont) => `<p>${cont.map(tok => tok.text).join('')}</p>`
+                token: (_, cont) => `<p>${cont.map(tok => tok.text || tok).join('')}</p>`
             }
         ],
         text: [
