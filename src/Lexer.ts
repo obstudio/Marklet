@@ -5,7 +5,7 @@ type ResultMap<T extends StringMap<(...arg: any[]) => any>> = {
 
 type StringLike = string | RegExp
 type Capture = RegExpExecArray & ResultMap<GetterFunctionMap>
-type GetterFunction = (capture: Capture) => TokenLike
+type GetterFunction = (capture: RegExpExecArray) => any
 type GetterFunctionMap = StringMap<GetterFunction>
 export interface LexerOptions {
   getters?: GetterFunctionMap
@@ -29,9 +29,11 @@ interface LexerRegexRule<S extends StringLike> {
   regex: S
   /**
    * a string containing all the rule flags
-   * - `b`: when the context begins
+   * - `b`: match when the context begins
+   * - `e`: match end of line
    * - `i`: ignore case
-   * - `t`: top level context
+   * - `p`: pop from the current context
+   * - `t`: match top level context
    */
   flags?: string
   /** default type of the token */
@@ -44,8 +46,16 @@ interface LexerRegexRule<S extends StringLike> {
   ) => TokenLike | TokenLike[])
   /** the inner context */
   push?: string | LexerRule<S>[]
-  /** whether to pop from the current context */
+  /** pop from the current context */
   pop?: boolean
+  /** match when the context begins */
+  context_begins?: boolean
+  /** match top level context */
+  top_level?: boolean
+  /** whether to ignore case */
+  ignore_case?: boolean
+  /** match end of line */
+  eol?: boolean
 }
 
 type LexerContext = string | NativeLexerRule[]
@@ -83,14 +93,20 @@ export class Lexer {
 
     function resolve(rule: LooseLexerRule): NativeLexerRule {
       if ('regex' in rule) {
+        if (typeof rule.test === 'undefined') rule.test = true
         let src = getString(rule.regex)
+        let flags = ''
         for (const key in macros) {
           src = src.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${macros[key]})`)
         }
         rule.flags = rule.flags || ''
-        if (typeof rule.test === 'undefined') rule.test = true
-        if (rule.flags.replace(/ibt/g, '')) throw new Error('Invalid rule flags.')
-        rule.regex = new RegExp('^' + src, rule.flags.includes('i') ? 'i' : '')
+        if (rule.flags.replace(/[biept]/g, '')) throw new Error('Invalid rule flags.')
+        if (rule.flags.includes('p')) rule.pop = true
+        if (rule.flags.includes('b')) rule.context_begins = true
+        if (rule.flags.includes('t')) rule.top_level = true
+        if (rule.flags.includes('e') || rule.eol) src += '(?:\\n|$)'
+        if (rule.flags.includes('i') || rule.ignore_case) flags += 'i'
+        rule.regex = new RegExp('^' + src, flags)
         if (rule.push instanceof Array) rule.push.forEach(resolve)
       }
       return <NativeLexerRule> rule
@@ -102,8 +118,8 @@ export class Lexer {
   }
 
   /** get a new incremental parser */
-  getParser(entrance: string = this.options.entrance): Parser {
-    return new Parser(this.rules, this.options, entrance)
+  getParser(entrance: string = this.options.entrance, options: LexerOptions = {}): Parser {
+    return new Parser(this.rules, { ...this.options, ...options }, entrance)
   }
 
   /** parse string into general AST */
@@ -185,8 +201,8 @@ class Parser {
        */
       let status = 0
       for (const rule of rules) {
-        if (rule.flags.includes('t') && !isTop) continue
-        if (rule.flags.includes('b') && index) continue
+        if (rule.top_level && !isTop) continue
+        if (rule.context_begins && index) continue
         if (!this.getTestResult(rule)) continue
         const capture = rule.regex.exec(source)
         if (!capture) continue

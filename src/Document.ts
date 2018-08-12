@@ -14,17 +14,26 @@ export class DocLexer extends Lexer {
     super({
       main: [
         {
-          // blockquote
-          regex: /> +/,
+          type: 'blockquote',
+          regex: />([\w-]*) +/,
           push: 'text',
-          type: 'blockquote'
+          token: (cap, content) => ({ style: cap[1], content })
         },
         {
-          // paragraph
+          type: 'separator',
+          regex: / *([-=])(\1|\.\1| \1)\2+ */,
+          flags: 'e',
+          token: (cap) => ({
+            thick: cap[1] === '=',
+            style: cap[2].length === 1 ? 'normal'
+                 : cap[2][0] === ' ' ? 'dashed' : 'dotted'
+          })
+        },
+        {
+          type: 'paragraph',
           regex: /(?=.)/,
           push: 'text',
-          type: 'paragraph'
-        }
+        },
       ],
       text: [
         {
@@ -62,10 +71,13 @@ export class DocLexer extends Lexer {
       getters: {
         next(capture) {
           const result = this.parse(capture.reverse().find(item => !!item) || '')
-          return result.content.map(token => token.text).join('')
+          return result.map(token => token.text || token).join('')
         }
       },
-      ...options
+      macros: {
+        rgb: /#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}/
+      },
+      ...options,
     })
   }
 }
