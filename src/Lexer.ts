@@ -10,13 +10,14 @@ type GetterFunctionMap = StringMap<GetterFunction>
 export interface LexerOptions {
     getters?: GetterFunctionMap
     macros?: StringMap<StringLike>
+    allowNoMatch?: boolean
     [key: string]: any
 }
 
 interface LexerToken {
     type?: string
     text?: string
-    content?: LexerToken[]
+    content?: TokenLike[]
     [key: string]: any
 }
 
@@ -37,7 +38,9 @@ interface LexerRegexRule<S extends StringLike> {
     /** whether the rule is to be executed */
     test?: string | boolean | ((options: LexerOptions) => boolean)
     /** a result token */
-    token?: TokenLike | ((capture: Capture, content: LexerToken[]) => TokenLike)
+    token?: TokenLike | TokenLike[] | ((
+        capture: Capture, content: TokenLike[]
+    ) => TokenLike | TokenLike[])
     /** the inner context */
     push?: string | LexerRule<S>[]
     /** whether to pop from the current context */
@@ -60,25 +63,27 @@ function getString(string: StringLike): string {
 }
 
 export class Lexer {
-    rules: StringMap<NativeLexerRule[]>
-    options: LexerOptions
+    private rules: StringMap<NativeLexerRule[]> = {}
+    private options: LexerOptions
+    static config: LexerOptions = {
+        getters: {},
+        macros: {},
+        allowNoMatch: true,
+    }
     
     constructor(rules: LexerRules, options: LexerOptions = {}) {
-        this.rules = {}
-        this.options = options
+        this.options = { ...Lexer.config, ...options }
 
-        const _macros: StringMap<string> = {}
-        options.getters || (options.getters = {})
-        options.macros || (options.macros = {})
-        for (const key in options.macros) {
-            _macros[key] = getString(options.macros[key])
+        const macros: StringMap<string> = {}
+        for (const key in this.options.macros) {
+            macros[key] = getString(this.options.macros[key])
         }
 
         function resolve(rule: LooseLexerRule): NativeLexerRule {
             if ('regex' in rule) {
                 let src = getString(rule.regex)
-                for (const key in _macros) {
-                    src = src.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${_macros[key]})`)
+                for (const key in macros) {
+                    src = src.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${macros[key]})`)
                 }
                 rule.flags = rule.flags || ''
                 if (typeof rule.test === 'undefined') rule.test = true
@@ -92,6 +97,33 @@ export class Lexer {
         for (const key in rules) {
             this.rules[key] = rules[key].map(resolve)
         }
+    }
+
+    /** get a new incremental parser */
+    getParser(): Parser {
+        return new Parser(this.rules, this.options)
+    }
+
+    /**
+     * @param source the string to test
+     * @param context the lexing context
+     **/
+    parse(source: string, context: LexerContext = 'main'): LexerResult {
+        return this.getParser().parse(source, context)
+    }
+}
+
+class Parser {
+    private rules: StringMap<NativeLexerRule[]>
+    private options: LexerOptions
+    private _source: string
+    private _result: TokenLike[]
+
+    constructor(rules: StringMap<NativeLexerRule[]>, options: LexerOptions) {
+        this.rules = rules
+        this.options = options
+        this._source = ''
+        this._result = []
     }
 
     private getContext(context: LexerContext): LexerRegexRule<RegExp>[] {
@@ -120,16 +152,22 @@ export class Lexer {
         capture: RegExpExecArray,
         content: TokenLike[]
     ): TokenLike {
+        let result: TokenLike | TokenLike[]
         if (typeof rule.token === 'function') {
             for (const key in this.options.getters) {
                 Object.defineProperty(capture, key, {
                     get: () => this.options.getters[key].call(this, capture)
                 })
             }
-            return rule.token.call(this, capture, content)
+            result = rule.token.call(this, capture, content)
+        } else if (rule.token) {
+            result = rule.token
+        } else if (rule.push) {
+            result = content
         } else {
-            return rule.token
+            result = capture[0]
         }
+        return result instanceof Array ? { content: result } : result
     }
 
     /**
@@ -139,9 +177,10 @@ export class Lexer {
      **/
     parse(source: string, context: LexerContext = 'main', isTop = true): LexerResult {
         let index = 0, unmatch = ''
-        const result = []
+        const result: TokenLike[] = []
         const rules = this.getContext(context)
         source = source.replace(/\r\n/g, '\n')
+        const _source = source
         while (source) {
             /**
              * Matching status:
@@ -158,6 +197,7 @@ export class Lexer {
                 if (!capture) continue
                 source = source.slice(capture[0].length)
                 status = 1 + Number(rule.pop)
+                const start = index
                 index += capture[0].length
                 let content: TokenLike[] = []
                 if (rule.push) {
@@ -172,12 +212,19 @@ export class Lexer {
                 }
                 const token = this.getToken(rule, capture, content)
                 if (token) {
-                    if (typeof token === 'object') token.type = token.type || rule.type
+                    if (typeof token === 'object') {
+                        token.type = token.type || rule.type
+                        token.start = start
+                        token.end = index
+                    }
                     result.push(token)
                 }
                 break
             }
-            if (!status && source) {
+            if (!status) {
+                if (!this.options.allowNoMatch) {
+                    throw new Error(`No match was found at '${source.slice(0, 20)}'.`)
+                }
                 unmatch += source.charAt(0)
                 source = source.slice(1)
                 index += 1
@@ -185,6 +232,10 @@ export class Lexer {
             if (status === 2) break
         }
         if (unmatch) result.push(unmatch)
+        if (isTop) {
+            this._source = _source
+            this._result = result
+        }
         return { index, result }
     }
 }
