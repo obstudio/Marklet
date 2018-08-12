@@ -80,7 +80,6 @@ export class Lexer {
     getters: {},
     macros: {},
     entrance: 'main',
-    allowNoMatch: true,
   }
   
   constructor(rules: LexerRules, options: LexerOptions = {}) {
@@ -104,7 +103,7 @@ export class Lexer {
         if (rule.flags.includes('p')) rule.pop = true
         if (rule.flags.includes('b')) rule.context_begins = true
         if (rule.flags.includes('t')) rule.top_level = true
-        if (rule.flags.includes('e') || rule.eol) src += '(?:\\n|$)'
+        if (rule.flags.includes('e') || rule.eol) src += ' *(?:\\n+|$)'
         if (rule.flags.includes('i') || rule.ignore_case) flags += 'i'
         rule.regex = new RegExp('^' + src, flags)
         if (rule.push instanceof Array) rule.push.forEach(resolve)
@@ -131,6 +130,7 @@ export class Lexer {
 class Parser {
   private rules: StringMap<NativeLexerRule[]>
   private options: LexerOptions
+  private _context: LexerContext
   private _source: string
   private _result: TokenLike[]
 
@@ -140,6 +140,7 @@ class Parser {
     this._source = ''
     this._result = []
     if (entrance) this.options.entrance = entrance
+    this._context = this.options.entrance
   }
 
   private getContext(context: LexerContext): LexerRegexRule<RegExp>[] {
@@ -178,18 +179,21 @@ class Parser {
       result = rule.token.call(this, capture, content)
     } else if (rule.token) {
       result = rule.token
-    } else if (rule.push) {
-      result = content
-    } else if (!rule.pop) {
-      result = capture[0]
+    } else if (rule.token === undefined) {
+      if (rule.push) {
+        result = content
+      } else if (!rule.pop) {
+        result = capture[0]
+      }
     }
     return result instanceof Array ? { content: result } : result
   }
 
-  private _parse(source: string, context: LexerContext, isTop = false): LexerResult {
+  private _parse(source: string, context: LexerContext = this._context, isTop = false): LexerResult {
     let index = 0, unmatch = ''
     const result: TokenLike[] = []
     const rules = this.getContext(context)
+    this._context = rules
     source = source.replace(/\r\n/g, '\n')
     const _source = source
     while (source) {
@@ -233,9 +237,6 @@ class Parser {
         break
       }
       if (!status) {
-        if (!this.options.allowNoMatch) {
-          throw new Error(`No match was found at '${source.slice(0, 20)}'.`)
-        }
         unmatch += source.charAt(0)
         source = source.slice(1)
         index += 1

@@ -14,15 +14,37 @@ export class DocLexer extends Lexer {
     super({
       main: [
         {
+          type: 'newline',
+          regex: /\n+/,
+          token: null
+        },
+        {
+          type: 'heading',
+          regex: /(#{1,4}) +([^\n]+?) *(#*)/,
+          eol: true,
+          token(cap) {
+            const text = this._parse(cap[2], 'text').result.join('')
+            return { level: cap[1].length, text }
+          }
+        },
+        {
           type: 'blockquote',
           regex: />([\w-]*) +/,
-          push: 'text',
+          push: [
+            {
+              regex: /\n[ \t]*\n/,
+              pop: true
+            },
+            {
+              include: 'main'
+            },
+          ],
           token: (cap, content) => ({ style: cap[1], content })
         },
         {
           type: 'separator',
-          regex: / *([-=])(\1|\.\1| \1)\2+ */,
-          flags: 'e',
+          regex: / *([-=])(\1|\.\1| \1)\2+/,
+          eol: true,
           token: (cap) => ({
             thick: cap[1] === '=',
             style: cap[2].length === 1 ? 'normal'
@@ -30,9 +52,19 @@ export class DocLexer extends Lexer {
           })
         },
         {
+          type: 'codeblock',
+          regex: / *(`{3,}) *([\w-]+)? *\n([\s\S]*?)\n? *\1/,
+          eol: true,
+          token: (cap) => ({
+            lang: cap[2],
+            text: cap[3]
+          })
+        },
+        {
           type: 'paragraph',
           regex: /(?=.)/,
           push: 'text',
+          token: (_, cont) => ({ text: cont.join('') })
         },
       ],
       text: [
@@ -43,7 +75,7 @@ export class DocLexer extends Lexer {
         },
         {
           // new paragraph
-          regex: /\n[ \t]*\n/,
+          regex: /(?=\n[ \t]*(\n|$))/,
           pop: true
         },
         {
@@ -70,8 +102,8 @@ export class DocLexer extends Lexer {
     }, {
       getters: {
         next(capture) {
-          const result = this.parse(capture.reverse().find(item => !!item) || '')
-          return result.map(token => token.text || token).join('')
+          const result = this._parse(capture.reverse().find(item => !!item) || '')
+          return result.result.map(token => token.text || token).join('')
         }
       },
       macros: {
