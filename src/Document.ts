@@ -1,4 +1,4 @@
-import {Lexer, LexerOptions, LexerRules, StringMap} from './Lexer'
+import { Lexer, LexerRules, LexerOptions } from './Lexer'
 
 function escape(html) {
     return html
@@ -58,7 +58,7 @@ export class DocLexer extends Lexer {
             },
         ]
     }
-    static Macros: StringMap<string> = {}
+
     static Options: LexerOptions = {
         getters: {
             next(capture) {
@@ -69,6 +69,6 @@ export class DocLexer extends Lexer {
     }
 
     constructor(options: LexerOptions = {}) {
-        super(DocLexer.Rules, DocLexer.Macros, DocLexer.Options)
+        super(DocLexer.Rules, DocLexer.Options)
     }
 }

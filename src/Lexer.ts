@@ -1,115 +1,116 @@
-// generic types
-export interface StringMap<V> {
-    [key: string]: V
-}
-export type ResultMap<T extends StringMap<(...arg: any[]) => any>> = {
+type StringMap<V> = { [key: string]: V }
+type ResultMap<T extends StringMap<(...arg: any[]) => any>> = {
     [key in keyof T]: ReturnType<T[key]>
 }
 
-// Lexer types
+type StringLike = string | RegExp
+export type LexerMacros = StringMap<StringLike>
 
 type Capture = RegExpExecArray & GetterResults
-type GetterFunction = (capture: Capture) => any // FIXME: narrow it?
+type GetterFunction = (capture: Capture) => TokenLike
 type GetterFunctionMap = StringMap<GetterFunction>
 type GetterResults = ResultMap<GetterFunctionMap>
 export interface LexerOptions {
     getters?: GetterFunctionMap
+    macros?: StringMap<StringLike>
+    [key: string]: any
 }
 
-export interface LexerRegexRule {
+interface LexerToken {
     type?: string
-    regex: string | RegExp
-    token?: LexerRuleToken
-    push?: string | LexerContext
-    pop?: boolean
-}
-export interface LexerIncludeRule {
-    include: string
-}
-export type LexerRule = LexerRegexRule | LexerIncludeRule
-export type LexerContext = LexerRule[]
-export type LexerRules = StringMap<LexerContext>
-
-export interface LexerToken {
-    type?: string // FIXME: is it optional?
     text?: string
     content?: LexerToken[]
     [key: string]: any
 }
 
-export type LexerRuleToken = string | LexerToken | ((
-    capture: Capture,
-    content: LexerToken[]
-) => string | LexerToken)
+type TokenLike = string | LexerToken
+interface LexerIncludeRule { include: string }
+interface LexerRegexRule<S extends StringLike> {
+    regex: S
+    type?: string
+    token?: TokenLike | ((capture: Capture, content: LexerToken[]) => TokenLike)
+    push?: string | LexerRule<S>[]
+    pop?: boolean
+}
+
+type LexerContext = string | NativeLexerRule[]
+type LexerRule<S extends StringLike> = LexerRegexRule<S> | LexerIncludeRule
+type LooseLexerRule = LexerRule<StringLike>
+type NativeLexerRule = LexerRule<RegExp>
+export type LexerRules = StringMap<LooseLexerRule[]>
+
+interface LexerResult {
+    index: number
+    result: TokenLike[]
+}
+
+function getString(string: StringLike): string {
+    return string instanceof RegExp ? string.source : string
+}
 
 export class Lexer {
-    /** Lexing options */
     options: LexerOptions
-    /** Lexing rules */
-    rules: LexerRules
-    context: string | LexerContext
+    rules: StringMap<NativeLexerRule[]>
+    context: LexerContext
     
-    constructor(rules: LexerRules, macros : StringMap<string>, options:LexerOptions = {}) {
-        function resolve(rule: LexerRule) {
+    constructor(rules: LexerRules, options: LexerOptions = {}) {
+        this.rules = {}
+        this.options = options
+        this.context = 'main'
+
+        const _macros: StringMap<string> = {}
+        options.getters || (options.getters = {})
+        options.macros || (options.macros = {})
+        for (const key in options.macros) {
+            _macros[key] = getString(options.macros[key])
+        }
+
+        function resolve(rule: LooseLexerRule): NativeLexerRule {
             if ('regex' in rule) {
-                let src = rule.regex instanceof RegExp ? rule.regex.source : rule.regex
-                for (const key in macros) {
-                    src = src.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${macros[key]})`)
+                let src = getString(rule.regex)
+                for (const key in _macros) {
+                    src = src.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${_macros[key]})`)
                 }
                 rule.regex = new RegExp(`^` + src)
                 if (rule.push instanceof Array) rule.push.forEach(resolve)
             }
-            return rule
+            return <NativeLexerRule> rule
         }
-        this.rules = {}
+
         for (const key in rules) {
             this.rules[key] = rules[key].map(resolve)
         }
-        this.options = options
-        this.context = 'main'
     }
 
-    private getContext(context: string | LexerContext): LexerRegexRule[] {
-        const result = typeof context === 'string'
-            ? this.rules[context]
-            : context
+    private getContext(context: LexerContext): LexerRegexRule<RegExp>[] {
+        const result = typeof context === 'string' ? this.rules[context] : context
         for (let i = result.length - 1; i >= 0; i -= 1) {
-            const rule = result[i]
+            const rule: NativeLexerRule = result[i]
             if ('include' in rule) {
                 result.splice(i, 1, ...this.getContext(rule.include))
             }
         }
-        return <LexerRegexRule[]>result
+        return <LexerRegexRule<RegExp>[]> result
     }
 
     private getToken(
-        rule: LexerRegexRule,
+        rule: LexerRegexRule<RegExp>,
         capture: RegExpExecArray,
-        content: LexerToken[]
-    ): LexerToken {
-        let result: string | LexerToken[]
-        if (typeof rule.token === 'string') {
-            result = rule.token
-        } else if (typeof rule.token === "function") {
-            const getters = this.options.getters || {}
-            for (const key in getters) {
+        content: TokenLike[]
+    ): TokenLike {
+        if (typeof rule.token === "function") {
+            for (const key in this.options.getters) {
                 Object.defineProperty(capture, key, {
-                    get: () => getters[key].call(this, capture)
+                    get: () => this.options.getters[key].call(this, capture)
                 })
             }
-            result = rule.token.call(this, capture, content)
-        }
-        if (result instanceof Array) {
-            return { content: result }
-        } else if (typeof result === 'string') { // FIXME: is it redundant?
-            return { text: result }
+            return rule.token.call(this, capture, content)
+        } else {
+            return rule.token
         }
     }
 
-    parse(source: string, context: string | LexerContext = this.context): {
-        index: number,
-        result: LexerToken[]
-    } {
+    parse(source: string, context: LexerContext = this.context): LexerResult {
         let index = 0, unmatch = ''
         const result = []
         const rules = this.getContext(context)
@@ -125,29 +126,28 @@ export class Lexer {
              */
             let status = 0
             for (const rule of rules) {
-                const capture = new RegExp(rule.regex).exec(source) // FIXME: shall be cached
-                if (capture) {
-                    source = source.slice(capture[0].length)
-                    status = rule.pop ? 2 : 1
-                    index += capture[0].length
-                    let content = []
-                    if (rule.push) {
-                        const subtoken = this.parse(source, rule.push)
-                        source = source.slice(subtoken.index)
-                        index += subtoken.index
-                        content = subtoken.result
-                    }
-                    if (unmatch) {
-                        result.push({ type: 'default', text: unmatch })
-                        unmatch = ''
-                    }
-                    let data = this.getToken(rule, capture, content)
-                    if (data) {
-                        data.type = data.type || rule.type
-                        result.push(data)
-                    }
-                    break
+                const capture = rule.regex.exec(source)
+                if (!capture) continue
+                source = source.slice(capture[0].length)
+                status = 1 + Number(rule.pop)
+                index += capture[0].length
+                let content: TokenLike[] = []
+                if (rule.push) {
+                    const subtoken = this.parse(source, rule.push)
+                    source = source.slice(subtoken.index)
+                    index += subtoken.index
+                    content = subtoken.result
                 }
+                if (unmatch) {
+                    result.push({ type: 'default', text: unmatch })
+                    unmatch = ''
+                }
+                const token = this.getToken(rule, capture, content)
+                if (token) {
+                    if (typeof token === 'object') token.type = token.type || rule.type
+                    result.push(token)
+                }
+                break
             }
             if (!status && source) {
                 unmatch += source.charAt(0)
@@ -158,9 +158,6 @@ export class Lexer {
         }
         if (unmatch) result.push({ type: 'default', text: unmatch })
         this.context = _context
-        return {
-            index,
-            result
-        }
+        return { index, result }
     }
 }
