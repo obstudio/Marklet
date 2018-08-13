@@ -30,7 +30,7 @@ type TokenLike = string | LexerToken
 interface LexerIncludeRule { include: string }
 interface LexerRegexRule<S extends StringLike> {
   /** the regular expression to execute */
-  regex: S
+  regex?: S
   /**
    * a string containing all the rule flags
    * - `b`: match when the context begins
@@ -97,8 +97,12 @@ export class Lexer {
     }
 
     function resolve(rule: LooseLexerRule): NativeLexerRule {
-      if ('regex' in rule) {
-        if (typeof rule.test === 'undefined') rule.test = true
+      if (!('include' in rule)) {
+        if (rule.regex === undefined) {
+          rule.regex = /(?=[\s\S])/
+          if (!rule.type) rule.type = 'any'
+        }
+        if (rule.test === undefined) rule.test = true
         let src = getString(rule.regex)
         let flags = ''
         for (const key in macros) {
