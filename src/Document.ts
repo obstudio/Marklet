@@ -9,8 +9,17 @@ function escape(html) {
     .replace(/'/g, '&#39;')
 }
 
+interface DocLexerOptions extends LexerOptions {
+  /** enable header to align at center */
+  header_align?: boolean
+  /** allow section syntax */
+  allow_sections?: boolean
+  /** default language in code block */
+  default_language?: string
+}
+
 export class DocLexer extends Lexer {
-  constructor(options: LexerOptions = {}) {
+  constructor(options: DocLexerOptions = {}) {
     super({
       main: [
         {
@@ -20,8 +29,28 @@ export class DocLexer extends Lexer {
         },
         {
           type: 'heading',
-          regex: /(#{1,4}) +([^\n]+?) *(#*)/,
+          regex: /(#{1,4}) +([^\n]+?)( +#)?/,
           eol: true,
+          token(cap) {
+            let text, center
+            if (this.options.header_align && cap[3]) {
+              text = this._parse(cap[2], 'text').result.join('')
+              center = true
+            } else {
+              text = this._parse(cap[2] + (cap[3] || ''), 'text').result.join('')
+              center = false
+            }
+            return { level: cap[1].length, text, center }
+          }
+        },
+        {
+          type: 'section',
+          regex: /(\^{1,4}) +([^\n]+?)/,
+          eol: true,
+          push(cap) {
+            this.options._section_level = cap[1].length
+            return 'main'
+          },
           token(cap) {
             const text = this._parse(cap[2], 'text').result.join('')
             return { level: cap[1].length, text }
@@ -30,15 +59,7 @@ export class DocLexer extends Lexer {
         {
           type: 'blockquote',
           regex: />([\w-]*) +/,
-          push: [
-            {
-              regex: /\n[ \t]*\n/,
-              pop: true
-            },
-            {
-              include: 'main'
-            },
-          ],
+          push: 'block',
           token: (cap, content) => ({ style: cap[1], content })
         },
         {
@@ -55,16 +76,27 @@ export class DocLexer extends Lexer {
           type: 'codeblock',
           regex: / *(`{3,}) *([\w-]+)? *\n([\s\S]*?)\n? *\1/,
           eol: true,
-          token: (cap) => ({
-            lang: cap[2],
-            text: cap[3]
-          })
+          token(cap) {
+            return {
+              lang: cap[2] || this.options.default_language,
+              text: cap[3] || '',
+            }
+          }
         },
         {
           type: 'paragraph',
           regex: /(?=.)/,
           push: 'text',
           token: (_, cont) => ({ text: cont.join('') })
+        },
+      ],
+      block: [
+        {
+          regex: /\n[ \t]*\n/,
+          pop: true
+        },
+        {
+          include: 'main'
         },
       ],
       text: [
@@ -109,6 +141,10 @@ export class DocLexer extends Lexer {
       macros: {
         rgb: /#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}/
       },
+      header_align: true,
+      allow_sections: true,
+      default_language: '',
+      _section_level: 0,
       ...options,
     })
   }

@@ -8,9 +8,11 @@ type Capture = RegExpExecArray & ResultMap<GetterFunctionMap>
 type GetterFunction = (capture: RegExpExecArray) => any
 type GetterFunctionMap = StringMap<GetterFunction>
 export interface LexerOptions {
+  /** lexer capture getters */
   getters?: GetterFunctionMap
+  /** lexer rule regex macros */
   macros?: StringMap<StringLike>
-  allowNoMatch?: boolean
+  /** entrance context */
   entrance?: string
   [key: string]: any
 }
@@ -19,6 +21,8 @@ interface LexerToken {
   type?: string
   text?: string
   content?: TokenLike[]
+  start?: number
+  end?: number
   [key: string]: any
 }
 
@@ -45,9 +49,11 @@ interface LexerRegexRule<S extends StringLike> {
     capture: Capture, content: TokenLike[]
   ) => TokenLike | TokenLike[])
   /** the inner context */
-  push?: string | LexerRule<S>[]
+  push?: string | LexerRule<S>[] | ((
+    capture: Capture
+  ) => string | LexerRule<S>[] | false)
   /** pop from the current context */
-  pop?: boolean
+  pop?: boolean | ((capture: Capture) => boolean)
   /** match when the context begins */
   context_begins?: boolean
   /** match top level context */
@@ -131,14 +137,10 @@ class Parser {
   private rules: StringMap<NativeLexerRule[]>
   private options: LexerOptions
   private _context: LexerContext
-  private _source: string
-  private _result: TokenLike[]
 
   constructor(rules: StringMap<NativeLexerRule[]>, options: LexerOptions, entrance?: string) {
     this.rules = rules
     this.options = options
-    this._source = ''
-    this._result = []
     if (entrance) this.options.entrance = entrance
     this._context = this.options.entrance
   }
@@ -154,48 +156,12 @@ class Parser {
     return <LexerRegexRule<RegExp>[]> result
   }
 
-  private getTestResult(rule: LexerRegexRule<RegExp>): boolean {
-    if (typeof rule.test === 'boolean') {
-      return rule.test
-    } else if (typeof rule.test === 'string') {
-      return this.options[rule.test]
-    } else {
-      return rule.test(this.options)
-    }
-  }
-
-  private getToken(
-    rule: LexerRegexRule<RegExp>,
-    capture: RegExpExecArray,
-    content: TokenLike[]
-  ): TokenLike {
-    let result: TokenLike | TokenLike[]
-    if (typeof rule.token === 'function') {
-      for (const key in this.options.getters) {
-        Object.defineProperty(capture, key, {
-          get: () => this.options.getters[key].call(this, capture)
-        })
-      }
-      result = rule.token.call(this, capture, content)
-    } else if (rule.token) {
-      result = rule.token
-    } else if (rule.token === undefined) {
-      if (rule.push) {
-        result = content
-      } else if (!rule.pop) {
-        result = capture[0]
-      }
-    }
-    return result instanceof Array ? { content: result } : result
-  }
-
   private _parse(source: string, context: LexerContext = this._context, isTop = false): LexerResult {
     let index = 0, unmatch = ''
     const result: TokenLike[] = []
     const rules = this.getContext(context)
     this._context = rules
     source = source.replace(/\r\n/g, '\n')
-    const _source = source
     while (source) {
       /**
        * Matching status:
@@ -207,25 +173,71 @@ class Parser {
       for (const rule of rules) {
         if (rule.top_level && !isTop) continue
         if (rule.context_begins && index) continue
-        if (!this.getTestResult(rule)) continue
+
+        // test
+        let test = rule.test
+        if (typeof test === 'string') {
+          if (test.charAt(0) === '!') {
+            test = !this.options[test.slice(1)]
+          } else {
+            test = this.options[test]
+          }
+        } else if (typeof test === 'function') {
+          test = test.call(this, this.options)
+        }
+        if (!test) continue
+
+        // regex
         const capture = rule.regex.exec(source)
         if (!capture) continue
         source = source.slice(capture[0].length)
-        status = rule.pop ? 2 : 1
         const start = index
         index += capture[0].length
-        let content: TokenLike[] = []
-        if (rule.push) {
-          const subtoken = this._parse(source, rule.push, false)
+
+        // pop
+        let pop = rule.pop
+        if (typeof pop === 'function') pop = pop.call(this, capture)
+        status = pop ? 2 : 1
+
+        // push
+        let content: TokenLike[] = [], push = rule.push
+        if (typeof push === 'function') push = push.call(this, capture)
+        if (push) {
+          const subtoken = this._parse(source, <LexerContext> push, false)
+          content = subtoken.result.map((tok) => {
+            if (typeof tok === 'object') {
+              tok.start += index
+              tok.end += index
+            }
+            return tok
+          })
           source = source.slice(subtoken.index)
           index += subtoken.index
-          content = subtoken.result
         }
+
+        // unmatch
         if (unmatch) {
           result.push(unmatch)
           unmatch = ''
         }
-        const token = this.getToken(rule, capture, content)
+
+        // token
+        let token = rule.token
+        if (typeof token === 'function') {
+          for (const key in this.options.getters) {
+            Object.defineProperty(capture, key, {
+              get: () => this.options.getters[key].call(this, capture)
+            })
+          }
+          token = token.call(this, capture, content)
+        } else if (token === undefined) {
+          if (push) {
+            token = content
+          } else if (!pop) {
+            token = capture[0]
+          }
+        }
+        if (token instanceof Array) token = { content: token }
         if (token) {
           if (typeof token === 'object') {
             token.type = token.type || rule.type
@@ -234,8 +246,10 @@ class Parser {
           }
           result.push(token)
         }
+
         break
       }
+
       if (!status) {
         unmatch += source.charAt(0)
         source = source.slice(1)
@@ -243,11 +257,8 @@ class Parser {
       }
       if (status === 2) break
     }
+
     if (unmatch) result.push(unmatch)
-    if (isTop) {
-      this._source = _source
-      this._result = result
-    }
     return { index, result }
   }
 
