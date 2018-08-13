@@ -1,4 +1,4 @@
-import { Lexer, LexerOptions } from './Lexer'
+import { Lexer, LexerConfig } from './Lexer'
 
 function escape(html) {
   return html
@@ -9,7 +9,7 @@ function escape(html) {
     .replace(/'/g, '&#39;')
 }
 
-export interface DocLexerOptions extends LexerOptions {
+export interface DocLexerConfig extends LexerConfig {
   /** enable header to align at center */
   header_align?: boolean
   /** allow section syntax */
@@ -19,7 +19,7 @@ export interface DocLexerOptions extends LexerOptions {
 }
 
 export class DocLexer extends Lexer {
-  constructor(options: DocLexerOptions = {}) {
+  constructor(config: DocLexerConfig = {}) {
     super({
       main: [{
         type: 'newline',
@@ -32,10 +32,10 @@ export class DocLexer extends Lexer {
         token(cap) {
           let text, center
           if (this.options.header_align && cap[3]) {
-            text = this._parse(cap[2], 'text').result.join('')
+            text = this.parse(cap[2], 'text').join('')
             center = true
           } else {
-            text = this._parse(cap[2] + (cap[3] || ''), 'text').result.join('')
+            text = this.parse(cap[2] + (cap[3] || ''), 'text').join('')
             center = false
           }
           return { level: cap[1].length, text, center }
@@ -47,7 +47,7 @@ export class DocLexer extends Lexer {
         eol: true,
         push: 'main',
         token(cap) {
-          const text = this._parse(cap[2], 'text').result.join('')
+          const text = this.parse(cap[2], 'text').join('')
           return { level: cap[1].length, text }
         }
       }, {
@@ -89,7 +89,7 @@ export class DocLexer extends Lexer {
           }],
           token(cap, cont) {
             return {
-              text: this._parse(cap[1], 'text').result.join(''),
+              text: this.parse(cap[1], 'text').join(''),
               content: cont
             }
           }
@@ -108,44 +108,42 @@ export class DocLexer extends Lexer {
         include: 'main'
       }],
       text: [{
-        // escape
+        type: 'escape',
         regex: /\\([\s\S])/,
         token: (cap) => cap[1]
       }, {
-        // new paragraph
         regex: /(?=\n[ \t]*(\n|$))/,
         pop: true
       }, {
-        // new line
+        type: 'newline',
         regex: /\n/,
         token: '<br/>'
       }, {
-        // code
+        type: 'code',
         regex: /(`+)\s*([\s\S]*?[^`]?)\s*\1(?!`)/,
         token: (cap) => `<code>${escape(cap[2])}</code>`
       }, {
-        // strikeout
+        type: 'strikeout',
         regex: /-(?=\S)([\s\S]*?\S)-/,
         token: (cap) => `<del>${cap.next}</del>`
       }, {
-        // bold
+        type: 'bold',
         regex: /\*\*(?=\S)([\s\S]*?\S)\*\*(?!\*)/,
         token: (cap) => `<strong>${cap.next}</strong>`
       }]
     }, {
       getters: {
         next(capture) {
-          const result = this._parse(capture.reverse().find(item => !!item) || '')
-          return result.result.map(token => token.text || token).join('')
+          const result = this.parse(capture.reverse().find(item => !!item) || '')
+          return result.map(token => token.text || token).join('')
         }
       },
-      macros: {
-        rgb: /#[0-9a-fA-F]{3}|#[0-9a-fA-F]{6}/
-      },
-      header_align: true,
-      allow_section: true,
-      default_language: '',
-      ...options,
+      config: {
+        header_align: true,
+        allow_section: true,
+        default_language: '',
+        ...config,
+      }
     })
   }
 }

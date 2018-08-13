@@ -1,9 +1,9 @@
-import { DocLexer, DocLexerOptions } from './Document'
+import { DocLexer, DocLexerConfig } from './Document'
 
 interface parseOptions {
   input: string
   output: string
-  options: DocLexerOptions
+  config: DocLexerConfig
 }
 
 export function parse(options: parseOptions) {

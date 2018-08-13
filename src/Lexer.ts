@@ -7,14 +7,18 @@ type StringLike = string | RegExp
 type Capture = RegExpExecArray & ResultMap<GetterFunctionMap>
 type GetterFunction = (capture: RegExpExecArray) => any
 type GetterFunctionMap = StringMap<GetterFunction>
-export interface LexerOptions {
+export interface LexerConfig { [key: string]: any }
+interface LexerOptions {
   /** lexer capture getters */
   getters?: GetterFunctionMap
   /** lexer rule regex macros */
   macros?: StringMap<StringLike>
   /** entrance context */
   entrance?: string
-  [key: string]: any
+  /** default context */
+  default?: string
+  /** other configurations */
+  config?: LexerConfig
 }
 
 interface LexerToken {
@@ -32,7 +36,7 @@ interface LexerRegexRule<S extends StringLike> {
   /** the regular expression to execute */
   regex?: S
   /**
-   * a string containing all the rule flags
+   * a string containing all the rule flags:
    * - `b`: match when the context begins
    * - `e`: match end of line
    * - `i`: ignore case
@@ -43,7 +47,7 @@ interface LexerRegexRule<S extends StringLike> {
   /** default type of the token */
   type?: string
   /** whether the rule is to be executed */
-  test?: string | boolean | ((options: LexerOptions) => boolean)
+  test?: string | boolean | ((config: LexerConfig) => boolean)
   /** a result token */
   token?: TokenLike | TokenLike[] | ((
     capture: Capture, content: TokenLike[]
@@ -53,7 +57,7 @@ interface LexerRegexRule<S extends StringLike> {
     capture: Capture
   ) => string | LexerRule<S>[] | false)
   /** pop from the current context */
-  pop?: boolean | ((capture: Capture) => boolean)
+  pop?: boolean
   /** match when the context begins */
   context_begins?: boolean
   /** match top level context */
@@ -70,37 +74,36 @@ type LooseLexerRule = LexerRule<StringLike>
 type NativeLexerRule = LexerRule<RegExp>
 export type LexerRules = StringMap<LooseLexerRule[]>
 
-interface LexerResult {
-  index: number
-  result: TokenLike[]
-}
-
 function getString(string: StringLike): string {
   return string instanceof RegExp ? string.source : string
 }
 
 export class Lexer {
   private rules: StringMap<NativeLexerRule[]> = {}
-  private options: LexerOptions
-  static config: LexerOptions = {
-    getters: {},
-    macros: {},
-    entrance: 'main',
-  }
+  private config: LexerConfig
+  private getters: GetterFunctionMap
+  private entrance: string
+  private default: string
+  private _context: LexerContext
+  private _running: boolean = false
   
   constructor(rules: LexerRules, options: LexerOptions = {}) {
-    this.options = { ...Lexer.config, ...options }
+    this.getters = options.getters || {}
+    this.config = options.config || {}
+    this.entrance = options.entrance || 'main'
+    this.default = options.default || 'text'
 
+    const _macros = options.macros || {}
     const macros: StringMap<string> = {}
-    for (const key in this.options.macros) {
-      macros[key] = getString(this.options.macros[key])
+    for (const key in _macros) {
+      macros[key] = getString(_macros[key])
     }
 
     function resolve(rule: LooseLexerRule): NativeLexerRule {
       if (!('include' in rule)) {
         if (rule.regex === undefined) {
           rule.regex = /(?=[\s\S])/
-          if (!rule.type) rule.type = 'any'
+          if (!rule.type) rule.type = 'default'
         }
         if (rule.test === undefined) rule.test = true
         let src = getString(rule.regex)
@@ -109,7 +112,9 @@ export class Lexer {
           src = src.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${macros[key]})`)
         }
         rule.flags = rule.flags || ''
-        if (rule.flags.replace(/[biept]/g, '')) throw new Error('Invalid rule flags.')
+        if (rule.flags.replace(/[biept]/g, '')) {
+          throw new Error(`'${rule.flags}' contains invalid rule flags.`)
+        }
         if (rule.flags.includes('p')) rule.pop = true
         if (rule.flags.includes('b')) rule.context_begins = true
         if (rule.flags.includes('t')) rule.top_level = true
@@ -126,31 +131,9 @@ export class Lexer {
     }
   }
 
-  /** get a new incremental parser */
-  getParser(entrance: string = this.options.entrance, options: LexerOptions = {}): Parser {
-    return new Parser(this.rules, { ...this.options, ...options }, entrance)
-  }
-
-  /** parse string into general AST */
-  parse(source: string): TokenLike[] {
-    return this.getParser().parse(source)
-  }
-}
-
-class Parser {
-  private rules: StringMap<NativeLexerRule[]>
-  private options: LexerOptions
-  private _context: LexerContext
-
-  constructor(rules: StringMap<NativeLexerRule[]>, options: LexerOptions, entrance?: string) {
-    this.rules = rules
-    this.options = options
-    if (entrance) this.options.entrance = entrance
-    this._context = this.options.entrance
-  }
-
   private getContext(context: LexerContext): LexerRegexRule<RegExp>[] {
     const result = typeof context === 'string' ? this.rules[context] : context
+    if (!result) throw new Error(`Context '${context}' was not found.`)
     for (let i = result.length - 1; i >= 0; i -= 1) {
       const rule: NativeLexerRule = result[i]
       if ('include' in rule) {
@@ -160,7 +143,7 @@ class Parser {
     return <LexerRegexRule<RegExp>[]> result
   }
 
-  private _parse(source: string, context: LexerContext = this._context, isTop = false): LexerResult {
+  private _parse(source: string, context: LexerContext, isTopLevel: boolean = false) {
     let index = 0, unmatch = ''
     const result: TokenLike[] = []
     const rules = this.getContext(context)
@@ -175,19 +158,19 @@ class Parser {
        */
       let status = 0
       for (const rule of rules) {
-        if (rule.top_level && !isTop) continue
+        if (rule.top_level && !isTopLevel) continue
         if (rule.context_begins && index) continue
 
         // test
         let test = rule.test
         if (typeof test === 'string') {
           if (test.charAt(0) === '!') {
-            test = !this.options[test.slice(1)]
+            test = !this.config[test.slice(1)]
           } else {
-            test = this.options[test]
+            test = this.config[test]
           }
         } else if (typeof test === 'function') {
-          test = test.call(this, this.options)
+          test = test.call(this, this.config)
         }
         if (!test) continue
 
@@ -200,14 +183,13 @@ class Parser {
 
         // pop
         let pop = rule.pop
-        if (typeof pop === 'function') pop = pop.call(this, capture)
         status = pop ? 2 : 1
 
         // push
         let content: TokenLike[] = [], push = rule.push
         if (typeof push === 'function') push = push.call(this, capture)
         if (push) {
-          const subtoken = this._parse(source, <LexerContext> push, false)
+          const subtoken = this._parse(source, <LexerContext> push)
           content = subtoken.result.map((tok) => {
             if (typeof tok === 'object') {
               tok.start += index
@@ -219,7 +201,16 @@ class Parser {
           index += subtoken.index
         }
 
-        // unmatch
+        // detect error
+        if (!pop && index === start) {
+          throw new Error(`Endless loop at '${
+            source.slice(0, 10)
+          } ${
+            source.length > 10 ? '...' : ''
+          }'.`)
+        }
+
+        // resolve unmatch
         if (unmatch) {
           result.push(unmatch)
           unmatch = ''
@@ -228,9 +219,9 @@ class Parser {
         // token
         let token = rule.token
         if (typeof token === 'function') {
-          for (const key in this.options.getters) {
+          for (const key in this.getters) {
             Object.defineProperty(capture, key, {
-              get: () => this.options.getters[key].call(this, capture)
+              get: () => this.getters[key].call(this, capture)
             })
           }
           token = token.call(this, capture, content)
@@ -266,8 +257,15 @@ class Parser {
     return { index, result }
   }
 
-  /** parse string to incremental AST */
-  parse(source: string): TokenLike[] {
-    return this._parse(source, this.options.entrance, true).result
+  parse(source: string, context?: string): TokenLike[] {
+    let result
+    if (this._running) {
+      result = this._parse(source, context || this.default).result
+    } else {
+      this._running = true
+      result = this._parse(source, context || this.entrance, true).result
+      this._running = false
+    }
+    return result
   }
 }
