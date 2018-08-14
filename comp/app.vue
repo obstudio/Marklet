@@ -3,11 +3,13 @@
 </template>
 
 <script>
-module.exports = {
-  data: () => ({
-    msg: 'hahahaha'
-  })
-}
+  Vue.component('heading', require('./heading.vue'))
+  Vue.component('usages', require('./usages.vue'))
+  module.exports = {
+    data: () => ({
+      msg: 'hahahaha'
+    })
+  }
 </script>
 
 <style>
