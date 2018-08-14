@@ -1,4 +1,4 @@
-type StringMap<V> = { [key: string]: V }
+export type StringMap<V> = { [key: string]: V }
 type ResultMap<T extends StringMap<(...arg: any[]) => any>> = {
   [key in keyof T]: ReturnType<T[key]>
 }
@@ -76,7 +76,7 @@ type LexerContext = string | NativeLexerRule[]
 type LexerRule<S extends StringLike> = LexerRegexRule<S> | LexerIncludeRule
 type LooseLexerRule = LexerRule<StringLike>
 type NativeLexerRule = LexerRule<RegExp>
-export type LexerRules = StringMap<LooseLexerRule[]>
+type LexerRules = StringMap<LooseLexerRule[]>
 
 function getString(string: StringLike): string {
   return string instanceof RegExp ? string.source : string

@@ -1,0 +1,101 @@
+name: JSON
+
+contexts:
+  main:
+    - include: constant
+    - include: number
+    - include: string
+    - include: array
+    - include: object
+    - include: comments
+
+  array:
+    - regex: '\['
+      scope: punctuation.section.array.begin.json
+      push:
+        - meta: meta.structure.array.json
+        - regex: '\]'
+          scope: punctuation.section.array.end.json
+          pop: true
+        - include: value
+        - regex: ","
+          scope: punctuation.separator.array.json
+        - regex: '[^\s\]]'
+          scope: invalid.illegal.expected-array-separator.json
+
+  comments:
+    - regex: /\*\*(?!/)
+      scope: punctuation.definition.comment.json
+      push:
+        - meta: comment.block.documentation.json
+        - regex: \*/
+          pop: true
+    - regex: /\*
+      scope: punctuation.definition.comment.json
+      push:
+        - meta: comment.block.json
+        - regex: \*/
+          pop: true
+    - regex: (//).*$\n?
+      scope: comment.line.double-slash.js
+      captures:
+        1: punctuation.definition.comment.json
+
+  constant:
+    - regex: \b(?:true|false|null)\b
+      scope: constant.language.json
+
+  number:
+    - regex: -?(0|[1-9]\d*)(\.\d+)?([eE][+-]?\d+)?
+      scope: constant.numeric.json
+
+  object:
+    - regex: '\{'
+      scope: punctuation.section.dictionary.begin.json
+      push:
+        - meta: meta.structure.dictionary.json
+        - regex: '\}'
+          scope: punctuation.section.dictionary.end.json
+          pop: true
+        - regex: '"'
+          scope: punctuation.definition.string.begin.json
+          push:
+            - meta: meta.structure.dictionary.key.json string.quoted.double.json
+            - include: inside-string
+        - include: comments
+        - regex: ":"
+          scope: punctuation.separator.dictionary.key-value.json
+          push:
+            - meta: meta.structure.dictionary.value.json
+            - regex: '(,)|(?=\})'
+              captures:
+                1: punctuation.separator.dictionary.pair.json
+              pop: true
+            - include: value
+            - regex: '[^\s,]'
+              scope: invalid.illegal.expected-dictionary-separator.json
+        - regex: '[^\s\}]'
+          scope: invalid.illegal.expected-dictionary-separator.json
+
+  string:
+    - regex: '"'
+      scope: punctuation.definition.string.begin.json
+      push: inside-string
+
+  inside-string:
+    - meta: string.quoted.double.json
+    - regex: '"'
+      scope: punctuation.definition.string.end.json
+      pop: true
+    - include: string-escape
+    - regex: $\n?
+      scope: invalid.illegal.unclosed-string.json
+      pop: true
+
+  string-escape:
+    - regex: \\(["\\/bfnrt]|u[0-9a-fA-F]{4})
+      scope: constant.character.escape.json
+    - regex: \\.
+      scope: invalid.illegal.unrecognized-string-escape.json
+
+

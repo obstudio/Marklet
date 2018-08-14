@@ -1,9 +1,23 @@
 import { DocLexer, DocLexerConfig } from './Document'
+import { Server as WSServer } from 'ws'
 import * as path from 'path'
 import * as http from 'http'
 import * as url from 'url'
 import * as fs from 'fs'
-import { Server as WSServer } from 'ws'
+
+declare module 'ws' {
+  interface Server {
+    broadcast(data: any): void
+  }
+}
+
+WSServer.prototype.broadcast = function(data) {
+  this.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(data)
+    }
+  })
+}
 
 interface parseOptions {
   source?: string
@@ -19,7 +33,7 @@ export function parse(options: parseOptions) {
   } else if (options.input) {
     source = options.input
   } else {
-    throw new Error(`'source' of 'input' option is required.`)
+    throw new Error("'source' of 'input' option is required.")
   }
   const result = new DocLexer(options.config).parse(source)
   if (options.dest) {
@@ -54,16 +68,11 @@ export function watch(options: watchOptions) {
     })
   }).listen(port)
   const wsServer = new WSServer({server: httpServer})
-  const broadcast = (data) => wsServer.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
-      client.send(data)
-    }
-  })
   wsServer.on('connection', (ws) => {
     ws.send(fs.readFileSync(options.source, 'utf8')) // TODO: add parse process
   })
-  fs.watch(options.source, (ev, name) => {
-    broadcast(fs.readFileSync(name, 'utf8')) // TODO: add parse process
+  fs.watch(options.source, (_, name) => {
+    wsServer.broadcast(fs.readFileSync(name, 'utf8')) // TODO: add parse process
   })
   console.log(`Server running at http://localhost:${port}/`)
 }

@@ -42,7 +42,7 @@ fs.readdirSync(fullPath('comp'))
 
     css += styles.map(style => {
       return sass.renderSync({
-        data: `${style.scoped ? `[id-${id}].${name}` : '&'}{${style.content}}`,
+        data: style.scoped ? `[id-${id}].${name}{${style.content}}` : style.content,
         outputStyle: 'compressed',
       }).css
     }).join('')
