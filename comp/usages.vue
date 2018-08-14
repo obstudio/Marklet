@@ -9,10 +9,6 @@
   </div>
 </template>
 
-<script>
-  module.exports = { props: ['node'] }
-</script>
-
 <style lang="scss" scoped>
 
   blockquote {
