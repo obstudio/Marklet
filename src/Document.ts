@@ -1,12 +1,16 @@
 import { Lexer, LexerConfig } from './Lexer'
 
-function escape(html) {
+function escape(html: string): string {
   return html
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
+}
+
+function collect(content) {
+  return content
 }
 
 export interface DocLexerConfig extends LexerConfig {
@@ -51,7 +55,7 @@ export class DocLexer extends Lexer {
           return { level: cap[1].length, text }
         }
       }, {
-        type: 'blockquote',
+        type: 'quote',
         regex: />([\w-]*) +/,
         push: 'block',
         token: (cap, content) => ({ style: cap[1], content })
@@ -97,6 +101,29 @@ export class DocLexer extends Lexer {
           pop: true
         }]
       }, {
+        type: 'list',
+        regex: / *(?={{bullet}} +[^\n]+)/,
+        push: [{
+          type: 'item',
+          regex: /( *)({{bullet}}) +(?=[^\n]+)/,
+          push: [{
+            regex: /\n? *(?={{bullet}} +[^\n]+)/,
+            pop: true
+          }, {
+            include: 'text'
+          }],
+          token(cap, cont) {
+            return {
+              content: cont,
+              ordered: cap[2].length > 1,
+              indent: cap[1].length,
+            }
+          }
+        }, {
+          pop: true
+        }],
+        token: (_, cont) => collect(cont)
+      }, {
         type: 'paragraph',
         push: 'text',
         token: (_, cont) => ({ text: cont.join('') })
@@ -132,6 +159,9 @@ export class DocLexer extends Lexer {
         token: (cap) => `<strong>${cap.next}</strong>`
       }]
     }, {
+      macros: {
+        bullet: /-|\d+\./,
+      },
       getters: {
         next(capture) {
           const result = this.parse(capture.reverse().find(item => !!item) || '')

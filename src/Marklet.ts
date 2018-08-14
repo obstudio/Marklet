@@ -5,12 +5,26 @@ import * as url from 'url'
 import * as fs from 'fs'
 
 interface parseOptions {
-  input: string
-  config: DocLexerConfig
+  source?: string
+  input?: string
+  dest?: string
+  config?: DocLexerConfig
 }
 
 export function parse(options: parseOptions) {
-  return new DocLexer(options.config).parse(options.input)
+  let source
+  if (options.source) {
+    source = fs.readFileSync(options.source).toString()
+  } else if (options.input) {
+    source = options.input
+  } else {
+    throw new Error(`'source' of 'input' option is required.`)
+  }
+  const result = new DocLexer(options.config).parse(source)
+  if (options.dest) {
+    fs.writeFileSync(options.dest, result)
+  }
+  return result
 }
 
 interface watchOptions {
