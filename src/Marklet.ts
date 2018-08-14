@@ -4,8 +4,6 @@ import * as http from 'http'
 import * as url from 'url'
 import * as fs from 'fs'
 
-const html = fs.readFileSync(path.join(__dirname, '../index.html'), { encoding: 'utf8' })
-
 interface parseOptions {
   input: string
   config: DocLexerConfig
@@ -23,14 +21,22 @@ interface watchOptions {
 export function watch(options: watchOptions) {
   const port = options.port || 8080
   http.createServer((request, response) => {
-    const { pathname } = url.parse(request.url)
-    if (pathname === '/') {
-      response.writeHead(200, { 'Content-Type': 'text/html' })
-      response.write(html)
-    } else {
-      response.writeHead(404, { 'Content-Type': 'text/html' })
+    let pathname = url.parse(request.url).pathname.slice(1)
+    if (!pathname) {
+      pathname = 'index.html'
+    } else if (pathname.startsWith('node_modules')) {
+      pathname = '../' + pathname
     }
-    response.end()
+    fs.readFile(path.join(__dirname, '../html', pathname), (error, data) => {
+      if (error) {
+        console.log(error)
+        response.writeHead(404, { 'Content-Type': 'text/html' })
+      } else {
+        response.writeHead(200, { 'Content-Type': 'text/html' })
+        response.write(data.toString())
+      }
+      response.end()
+    })
   }).listen(port)
   console.log(`Server running at http://localhost:${port}/`)
 }
