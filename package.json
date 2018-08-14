@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/Marklet.js",
   "scripts": {
-    "build": "node ./build/transpile & node ./build/bundle"
+    "build": "node ./build/build"
   },
   "repository": {
     "type": "git",

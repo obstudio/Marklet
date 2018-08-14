@@ -68,6 +68,10 @@ interface LexerRegexRule<S extends StringLike> {
   eol?: boolean
 }
 
+interface LexerWarning {
+  message: string
+}
+
 type LexerContext = string | NativeLexerRule[]
 type LexerRule<S extends StringLike> = LexerRegexRule<S> | LexerIncludeRule
 type LooseLexerRule = LexerRule<StringLike>
@@ -84,8 +88,8 @@ export class Lexer {
   private getters: GetterFunctionMap
   private entrance: string
   private default: string
-  private _context: LexerContext
-  private _running: boolean = false
+  private _warnings: LexerWarning[]
+  private _isRunning: boolean = false
   
   constructor(rules: LexerRules, options: LexerOptions = {}) {
     this.getters = options.getters || {}
@@ -147,7 +151,7 @@ export class Lexer {
     let index = 0, unmatch = ''
     const result: TokenLike[] = []
     const rules = this.getContext(context)
-    this._context = rules
+    this._warnings = []
     source = source.replace(/\r\n/g, '\n')
     while (source) {
       /**
@@ -182,7 +186,7 @@ export class Lexer {
         index += capture[0].length
 
         // pop
-        let pop = rule.pop
+        const pop = rule.pop
         status = pop ? 2 : 1
 
         // push
@@ -254,17 +258,21 @@ export class Lexer {
     }
 
     if (unmatch) result.push(unmatch)
-    return { index, result }
+    return { index, result, warnings: this._warnings }
+  }
+
+  pushWarning(message) {
+    this._warnings.push({ message })
   }
 
   parse(source: string, context?: string): TokenLike[] {
     let result
-    if (this._running) {
+    if (this._isRunning) {
       result = this._parse(source, context || this.default).result
     } else {
-      this._running = true
+      this._isRunning = true
       result = this._parse(source, context || this.entrance, true).result
-      this._running = false
+      this._isRunning = false
     }
     return result
   }

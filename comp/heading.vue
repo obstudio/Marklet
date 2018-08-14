@@ -1,10 +1,6 @@
 <template>
-  <component :is="'h'+node.level" v-html="node.text" :class="{ centered: node.center }"/>
+  <component :is="'h' + node.level" v-html="node.text" :class="{ centered: node.center }"/>
 </template>
-
-<script>
-  module.exports = { props: ['node'] }
-</script>
 
 <style lang="scss" scoped>
 
