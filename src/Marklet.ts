@@ -3,6 +3,7 @@ import * as path from 'path'
 import * as http from 'http'
 import * as url from 'url'
 import * as fs from 'fs'
+import { Server as WSServer } from 'ws'
 
 interface parseOptions {
   input: string
@@ -20,7 +21,7 @@ interface watchOptions {
 
 export function watch(options: watchOptions) {
   const port = options.port || 8080
-  http.createServer((request, response) => {
+  const httpServer = http.createServer((request, response) => {
     let pathname = url.parse(request.url).pathname.slice(1)
     if (!pathname) {
       pathname = 'index.html'
@@ -38,5 +39,17 @@ export function watch(options: watchOptions) {
       response.end()
     })
   }).listen(port)
+  const wsServer = new WSServer({server: httpServer})
+  const broadcast = (data) => wsServer.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(data)
+    }
+  })
+  wsServer.on('connection', (ws) => {
+    ws.send(fs.readFileSync(options.source, 'utf8')) // TODO: add parse process
+  })
+  fs.watch(options.source, (ev, name) => {
+    broadcast(fs.readFileSync(name, 'utf8')) // TODO: add parse process
+  })
   console.log(`Server running at http://localhost:${port}/`)
 }
