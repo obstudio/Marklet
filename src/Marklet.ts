@@ -1,5 +1,5 @@
 import { DocLexer, DocLexerConfig } from './Document'
-import { Server as WSServer } from 'ws'
+import { Server as WSServer, OPEN as WSOPEN } from 'ws'
 import * as path from 'path'
 import * as http from 'http'
 import * as url from 'url'
@@ -13,7 +13,7 @@ declare module 'ws' {
 
 WSServer.prototype.broadcast = function(data) {
   this.clients.forEach((client) => {
-    if (client.readyState === WebSocket.OPEN) {
+    if (client.readyState === WSOPEN) {
       client.send(data)
     }
   })

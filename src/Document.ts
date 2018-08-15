@@ -35,7 +35,7 @@ export class DocLexer extends Lexer {
         eol: true,
         token(cap) {
           let text, center
-          if (this.options.header_align && cap[3]) {
+          if (this.config.header_align && cap[3]) {
             text = this.parse(cap[2], 'text').join('')
             center = true
           } else {
