@@ -14,7 +14,7 @@ function fullPath(name) {
 
 function getRandomId() {
   const id = Math.floor(Math.random() * 36 ** 6).toString(36)
-  return ' '.repeat(6 - id.length) + id
+  return '0'.repeat(6 - id.length) + id
 }
 
 let css = ''

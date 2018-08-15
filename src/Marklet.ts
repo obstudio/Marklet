@@ -34,8 +34,11 @@ function createServer(type: 'edit' | 'watch'): http.Server {
       pathname = 'index.html'
     } else if (pathname.startsWith('node_modules')) {
       pathname = '../' + pathname
-    } else if (pathname === 'index.js') {
-      pathname = type + '.js'
+    } else if (pathname === 'start') {
+      response.writeHead(200, { 'Content-Type': 'text/html' })
+      response.write(`window.marklet.start('${type}')`)
+      response.end()
+      return
     }
     fs.readFile(path.join(__dirname, '../html', pathname), (error, data) => {
       if (error) {
@@ -91,4 +94,13 @@ export function watch(options: watchOptions): void {
   console.log(`Server running at http://localhost:${port}/`)
 }
 
-export function edit() {}
+interface EditOptions {
+  source?: string
+  port?: number
+}
+
+export function edit(options: EditOptions): void {
+  const port = options.port || 8080
+  const httpServer = createServer('edit').listen(port)
+  console.log(`Server running at http://localhost:${port}/`)
+}

@@ -7,8 +7,15 @@ Vue.component('usages', require('../dist/usages.vue'))
 const { DocLexer } = require('../dist/Document')
 
 window.marklet = {
-  vm: new Vue(require('../dist/app.vue')),
+  comp: {
+    watch: require('../dist/watch.vue'),
+    edit: require('../dist/edit.vue'),
+  },
   parse(source, config) {
     return new DocLexer(config).parse(source)
-  }
+  },
+  start(type) {
+    new Vue(this.comp[type]).$mount('#app')
+    document.title = 'Marklet - ' + type
+  },
 }
