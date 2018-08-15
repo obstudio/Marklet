@@ -59,6 +59,9 @@ const compiler = webpack({
   },
 })
 
+fs.copyFileSync(fullPath('html/marklet.min.js'), fullPath('docs/marklet.min.js'))
+fs.copyFileSync(fullPath('html/marklet.min.css'), fullPath('docs/marklet.min.css'))
+
 new webpack.ProgressPlugin().apply(compiler)
 
 compiler.run((error, stat) => {
