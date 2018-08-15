@@ -61,4 +61,12 @@ const compiler = webpack({
 
 new webpack.ProgressPlugin().apply(compiler)
 
-compiler.run(error => console.log(error || 'Succeed.'))
+compiler.run((error, stat) => {
+  if (error) {
+    console.log(error)
+  } else if (stat.compilation.errors.length) {
+    console.log(stat.compilation.errors.join('\n'))
+  } else {
+    console.log('Succeed.')
+  }
+})

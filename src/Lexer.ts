@@ -8,7 +8,7 @@ type Capture = RegExpExecArray & ResultMap<GetterFunctionMap>
 type GetterFunction = (capture: RegExpExecArray) => any
 type GetterFunctionMap = StringMap<GetterFunction>
 export interface LexerConfig { [key: string]: any }
-interface LexerOptions {
+export interface LexerOptions {
   /** lexer capture getters */
   getters?: GetterFunctionMap
   /** lexer rule regex macros */
@@ -50,7 +50,7 @@ interface LexerRegexRule<S extends StringLike> {
   test?: string | boolean | ((config: LexerConfig) => boolean)
   /** a result token */
   token?: TokenLike | TokenLike[] | ((
-    capture: Capture, content: TokenLike[]
+    capture: Capture, content: TokenLike[], rule: this
   ) => TokenLike | TokenLike[])
   /** the inner context */
   push?: string | LexerRule<S>[] | ((
@@ -76,7 +76,7 @@ type LexerContext = string | NativeLexerRule[]
 type LexerRule<S extends StringLike> = LexerRegexRule<S> | LexerIncludeRule
 type LooseLexerRule = LexerRule<StringLike>
 type NativeLexerRule = LexerRule<RegExp>
-type LexerRules = StringMap<LooseLexerRule[]>
+export type LexerRules = StringMap<LooseLexerRule[]>
 
 function getString(string: StringLike): string {
   return string instanceof RegExp ? string.source : string
@@ -147,11 +147,15 @@ export class Lexer {
     return <LexerRegexRule<RegExp>[]> result
   }
 
-  private _parse(source: string, context: LexerContext, isTopLevel: boolean = false) {
+  private _parse(source: string, context: LexerContext, isTopLevel: boolean = false): {
+    index: number
+    result: TokenLike[]
+    warnings: LexerWarning[]
+  } {
     let index = 0, unmatch = ''
     const result: TokenLike[] = []
     const rules = this.getContext(context)
-    this._warnings = []
+    const warnings: LexerWarning[] = this._warnings = []
     source = source.replace(/\r\n/g, '\n')
     while (source) {
       /**
@@ -201,6 +205,7 @@ export class Lexer {
             }
             return tok
           })
+          warnings.concat(subtoken.warnings)
           source = source.slice(subtoken.index)
           index += subtoken.index
         }
@@ -258,7 +263,7 @@ export class Lexer {
     }
 
     if (unmatch) result.push(unmatch)
-    return { index, result, warnings: this._warnings }
+    return { index, result, warnings }
   }
 
   pushWarning(message) {

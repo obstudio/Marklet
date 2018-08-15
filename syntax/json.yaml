@@ -2,6 +2,7 @@ name: JSON
 
 contexts:
   main:
+    - meta: source.json
     - include: constant
     - include: number
     - include: string
@@ -10,26 +11,20 @@ contexts:
     - include: comments
 
   array:
-    - regex: '\['
+    - regex: \[
       scope: punctuation.section.array.begin.json
       push:
         - meta: meta.structure.array.json
-        - regex: '\]'
+        - regex: \]
           scope: punctuation.section.array.end.json
           pop: true
         - include: value
-        - regex: ","
+        - regex: ','
           scope: punctuation.separator.array.json
         - regex: '[^\s\]]'
           scope: invalid.illegal.expected-array-separator.json
 
   comments:
-    - regex: /\*\*(?!/)
-      scope: punctuation.definition.comment.json
-      push:
-        - meta: comment.block.documentation.json
-        - regex: \*/
-          pop: true
     - regex: /\*
       scope: punctuation.definition.comment.json
       push:
@@ -37,12 +32,12 @@ contexts:
         - regex: \*/
           pop: true
     - regex: (//).*$\n?
-      scope: comment.line.double-slash.js
       captures:
+        0: comment.line.double-slash.js
         1: punctuation.definition.comment.json
 
   constant:
-    - regex: \b(?:true|false|null)\b
+    - regex: \b(true|false|null)\b
       scope: constant.language.json
 
   number:
@@ -87,15 +82,12 @@ contexts:
     - regex: '"'
       scope: punctuation.definition.string.end.json
       pop: true
-    - include: string-escape
-    - regex: $\n?
-      scope: invalid.illegal.unclosed-string.json
-      pop: true
-
-  string-escape:
     - regex: \\(["\\/bfnrt]|u[0-9a-fA-F]{4})
       scope: constant.character.escape.json
     - regex: \\.
       scope: invalid.illegal.unrecognized-string-escape.json
+    - regex: $\n?
+      scope: invalid.illegal.unclosed-string.json
+      pop: true
 
 
