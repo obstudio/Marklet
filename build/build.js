@@ -26,29 +26,34 @@ fs.readdirSync(fullPath('comp'))
     const compPath = fullPath('comp/' + name) + '.vue'
     const distPath = fullPath('dist/' + name)
     const id = getRandomId()
+    let scoped = false
 
     const { script, template, styles } = parseComponent(fs.readFileSync(compPath).toString())
-    const { render, staticRenderFns } = compileToFunctions(template.content)
-
-    fs.writeFileSync(distPath + '.js', script ? script.content : `
-      module.exports = { props: ['node'] }
-    `)
-
-    fs.writeFileSync(distPath + '.vue.js', `
-      const data = require('./${name}');
-      (data.mixins || (data.mixins = [])).push({ mounted() { this.$el.setAttribute('id-${id}', '') } });
-      module.exports = { ...data, render: ${render}, staticRenderFns: [${staticRenderFns.join(',')}] };
-    `)
+    const { render, staticRenderFns: fns } = compileToFunctions(template.content)
 
     css += styles.map(style => {
+      scoped |= style.scoped
       return sass.renderSync({
         data: style.scoped ? `[id-${id}].${name}{${style.content}}` : style.content,
         outputStyle: 'compressed',
       }).css
     }).join('')
+
+    fs.writeFileSync(distPath + '.js', script ? script.content : `
+      module.exports = { props: ['node'] }
+    `)
+
+    fs.writeFileSync(distPath + '.vue.js', scoped ? `
+      const data = require('./${name}');
+      (data.mixins || (data.mixins = [])).push({ mounted() { this.$el.setAttribute('id-${id}', '') } });
+      module.exports = { ...data, render: ${render}, staticRenderFns: [${fns.join(',')}] };
+    ` : `
+      module.exports = { ...require('./${name}'), render: ${render}, staticRenderFns: [${fns.join(',')}] };
+    `)
   })
 
 fs.writeFileSync(fullPath('html/marklet.min.css'), css)
+fs.copyFileSync(fullPath('html/marklet.min.css'), fullPath('docs/marklet.min.css'))
 
 const compiler = webpack({
   target: 'web',
@@ -59,9 +64,6 @@ const compiler = webpack({
   },
 })
 
-fs.copyFileSync(fullPath('html/marklet.min.js'), fullPath('docs/marklet.min.js'))
-fs.copyFileSync(fullPath('html/marklet.min.css'), fullPath('docs/marklet.min.css'))
-
 new webpack.ProgressPlugin().apply(compiler)
 
 compiler.run((error, stat) => {
@@ -71,5 +73,6 @@ compiler.run((error, stat) => {
     console.log(stat.compilation.errors.join('\n'))
   } else {
     console.log('Succeed.')
+    fs.copyFileSync(fullPath('html/marklet.min.js'), fullPath('docs/marklet.min.js'))
   }
 })
