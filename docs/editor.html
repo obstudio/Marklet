@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <title>Marklet Editor</title>
     <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-    <link href="../html/marklet.dist.css" rel="stylesheet">
-    <script src="../html/marklet.dist.js"></script>
+    <link href="../html/marklet.min.css" rel="stylesheet">
+    <script src="../html/marklet.min.js"></script>
   </head>
   <body>
     <div id="app"></div>
     <script>
-      window.marklet.start('edit')
+      window.marklet.start({ el: '#app', type: 'edit' })
     </script>
   </body>
 </html>

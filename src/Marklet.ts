@@ -36,7 +36,7 @@ function createServer(type: 'edit' | 'watch'): http.Server {
       pathname = '../' + pathname
     } else if (pathname === 'start') {
       response.writeHead(200, { 'Content-Type': 'text/html' })
-      response.write(`window.marklet.start('${type}')`)
+      response.write(`marklet.start({ el: '#app', type: '${type}' })`)
       response.end()
       return
     }

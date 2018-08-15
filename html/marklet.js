@@ -15,8 +15,8 @@ window.marklet = {
   parse(source, config) {
     return new DocLexer(config).parse(source)
   },
-  start(type) {
-    new Vue(this.comp[type]).$mount('#app')
+  start({ el, type }) {
+    new Vue(this.comp[type]).$mount(el)
     document.title = 'Marklet - ' + type
   },
 }
