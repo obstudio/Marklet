@@ -30,7 +30,7 @@ interface LexerToken {
   [key: string]: any
 }
 
-type TokenLike = string | LexerToken
+export type TokenLike = string | LexerToken
 interface LexerIncludeRule { include: string }
 interface LexerRegexRule<S extends StringLike> {
   /** the regular expression to execute */

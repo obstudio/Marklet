@@ -1,3 +1,4 @@
+import { TokenLike } from './Lexer'
 import { DocLexer, DocLexerConfig } from './Document'
 import { Server as WSServer, OPEN as WSOPEN } from 'ws'
 import * as path from 'path'
@@ -7,7 +8,7 @@ import * as fs from 'fs'
 
 declare module 'ws' {
   interface Server {
-    broadcast(data: any): void
+    broadcast(data: string): void
   }
 }
 
@@ -19,6 +20,36 @@ WSServer.prototype.broadcast = function(data) {
   })
 }
 
+function toDocMessage(filename) {
+  return JSON.stringify({
+    type: 'document',
+    data: fs.readFileSync(filename).toString()
+  })
+}
+
+function createServer(type: 'edit' | 'watch'): http.Server {
+  return http.createServer((request, response) => {
+    let pathname = url.parse(request.url).pathname.slice(1)
+    if (!pathname) {
+      pathname = 'index.html'
+    } else if (pathname.startsWith('node_modules')) {
+      pathname = '../' + pathname
+    } else if (pathname === 'index.js') {
+      pathname = type + '.js'
+    }
+    fs.readFile(path.join(__dirname, '../html', pathname), (error, data) => {
+      if (error) {
+        console.log(error)
+        response.writeHead(404, { 'Content-Type': 'text/html' })
+      } else {
+        response.writeHead(200, { 'Content-Type': 'text/html' })
+        response.write(data.toString())
+      }
+      response.end()
+    })
+  })
+}
+
 interface parseOptions {
   source?: string
   input?: string
@@ -26,7 +57,7 @@ interface parseOptions {
   config?: DocLexerConfig
 }
 
-export function parse(options: parseOptions) {
+export function parse(options: parseOptions): TokenLike[] {
   let source
   if (options.source) {
     source = fs.readFileSync(options.source).toString()
@@ -47,38 +78,17 @@ interface watchOptions {
   port?: number
 }
 
-export function watch(options: watchOptions) {
+export function watch(options: watchOptions): void {
   const port = options.port || 8080
-  const httpServer = http.createServer((request, response) => {
-    let pathname = url.parse(request.url).pathname.slice(1)
-    if (!pathname) {
-      pathname = 'index.html'
-    } else if (pathname.startsWith('node_modules')) {
-      pathname = '../' + pathname
-    }
-    fs.readFile(path.join(__dirname, '../html', pathname), (error, data) => {
-      if (error) {
-        console.log(error)
-        response.writeHead(404, { 'Content-Type': 'text/html' })
-      } else {
-        response.writeHead(200, { 'Content-Type': 'text/html' })
-        response.write(data.toString())
-      }
-      response.end()
-    })
-  }).listen(port)
-  const wsServer = new WSServer({server: httpServer})
+  const httpServer = createServer('watch').listen(port)
+  const wsServer = new WSServer({ server: httpServer })
   wsServer.on('connection', (ws) => {
-    ws.send(JSON.stringify({
-      type: 'doc',
-      data: parse(options)
-    }))
+    ws.send(toDocMessage(options.source))
   })
-  fs.watch(options.source, (_, name) => {
-    wsServer.broadcast(JSON.stringify({
-      type: 'doc',
-      data: parse(options)
-    }))
+  fs.watch(options.source, () => {
+    wsServer.broadcast(toDocMessage(options.source))
   })
   console.log(`Server running at http://localhost:${port}/`)
 }
+
+export function edit() {}

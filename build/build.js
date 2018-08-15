@@ -48,14 +48,14 @@ fs.readdirSync(fullPath('comp'))
     }).join('')
   })
 
-fs.writeFileSync(fullPath('html/app.dist.css'), css)
+fs.writeFileSync(fullPath('html/marklet.dist.css'), css)
 
 const compiler = webpack({
   target: 'web',
-  entry: path.resolve(__dirname, '../html/app.js'),
+  entry: path.resolve(__dirname, '../html/marklet.js'),
   output: {
     path: path.resolve(__dirname, '../html'),
-    filename: 'app.dist.js'
+    filename: 'marklet.dist.js'
   },
 })
 
