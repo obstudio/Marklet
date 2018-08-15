@@ -2,7 +2,7 @@
   <component :is="'h' + node.level" v-html="node.text" :class="{ centered: node.center }"/>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
 
   h1, h2, h3, h4 {
     margin-top: 24px;

@@ -1,7 +1,7 @@
 <template>
   <div>
     <textarea v-model="source"/>
-    <component v-for="(comp, index) in nodes" :is="comp.type" :node="comp" :key="index"/>
+    <nodes :content="nodes"/>
   </div>
 </template>
 

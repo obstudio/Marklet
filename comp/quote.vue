@@ -1,7 +1,5 @@
 <template>
-  <blockquote :class="node.mode">
-    <component v-for="(comp, index) in node.content" :is="comp.type" :node="comp" :key="index"/>
-  </blockquote>
+  <nodes tag="blockquote" :class="node.style" :content="node.content"/>
 </template>
 
 <style lang="scss" scoped>
