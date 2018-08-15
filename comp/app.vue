@@ -10,7 +10,7 @@
       structure: {}
     }),
     created() {
-      const ws = new WebSocket('/')
+      const ws = new WebSocket(`ws://${location.host}/`)
       ws.addEventListener('open', () => {
         console.log('Ready to receive message.')
       })

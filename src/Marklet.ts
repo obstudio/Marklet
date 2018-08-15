@@ -69,10 +69,16 @@ export function watch(options: watchOptions) {
   }).listen(port)
   const wsServer = new WSServer({server: httpServer})
   wsServer.on('connection', (ws) => {
-    ws.send(fs.readFileSync(options.source, 'utf8')) // TODO: add parse process
+    ws.send(JSON.stringify({
+      type: 'doc',
+      data: parse(options)
+    }))
   })
   fs.watch(options.source, (_, name) => {
-    wsServer.broadcast(fs.readFileSync(name, 'utf8')) // TODO: add parse process
+    wsServer.broadcast(JSON.stringify({
+      type: 'doc',
+      data: parse(options)
+    }))
   })
   console.log(`Server running at http://localhost:${port}/`)
 }
