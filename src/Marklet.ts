@@ -8,7 +8,7 @@ import * as fs from 'fs'
 
 declare module 'ws' {
   interface Server {
-    broadcast(data: string): void
+    broadcast(this: Server, data: string): void
   }
 }
 
