@@ -12,7 +12,7 @@ declare module 'ws' {
   }
 }
 
-WSServer.prototype.broadcast = function(data) {
+WSServer.prototype.broadcast = function (data) {
   this.clients.forEach((client) => {
     if (client.readyState === WSOPEN) {
       client.send(data)
@@ -35,7 +35,7 @@ function createServer(type: 'edit' | 'watch'): http.Server {
     } else if (pathname.startsWith('node_modules')) {
       pathname = '../' + pathname
     } else if (pathname === 'start') {
-      response.writeHead(200, { 'Content-Type': 'text/html' })
+      response.writeHead(200, { 'Content-Type': 'text/javascript' })
       response.write(`marklet.start({ el: '#app', type: '${type}' })`)
       response.end()
       return
@@ -45,7 +45,22 @@ function createServer(type: 'edit' | 'watch'): http.Server {
         console.log(error)
         response.writeHead(404, { 'Content-Type': 'text/html' })
       } else {
-        response.writeHead(200, { 'Content-Type': 'text/html' })
+        const ext = path.extname(pathname)
+        let contentType: string
+        switch (ext) {
+          case '.css':
+            contentType = 'text/css'
+            break
+          case '.js':
+            contentType = 'text/javascript'
+            break
+          case '.html':
+            contentType = 'text/html'
+            break
+          default:
+            contentType = 'application/octet-stream'
+        }
+        response.writeHead(200, { 'Content-Type': contentType })
         response.write(data.toString())
       }
       response.end()
