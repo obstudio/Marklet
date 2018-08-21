@@ -83,8 +83,8 @@ function getString(string: StringLike): string {
 }
 
 export class Lexer {
+  config: LexerConfig
   private rules: StringMap<NativeLexerRule[]> = {}
-  private config: LexerConfig
   private getters: GetterFunctionMap
   private entrance: string
   private default: string

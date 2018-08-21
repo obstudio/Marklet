@@ -171,7 +171,7 @@ export class DocLexer extends Lexer {
         token: (cap) => `<span class="comment">${cap.next}</del>`
       }, {
         type: 'package',
-        regex: /{{(?=\S)([\s\S]*?\S)}}(?!}))/,
+        regex: /{{(?=\S)([\s\S]*?\S)}}(?!})/,
         token: (cap) => `<code class="package">${cap.next}</del>`
       }, {
         type: 'link',
@@ -202,7 +202,7 @@ export class DocLexer extends Lexer {
           next(capture) {
             const result = this.parse(capture.reverse().find(item => !!item) || '')
             return result.map(token => token.text || token).join('')
-          }
+          },
         },
         config: {
           header_align: true,
