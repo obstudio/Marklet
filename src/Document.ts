@@ -66,7 +66,7 @@ export class DocLexer extends Lexer {
         token: (cap) => ({
           thick: cap[1] === '=',
           style: cap[2].length === 1 ? 'normal'
-               : cap[2][0] === ' ' ? 'dashed' : 'dotted'
+            : cap[2][0] === ' ' ? 'dashed' : 'dotted'
         })
       }, {
         type: 'codeblock',
@@ -74,7 +74,7 @@ export class DocLexer extends Lexer {
         eol: true,
         token(cap) {
           return {
-            lang: cap[2] || this.options.default_language,
+            lang: cap[2] || this.config.default_language,
             text: cap[3] || '',
           }
         }
@@ -154,26 +154,62 @@ export class DocLexer extends Lexer {
         regex: /-(?=\S)([\s\S]*?\S)-/,
         token: (cap) => `<del>${cap.next}</del>`
       }, {
+        type: 'underline',
+        regex: /_(?=\S)([\s\S]*?\S)_/,
+        token: (cap) => `<span style="text-decoration: underline">${cap.next}</del>`
+      }, {
         type: 'bold',
         regex: /\*\*(?=\S)([\s\S]*?\S)\*\*(?!\*)/,
         token: (cap) => `<strong>${cap.next}</strong>`
+      }, {
+        type: 'em',
+        regex: /\*(?=\S)([\s\S]*?\S)\*(?!\*)/,
+        token: (cap) => `<em>${cap.next}</em>`
+      }, {
+        type: 'comment',
+        regex: /\(\((?=\S)([\s\S]*?\S)\)\)(?!\))/,
+        token: (cap) => `<span class="comment">${cap.next}</del>`
+      }, {
+        type: 'package',
+        regex: /{{(?=\S)([\s\S]*?\S)}}(?!}))/,
+        token: (cap) => `<code class="package">${cap.next}</del>`
+      }, {
+        type: 'link',
+        regex: /^\[(?:([^\]|]+)\|)?([^\]]+)\]/,
+        token(cap) {
+          let text, match
+          if (cap[1]) {
+            text = cap[1]
+          } else if (match = cap[2].match(/^\$\w+(#\w+)$/)) {
+            text = match[1]
+          // } else if (this.resolve(cap[2]) in this.options.dictionary) { // FIXME: function not added yet
+          //   text = this.options.dictionary[this.resolve(cap[2])]
+          } else if (cap[2].includes('#') || cap[2].includes('/')) {
+            text = cap[2].match(/[#/]([^#/]+)$/)[1]
+          } else {
+            text = cap[2]
+          }
+          return cap[2][0] === '!' ?
+            `<img src="${cap[2].slice(1)}" alt="${text}" title="${text}">` : // TODO: special treatment like <a> necessary?
+            `<a href="#" data-raw-url="${cap[2]}" onclick="event.preventDefault()"'>${text}</a>`
+        }
       }]
     }, {
-      macros: {
-        bullet: /-|\d+\./,
-      },
-      getters: {
-        next(capture) {
-          const result = this.parse(capture.reverse().find(item => !!item) || '')
-          return result.map(token => token.text || token).join('')
+        macros: {
+          bullet: /-|\d+\./,
+        },
+        getters: {
+          next(capture) {
+            const result = this.parse(capture.reverse().find(item => !!item) || '')
+            return result.map(token => token.text || token).join('')
+          }
+        },
+        config: {
+          header_align: true,
+          allow_section: true,
+          default_language: '',
+          ...config,
         }
-      },
-      config: {
-        header_align: true,
-        allow_section: true,
-        default_language: '',
-        ...config,
-      }
-    })
+      })
   }
 }

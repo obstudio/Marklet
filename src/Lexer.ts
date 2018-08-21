@@ -50,11 +50,11 @@ interface LexerRegexRule<S extends StringLike> {
   test?: string | boolean | ((config: LexerConfig) => boolean)
   /** a result token */
   token?: TokenLike | TokenLike[] | ((
-    capture: Capture, content: TokenLike[], rule: this
+    this: Lexer, capture: Capture, content: TokenLike[], rule: this
   ) => TokenLike | TokenLike[])
   /** the inner context */
   push?: string | LexerRule<S>[] | ((
-    capture: Capture
+    this: Lexer, capture: Capture
   ) => string | LexerRule<S>[] | false)
   /** pop from the current context */
   pop?: boolean
@@ -228,7 +228,7 @@ export class Lexer {
         // token
         let token = rule.token
         if (typeof token === 'function') {
-          for (const key in this.getters) {
+          for (const key in this.getters) { // redundant define led to some efficiency loss, consider monkey-patch RegExpExecArray or try other solutions?
             Object.defineProperty(capture, key, {
               get: () => this.getters[key].call(this, capture)
             })
