@@ -175,7 +175,7 @@ export class DocLexer extends Lexer {
         token: (cap) => `<code class="package">${cap.next}</del>`
       }, {
         type: 'link',
-        regex: /^\[(?:([^\]|]+)\|)?([^\]]+)\]/,
+        regex: /\[(?:([^\]|]+)\|)?([^\]]+)\]/,
         token(cap) {
           let text, match
           if (cap[1]) {
