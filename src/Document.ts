@@ -151,12 +151,12 @@ export class DocLexer extends Lexer {
         token: (cap) => `<code>${escape(cap[2])}</code>`
       }, {
         type: 'strikeout',
-        regex: /-(?=\S)([\s\S]*?\S)-/,
+        regex: /-(?=\S)([\s\S]*?\S)-(?!-)/,
         token: (cap) => `<del>${cap.next}</del>`
       }, {
         type: 'underline',
-        regex: /_(?=\S)([\s\S]*?\S)_/,
-        token: (cap) => `<span style="text-decoration: underline">${cap.next}</del>`
+        regex: /_(?=\S)([\s\S]*?\S)_(?!_)/,
+        token: (cap) => `<span style="text-decoration: underline">${cap.next}</span>`
       }, {
         type: 'bold',
         regex: /\*\*(?=\S)([\s\S]*?\S)\*\*(?!\*)/,
@@ -168,11 +168,11 @@ export class DocLexer extends Lexer {
       }, {
         type: 'comment',
         regex: /\(\((?=\S)([\s\S]*?\S)\)\)(?!\))/,
-        token: (cap) => `<span class="comment">${cap.next}</del>`
+        token: (cap) => `<span class="comment">${cap.next}</span>`
       }, {
         type: 'package',
         regex: /{{(?=\S)([\s\S]*?\S)}}(?!})/,
-        token: (cap) => `<code class="package">${cap.next}</del>`
+        token: (cap) => `<code class="package">${cap.next}</code>`
       }, {
         type: 'link',
         regex: /\[(?:([^\]|]+)\|)?([^\]]+)\]/,
