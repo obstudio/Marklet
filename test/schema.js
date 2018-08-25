@@ -4,6 +4,6 @@ const validator = new Ajv()
 
 const validate = validator.compile(require('./schema.json'))
 
-module.exports =(result) => {
-  return validate(result)
+module.exports = (res) => {
+  return validate(res)
 }
