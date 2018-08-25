@@ -6,17 +6,17 @@
 </template>
 
 <script>
-  module.exports = {
-    props: {
-      tag: {
-        default: 'div',
-        type: String
-      },
-      content: {
-        required: true,
-        type: Array
-      }
+module.exports = {
+  props: {
+    tag: {
+      default: 'div',
+      type: String
+    },
+    content: {
+      required: true,
+      type: Array
     }
   }
+}
 </script>
 

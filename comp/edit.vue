@@ -6,17 +6,17 @@
 </template>
 
 <script>
-  module.exports = {
-    data: () => ({
-      source: '',
-      nodes: [],
-    }),
-    watch: {
-      source(value) {
-        this.nodes = window.marklet.parse(value)
-      }
-    },
-  }
+module.exports = {
+  data: () => ({
+    source: '',
+    nodes: [],
+  }),
+  watch: {
+    source(value) {
+      this.nodes = window.marklet.parse(value)
+    }
+  },
+}
 </script>
 
 <style>
