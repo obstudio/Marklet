@@ -124,6 +124,16 @@ export class DocLexer extends Lexer {
         }],
         token: (_, cont) => collect(cont)
       }, {
+        type: 'inlinelist',
+        regex: /$^/, // FIXME: placeholder for syntax discussion
+        push: [],
+        token: (_, cont) => ({ content: cont })
+      }, {
+        type: 'table',
+        regex: /$^/, // FIXME: placeholder for syntax discussion
+        push: [],
+        token: (_, cont) => ({ content: cont })
+      }, {
         type: 'paragraph',
         push: 'text',
         token: (_, cont) => ({ text: cont.join('') })
@@ -182,8 +192,8 @@ export class DocLexer extends Lexer {
             text = cap[1]
           } else if (match = cap[2].match(/^\$\w+(#\w+)$/)) {
             text = match[1]
-          // } else if (this.resolve(cap[2]) in this.options.dictionary) { // FIXME: function not added yet
-          //   text = this.options.dictionary[this.resolve(cap[2])]
+            // } else if (this.resolve(cap[2]) in this.options.dictionary) { // FIXME: function not added yet
+            //   text = this.options.dictionary[this.resolve(cap[2])]
           } else if (cap[2].includes('#') || cap[2].includes('/')) {
             text = cap[2].match(/[#/]([^#/]+)$/)[1]
           } else {
