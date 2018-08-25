@@ -1,9 +1,9 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
-    "html": {
+    "text": {
       "type": "string",
-      "html": true
+      "format": "text"
     },
     "Element": {
       "anyOf": [
@@ -77,7 +77,7 @@
           "minimum": 1
         },
         "text": {
-          "$ref": "#/definitions/html"
+          "$ref": "#/definitions/text"
         },
         "center": {
           "type": "boolean"
@@ -128,8 +128,8 @@
                 "type": "integer",
                 "minimum": 0
               },
-              "content": {
-                "$ref": "#/definitions/Elements"
+              "text": {
+                "$ref": "#/definitions/text"
               }
             },
             "required": [
@@ -155,7 +155,7 @@
           "const": "paragraph"
         },
         "text": {
-          "$ref": "#/definitions/html"
+          "$ref": "#/definitions/text"
         }
       },
       "additionalProperties": false,
@@ -196,7 +196,7 @@
           "minimum": 1
         },
         "text": {
-          "$ref": "#/definitions/html"
+          "$ref": "#/definitions/text"
         },
         "content": {
           "$ref": "#/definitions/Elements"
@@ -267,7 +267,7 @@
                 "const": "usage"
               },
               "text": {
-                "$ref": "#/definitions/html"
+                "$ref": "#/definitions/text"
               },
               "content": {
                 "$ref": "#/definitions/Elements"

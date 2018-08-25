@@ -1,6 +1,9 @@
 const Ajv = require('ajv')
 
-const validator = new Ajv()
+const validator = new Ajv({
+})
+
+validator.addFormat('text', () => true)
 
 const validate = validator.compile(require('./schema.json'))
 

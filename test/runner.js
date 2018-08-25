@@ -70,7 +70,7 @@ testProcess
     return schema(res.content)
   })
   .add('Detok', (res) => {
-    return equal(Marklet.parse({ input: detok.detokenize(res.content) }, res.content))
+    return equal(Marklet.parse({ input: detok.detokenize(res.content) }), res.content)
   })
   .add('Benchmark', (res) => {
     benchmark(res)
