@@ -114,7 +114,7 @@ export class DocLexer extends Lexer {
           }],
           token(cap, cont) {
             return {
-              content: cont,
+              text: cont.join(''),
               ordered: cap[2].length > 1,
               indent: cap[1].length,
             }

@@ -17,6 +17,8 @@ export interface LexerOptions {
   entrance?: string
   /** default context */
   default?: string
+  /** assign start/end to tokens */
+  requireBound?: boolean
   /** other configurations */
   config?: LexerConfig
 }
@@ -88,6 +90,7 @@ export class Lexer {
   private getters: GetterFunctionMap
   private entrance: string
   private default: string
+  private requireBound: boolean
   private _warnings: LexerWarning[]
   private _isRunning: boolean = false
   
@@ -96,6 +99,7 @@ export class Lexer {
     this.config = options.config || {}
     this.entrance = options.entrance || 'main'
     this.default = options.default || 'text'
+    this.requireBound = !!options.requireBound 
 
     const _macros = options.macros || {}
     const macros: StringMap<string> = {}
@@ -245,8 +249,10 @@ export class Lexer {
         if (token) {
           if (typeof token === 'object') {
             token.type = token.type || rule.type
-            token.start = start
-            token.end = index
+            if (this.requireBound) {
+              token.start = start
+              token.end = index
+            }
           }
           result.push(token)
         }
