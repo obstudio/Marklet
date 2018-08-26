@@ -86,7 +86,7 @@ export function parse(options: parseOptions): TokenLike[] {
   }
   const result = new DocLexer(options.config).parse(source)
   if (options.dest) {
-    fs.writeFileSync(options.dest, result)
+    fs.writeFileSync(options.dest, JSON.stringify(result))
   }
   return result
 }
