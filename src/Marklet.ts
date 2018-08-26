@@ -82,7 +82,7 @@ export function parse(options: parseOptions): TokenLike[] {
   } else if (options.input) {
     source = options.input
   } else {
-    throw new Error("'source' of 'input' option is required.")
+    throw new Error("'source' or 'input' option is required.")
   }
   const result = new DocLexer(options.config).parse(source)
   if (options.dest) {
