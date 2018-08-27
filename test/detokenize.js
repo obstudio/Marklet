@@ -57,7 +57,7 @@ const detokenizers = {
     return '^'.repeat(token.level) + ' ' + detokenize(token.text)
   },
   quote(token) {
-    return '^' + token.style + ' ' + detokenize(token.content)
+    return '>' + token.style + ' ' + detokenize(token.content)
   },
   separator(token) {
     const sep = token.thick ? '=' : '-'
@@ -105,7 +105,7 @@ function detokenize(input) {
   if (Array.isArray(input)) {
     let result = ''
     for (const token of input) {
-      result += typeof token === 'string' ? detokenizers.text(token) : detokenizers[token.type](token) + '\n'
+      result += typeof token === 'string' ? detokenizers.text(token) : detokenizers[token.type](token) + '\n\n'
     }
     return result
   } else {
