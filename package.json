@@ -4,7 +4,8 @@
   "description": "",
   "main": "dist/Marklet.js",
   "scripts": {
-    "build": "node ./build/build"
+    "build": "node ./build/build",
+    "test": "node ./test/runner.js"
   },
   "bin": {
     "marklet": "./bin/cli.js"
