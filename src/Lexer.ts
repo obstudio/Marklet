@@ -217,7 +217,7 @@ export class Lexer {
         if (push) {
           const subtoken = this._parse(source, <LexerContext> push)
           content = subtoken.result.map((tok) => {
-            if (typeof tok === 'object') {
+            if (this.requireBound && typeof tok === 'object') {
               tok.start += index
               tok.end += index
             }
