@@ -4,8 +4,10 @@
   "description": "",
   "main": "dist/Marklet.js",
   "scripts": {
+    "build:full": "tsc && node ./build/build",
     "build": "node ./build/build",
-    "test": "node ./test/runner.js"
+    "test": "node ./test/runner.js",
+    "lint": "tslint src/*.ts && eslint ."
   },
   "bin": {
     "marklet": "./bin/cli.js"
