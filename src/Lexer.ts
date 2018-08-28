@@ -1,9 +1,4 @@
-export type StringMap<V> = { [key: string]: V }
-type ResultMap<T extends StringMap<(...arg: any[]) => any>> = {
-  [key in keyof T]: ReturnType<T[key]>
-}
-
-type StringLike = string | RegExp
+import { StringMap, StringLike, ResultMap } from './types'
 type Capture = RegExpExecArray & ResultMap<GetterFunctionMap>
 type GetterFunction = (capture: RegExpExecArray) => any
 type GetterFunctionMap = StringMap<GetterFunction>
@@ -93,7 +88,8 @@ export class Lexer {
   private requireBound: boolean
   private _warnings: LexerWarning[]
   private _isRunning: boolean = false
-  
+  private ExecArray: any
+
   constructor(rules: LexerRules, options: LexerOptions = {}) {
     this.getters = options.getters || {}
     this.config = options.config || {}
@@ -137,6 +133,24 @@ export class Lexer {
     for (const key in rules) {
       this.rules[key] = rules[key].map(resolve)
     }
+
+    const ExecArray = class extends Array<string> {
+      index: number
+      input: string
+    
+      constructor(arr: RegExpExecArray) {
+        super(...arr)
+        this.index = arr.index
+        this.input = arr.input
+      }
+    }
+    const self = this
+    for (const key in self.getters) {
+      Object.defineProperty(ExecArray.prototype, key, {
+        get(this: typeof ExecArray) { return self.getters[key].call(self, this) }
+      })
+    }
+    this.ExecArray = ExecArray
   }
 
   private getContext(context: LexerContext): LexerRegexRule<RegExp>[] {
@@ -232,12 +246,12 @@ export class Lexer {
         // token
         let token = rule.token
         if (typeof token === 'function') {
-          for (const key in this.getters) { // redundant define led to some efficiency loss, consider monkey-patch RegExpExecArray or try other solutions?
-            Object.defineProperty(capture, key, {
-              get: () => this.getters[key].call(this, capture)
-            })
-          }
-          token = token.call(this, capture, content)
+          // for (const key in this.getters) { // redundant define led to some efficiency loss, consider monkey-patch RegExpExecArray or try other solutions?
+          //   Object.defineProperty(capture, key, {
+          //     get: () => this.getters[key].call(this, capture)
+          //   })
+          // }
+          token = token.call(this, new this.ExecArray(capture), content)
         } else if (token === undefined) {
           if (push) {
             token = content

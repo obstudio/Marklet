@@ -1,4 +1,5 @@
-import { Lexer, StringMap, LexerRules } from './Lexer'
+import { Lexer, LexerRules } from './Lexer'
+import { StringMap } from './types'
 
 type SyntaxRule = SyntaxMetaRule | SyntaxIncludeRule | SyntaxRegexRule
 interface SyntaxToken { scope: string, text: string }
