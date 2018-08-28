@@ -88,11 +88,11 @@ const detokenizers = {
     }
     return result
   },
-  inlinelist(token) {
+  inlinelist(/* token */) {
     // TODO: add detok when lexer implement this
     return ''
   },
-  table(token) {
+  table(/* token */) {
     // TODO: add detok when lexer implement this
     return ''
   },
