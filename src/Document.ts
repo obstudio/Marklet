@@ -172,7 +172,7 @@ export class DocLexer extends Lexer {
         regex: /\*\*(?=\S)([\s\S]*?\S)\*\*(?!\*)/,
         token: (cap) => `<strong>${cap.next}</strong>`
       }, {
-        type: 'em',
+        type: 'italic',
         regex: /\*(?=\S)([\s\S]*?\S)\*(?!\*)/,
         token: (cap) => `<em>${cap.next}</em>`
       }, {
@@ -205,21 +205,21 @@ export class DocLexer extends Lexer {
         }
       }]
     }, {
-        macros: {
-          bullet: /-|\d+\./,
+      macros: {
+        bullet: /-|\d+\./,
+      },
+      getters: {
+        next(capture) {
+          const result = this.parse(capture.reverse().find(item => !!item) || '')
+          return result.map(token => token.text || token).join('')
         },
-        getters: {
-          next(capture) {
-            const result = this.parse(capture.reverse().find(item => !!item) || '')
-            return result.map(token => token.text || token).join('')
-          },
-        },
-        config: {
-          header_align: true,
-          allow_section: true,
-          default_language: '',
-          ...config,
-        }
-      })
+      },
+      config: {
+        header_align: true,
+        allow_section: true,
+        default_language: '',
+        ...config,
+      }
+    })
   }
 }

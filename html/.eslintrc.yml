@@ -1,0 +1,8 @@
+env:
+  browser: true
+  node: false
+
+globals:
+  Vue: true
+  require: true
+  
