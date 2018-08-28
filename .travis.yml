@@ -11,7 +11,7 @@ install:
 - npm i -D @octokit/rest
 script:
 - npm run lint
-- npm run build
+- npm run build:full
 - npm run test
 deploy:
   - skip_cleanup: true
