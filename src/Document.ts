@@ -125,8 +125,23 @@ export class DocLexer extends Lexer {
         token: (_, cont) => collect(cont)
       }, {
         type: 'inlinelist',
-        regex: /$^/, // FIXME: placeholder for syntax discussion
-        push: [],
+        regex: /(?=\+)/,
+        push: [{
+          type: 'item',
+          regex: /\+/,
+          push: [{
+            regex: /\+?$|\+\n(?=\+)|\+?(?=\n)|(?=\+)/,
+            pop: true
+          }, {
+            include: 'text'
+          }],
+          token(_, cont) {
+            return cont.join('')
+          }
+        }, {
+          regex: /\n|$/,
+          pop: true
+        }],
         token: (_, cont) => ({ content: cont })
       }, {
         type: 'table',
