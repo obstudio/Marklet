@@ -89,10 +89,9 @@ const detokenizers = {
     return result
   },
   inlinelist(token) {
-    // TODO: add detok when lexer implement this
-    return ''
+    return '+' + token.content.join('+') + '+'
   },
-  table(token) {
+  table(/* token */) {
     // TODO: add detok when lexer implement this
     return ''
   },

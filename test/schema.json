@@ -98,7 +98,10 @@
           "const": "inlinelist"
         },
         "content": {
-          "$ref": "#/definitions/Elements"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/text"
+          }
         }
       },
       "additionalProperties": false,

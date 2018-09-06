@@ -128,7 +128,7 @@ export class Lexer {
         if (rule.flags.includes('t')) rule.top_level = true
         if (rule.flags.includes('e') || rule.eol) src += ' *(?:\\n+|$)'
         if (rule.flags.includes('i') || rule.ignore_case) flags += 'i'
-        rule.regex = new RegExp('^' + src, flags)
+        rule.regex = new RegExp('^(?:' + src + ')', flags)
         if (rule.push instanceof Array) rule.push.forEach(resolve)
       }
       return <NativeLexerRule> rule
