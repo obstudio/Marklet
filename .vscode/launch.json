@@ -8,7 +8,7 @@
       "type": "node",
       "request": "launch",
       "name": "Marklet",
-      "program": "${workspaceFolder}\\test\\test.js",
+      "program": "${workspaceFolder}\\packages\\test\\runner.js",
       "preLaunchTask": "tsc:watch",
       "outFiles": [
         "${workspaceFolder}/dist/**/*.js"

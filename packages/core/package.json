@@ -1,0 +1,19 @@
+{
+  "name": "marklet-core",
+  "version": "1.0.0",
+  "description": "",
+  "author": "jjyyxx <1449843302@qq.com>",
+  "homepage": "https://github.com/obstudio/Marklet",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obstudio/Marklet.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/obstudio/Marklet/issues"
+  }
+}

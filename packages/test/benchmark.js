@@ -1,6 +1,6 @@
 const { performance } = require('perf_hooks')
 
-const Marklet = require('../dist/Marklet')
+const Marklet = require('markletjs')
 
 module.exports = ({name, content}) => {
   const start1 = performance.now()

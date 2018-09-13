@@ -4,13 +4,9 @@
   "description": "",
   "main": "dist/Marklet.js",
   "scripts": {
-    "build:full": "tsc && node ./build/build",
-    "build": "node ./build/build",
-    "test": "node ./test/runner.js",
-    "lint": "tslint src/*.ts && eslint ."
-  },
-  "bin": {
-    "marklet": "./bin/cli.js"
+    "build:full": "lerna bootstrap && tsc -b",
+    "test": "node packages/test/runner.js",
+    "lint": "tslint packages/**/src/*.ts && eslint ."
   },
   "repository": {
     "type": "git",
@@ -31,6 +27,7 @@
     "eslint": "^5.5.0",
     "eslint-plugin-vue": "^5.0.0-beta.3",
     "fast-deep-equal": "^2.0.1",
+    "lerna": "^3.3.2",
     "sass": "^1.13.1",
     "tslint": "^5.11.0",
     "typescript": "^3.0.3",

@@ -1,35 +1,9 @@
-// const { promisify } = require('util')
-
-// const exec = promisify(require('child_process').exec)
-
-// async function benchmark() {
-//   // await exec('git stash push -m __TEMP__')
-//   // await exec('node_modules/.bin/tsc', {
-//   //   cwd: root
-//   // })
-//   // bench1
-//   // await exec('git stash pop')
-//   // await exec('node_modules/.bin/tsc', {
-//   //   cwd: root
-//   // })
-//   // bench2
-//   const { stdout } = await exec('node --prof --logfile=v8.log --no-logfile-per-isolate ./benchmark.js', { cwd: __dirname })
-//   console.log(stdout)
-//   // const logPath = fs.readdirSync(__dirname).filter((name) => name.match(/^isolate-.*?-v8.log/))
-//   const logPath = path.join(__dirname, 'v8.log')
-//   const content = fs.readFileSync(logPath, 'utf8')
-//   fs.writeFileSync(logPath, content/* .replace(/([A-Z]:\\[^,]+)/g, (r) => r.replace(/\\/g, '/')).replace(/([A-Z]:\/[^,]+)/g, '"$1"').replace(/^(code-creation,RegExp,4,(?:.*?,)+)(.*)$/gm, '$1"$2"') */, 'utf8')
-//   await exec('node --prof-process v8.log > analysis.txt', { cwd: __dirname })
-//   // console.log(stdout1)
-//   // fs.unlinkSync(logPath)
-// }
-
 const path = require('path')
 const fs = require('fs')
 const equal = require('fast-deep-equal')
-const Marklet = require('../dist/Marklet')
+const detok = require('marklet-detokenizer')
+const Marklet = require('markletjs')
 const benchmark = require('./benchmark')
-const detok = require('./detokenize')
 const schema = require('./schema')
 
 const testFiles = fs.readdirSync(path.join(__dirname, 'data')).map((file) => ({

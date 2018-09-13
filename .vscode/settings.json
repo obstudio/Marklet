@@ -2,5 +2,9 @@
   "eslint.validate": [
     "javascript",
     "vue"
-  ]
+  ],
+  "files.exclude": {
+    "packages/**/node_modules": true,
+    "packages/**/tsconfig.json": true
+  }
 }

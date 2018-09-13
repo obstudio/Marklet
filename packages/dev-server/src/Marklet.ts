@@ -1,5 +1,4 @@
-import { TokenLike } from './Lexer'
-import { DocLexer, DocLexerConfig } from './Document'
+import { DocLexer, DocLexerConfig } from 'markletjs'
 import { Server as WSServer, OPEN as WSOPEN } from 'ws'
 import * as path from 'path'
 import * as http from 'http'
@@ -8,7 +7,7 @@ import * as fs from 'fs'
 
 declare module 'ws' {
   interface Server {
-    broadcast(this: Server, data: string): void
+    broadcast(this: this, data: string): void
   }
 }
 
@@ -66,29 +65,6 @@ function createServer(type: 'edit' | 'watch'): http.Server {
       response.end()
     })
   })
-}
-
-interface parseOptions {
-  source?: string
-  input?: string
-  dest?: string
-  config?: DocLexerConfig
-}
-
-export function parse(options: parseOptions): TokenLike[] {
-  let source
-  if (options.source) {
-    source = fs.readFileSync(options.source).toString()
-  } else if (options.input) {
-    source = options.input
-  } else {
-    throw new Error("'source' or 'input' option is required.")
-  }
-  const result = new DocLexer(options.config).parse(source)
-  if (options.dest) {
-    fs.writeFileSync(options.dest, JSON.stringify(result))
-  }
-  return result
 }
 
 interface watchOptions {
