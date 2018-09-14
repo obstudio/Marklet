@@ -27,7 +27,7 @@ module.exports = {
         el: element,
         data: this.parse(source, config),
         render(h) {
-          return h('nodes', {props: this.$data})
+          return h('nodes', { props: { content: this.$data } })
         }
       })
     }

@@ -74,9 +74,11 @@ const compiler = webpack({
   },
   output: {
     path: path.resolve(__dirname, '../dist'),
-    filename: 'renderer.min.js'
+    filename: 'renderer.min.js',
+    library: 'Marklet',
+    libraryTarget: 'umd'
   },
-  mode: 'production'
+  mode: 'none'
 })
 
 new webpack.ProgressPlugin().apply(compiler)
