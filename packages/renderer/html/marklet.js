@@ -59,7 +59,7 @@ class WatchClient {
 const client = new WatchClient()
 addEventListener('beforeunload', () => client.close())
 
-const { DocLexer } = require('../dist/Document')
+const { DocLexer } = require('markletjs')
 
 window.marklet = {
   comp: {

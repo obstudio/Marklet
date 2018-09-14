@@ -19,6 +19,11 @@ function getRandomId() {
 
 let css = ''
 
+const dist = fullPath('dist')
+if (!fs.existsSync(dist)) {
+  fs.mkdirSync(dist)
+}
+
 fs.readdirSync(fullPath('comp'))
   .filter(name => name.endsWith('.vue'))
   .forEach(name => {
@@ -62,6 +67,9 @@ const compiler = webpack({
     path: path.resolve(__dirname, '../html'),
     filename: 'marklet.min.js'
   },
+  plugins: [
+    new webpack.IgnorePlugin(/fs/)
+  ]
 })
 
 new webpack.ProgressPlugin().apply(compiler)
