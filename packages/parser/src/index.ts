@@ -1,5 +1,4 @@
 import { Lexer, LexerConfig, TokenLike } from 'marklet-core'
-import * as fs from 'fs'
 
 function escape(html: string): string {
   return html
@@ -241,24 +240,16 @@ export class DocLexer extends Lexer {
 }
 
 interface parseOptions {
-  source?: string
-  input?: string
-  dest?: string
+  input: string
   config?: DocLexerConfig
 }
 
 export function parse(options: parseOptions): TokenLike[] {
   let source
-  if (options.source) {
-    source = fs.readFileSync(options.source).toString()
-  } else if (options.input) {
+  if (options.input) {
     source = options.input
   } else {
-    throw new Error("'source' or 'input' option is required.")
+    throw new Error("'input' option is required.")
   }
-  const result = new DocLexer(options.config).parse(source)
-  if (options.dest) {
-    fs.writeFileSync(options.dest, JSON.stringify(result))
-  }
-  return result
+  return new DocLexer(options.config).parse(source)
 }

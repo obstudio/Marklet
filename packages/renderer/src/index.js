@@ -3,13 +3,13 @@ const { DocLexer } = require('markletjs')
 module.exports = {
   _Vue: null,
   install(Vue) {
-    Vue.component('heading', require('../dist/heading.vue'))
-    Vue.component('inlinelist', require('../dist/inlinelist.vue'))
-    Vue.component('nodes', require('../dist/nodes.vue'))
-    Vue.component('paragraph', require('../dist/paragraph.vue'))
-    Vue.component('quote', require('../dist/quote.vue'))
-    Vue.component('separator', require('../dist/separator.vue'))
-    Vue.component('usages', require('../dist/usages.vue'))
+    Vue.component('heading', require('@/heading.vue'))
+    Vue.component('inlinelist', require('@/inlinelist.vue'))
+    Vue.component('nodes', require('@/nodes.vue'))
+    Vue.component('paragraph', require('@/paragraph.vue'))
+    Vue.component('quote', require('@/quote.vue'))
+    Vue.component('separator', require('@/separator.vue'))
+    Vue.component('usages', require('@/usages.vue'))
     this._Vue = Vue
   },
   parse(source, config) {

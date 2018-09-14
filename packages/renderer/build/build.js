@@ -23,13 +23,17 @@ const dist = fullPath('dist')
 if (!fs.existsSync(dist)) {
   fs.mkdirSync(dist)
 }
+const comp = fullPath('dist/comp')
+if (!fs.existsSync(comp)) {
+  fs.mkdirSync(comp)
+}
 
-fs.readdirSync(fullPath('comp'))
+fs.readdirSync(fullPath('src/comp'))
   .filter(name => name.endsWith('.vue'))
   .forEach(name => {
     name = name.slice(0, -4)
-    const compPath = fullPath('comp/' + name) + '.vue'
-    const distPath = fullPath('dist/' + name)
+    const compPath = fullPath('src/comp/' + name) + '.vue'
+    const distPath = fullPath('dist/comp/' + name)
     const id = getRandomId()
     let scoped = false
 
@@ -57,19 +61,22 @@ fs.readdirSync(fullPath('comp'))
     `)
   })
 
-fs.writeFileSync(fullPath('html/marklet.min.css'), css)
-fs.copyFileSync(fullPath('html/marklet.min.css'), fullPath('docs/marklet.min.css'))
+// fs.writeFileSync(fullPath('html/marklet.min.css'), css)
+// fs.copyFileSync(fullPath('html/marklet.min.css'), fullPath('docs/marklet.min.css'))
 
 const compiler = webpack({
   target: 'web',
-  entry: path.resolve(__dirname, '../html/marklet.js'),
-  output: {
-    path: path.resolve(__dirname, '../html'),
-    filename: 'marklet.min.js'
+  entry: path.resolve(__dirname, '../src/index.js'),
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, '../dist/comp')
+    }
   },
-  plugins: [
-    new webpack.IgnorePlugin(/fs/)
-  ]
+  output: {
+    path: path.resolve(__dirname, '../dist'),
+    filename: 'renderer.min.js'
+  },
+  mode: 'production'
 })
 
 new webpack.ProgressPlugin().apply(compiler)
@@ -81,6 +88,6 @@ compiler.run((error, stat) => {
     console.log(stat.compilation.errors.join('\n'))
   } else {
     console.log('Succeed.')
-    fs.copyFileSync(fullPath('html/marklet.min.js'), fullPath('docs/marklet.min.js'))
+    // fs.copyFileSync(fullPath('html/marklet.min.js'), fullPath('docs/marklet.min.js'))
   }
 })
