@@ -12,7 +12,8 @@
   },
   "scripts": {
     "test": "echo \"Error: run tests from root\" && exit 1",
-    "build": "node build/build"
+    "build:full": "node ./build/build --prod",
+    "build": "node ./build/build --dev"
   },
   "bugs": {
     "url": "https://github.com/obstudio/Marklet/issues"

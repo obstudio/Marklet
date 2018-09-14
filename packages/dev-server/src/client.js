@@ -54,8 +54,8 @@ addEventListener('beforeunload', () => client.close())
 
 window.marklet = {
   comp: {
-    watch: require('../dist/watch.vue'),
-    edit: require('../dist/edit.vue'),
+    watch: require('../temp/watch.vue'),
+    edit: require('../temp/edit.vue'),
   },
   start({ el, type }) {
     new Vue(this.comp[type]).$mount(el)
