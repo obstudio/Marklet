@@ -17,6 +17,7 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "markletjs": "1.1.0"
+    "marklet-renderer": "1.0.0",
+    "ws": "^6.0.0"
   }
 }

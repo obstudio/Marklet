@@ -20,6 +20,9 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "markletjs": "1.1.0"
+    "chalk": "^2.4.1",
+    "commander": "^2.18.0",
+    "markletjs": "^1.1.0",
+    "marklet-dev-server": "^1.0.0"
   }
 }

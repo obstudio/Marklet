@@ -17,6 +17,7 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "marklet-core": "1.0.0"
+    "marklet-core": "1.0.0",
+    "js-yaml": "^3.12.0"
   }
 }

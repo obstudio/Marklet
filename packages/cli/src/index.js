@@ -2,7 +2,9 @@
 
 const program = require('commander')
 // const chalk = require('chalk').default
-const Marklet = require('../dist/Marklet')
+const { parse } = require('markletjs')
+const { edit, watch } = require('marklet-dev-server')
+const Marklet = { parse, edit, watch }
 
 program
   .name('marklet')
