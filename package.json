@@ -4,8 +4,8 @@
   "description": "",
   "main": "dist/Marklet.js",
   "scripts": {
-    "build:full": "tsc && node ./build/build",
-    "build": "node ./build/build",
+    "build:full": "tsc && node ./build/build --prod",
+    "build": "node ./build/build --dev",
     "test": "node ./test/runner.js",
     "lint": "tslint src/*.ts && eslint ."
   },
@@ -31,10 +31,10 @@
     "eslint": "^5.5.0",
     "eslint-plugin-vue": "^5.0.0-beta.3",
     "fast-deep-equal": "^2.0.1",
-    "sass": "^1.13.1",
+    "node-sass": "^4.9.3",
+    "sfc2js": "^1.0.2",
     "tslint": "^5.11.0",
     "typescript": "^3.0.3",
-    "vue-template-compiler": "^2.5.17",
     "webpack": "^4.17.1"
   },
   "dependencies": {
