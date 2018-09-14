@@ -1,11 +1,3 @@
-Vue.component('heading', require('../dist/heading.vue'))
-Vue.component('inlinelist', require('../dist/inlinelist.vue'))
-Vue.component('nodes', require('../dist/nodes.vue'))
-Vue.component('paragraph', require('../dist/paragraph.vue'))
-Vue.component('quote', require('../dist/quote.vue'))
-Vue.component('separator', require('../dist/separator.vue'))
-Vue.component('usages', require('../dist/usages.vue'))
-
 const eventBus = new Vue()
 Vue.prototype.$eventBus = eventBus
 class WatchClient {
@@ -59,18 +51,14 @@ class WatchClient {
 const client = new WatchClient()
 addEventListener('beforeunload', () => client.close())
 
-const { DocLexer } = require('markletjs')
 
 window.marklet = {
   comp: {
     watch: require('../dist/watch.vue'),
     edit: require('../dist/edit.vue'),
   },
-  parse(source, config) {
-    return new DocLexer(config).parse(source)
-  },
   start({ el, type }) {
     new Vue(this.comp[type]).$mount(el)
     document.title = 'Marklet - ' + type
-  },
+  }
 }

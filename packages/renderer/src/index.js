@@ -17,12 +17,12 @@ module.exports = {
   },
   embed(source, el, config) {
     const element = typeof el === 'string' ? document.querySelector(el) : el
+    const Vue = this._Vue
     if (!element) {
       throw new Error('Specified element not exists.')
-    } else if (!this._Vue) {
+    } else if (!Vue) {
       throw new Error('The renderer is a vue plugin. It should be installed before using.')
     } else {
-      const Vue = this._Vue
       return new Vue({
         el: element,
         data: this.parse(source, config),
