@@ -1,10 +1,10 @@
-Vue.component('heading', require('../dist/heading.vue'))
-Vue.component('inlinelist', require('../dist/inlinelist.vue'))
-Vue.component('nodes', require('../dist/nodes.vue'))
-Vue.component('paragraph', require('../dist/paragraph.vue'))
-Vue.component('quote', require('../dist/quote.vue'))
-Vue.component('separator', require('../dist/separator.vue'))
-Vue.component('usages', require('../dist/usages.vue'))
+Vue.component('heading', require('../temp/heading.vue'))
+Vue.component('inlinelist', require('../temp/inlinelist.vue'))
+Vue.component('nodes', require('../temp/nodes.vue'))
+Vue.component('paragraph', require('../temp/paragraph.vue'))
+Vue.component('quote', require('../temp/quote.vue'))
+Vue.component('separator', require('../temp/separator.vue'))
+Vue.component('usages', require('../temp/usages.vue'))
 
 const eventBus = new Vue()
 Vue.prototype.$eventBus = eventBus
@@ -63,8 +63,8 @@ const { DocLexer } = require('../dist/Document')
 
 window.marklet = {
   comp: {
-    watch: require('../dist/watch.vue'),
-    edit: require('../dist/edit.vue'),
+    watch: require('../temp/watch.vue'),
+    edit: require('../temp/edit.vue'),
   },
   parse(source, config) {
     return new DocLexer(config).parse(source)

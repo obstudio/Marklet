@@ -5,5 +5,6 @@ test.*
 tslint.json
 test/
 docs/
+temp/
 .vscode/
 build/
