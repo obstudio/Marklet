@@ -7,13 +7,21 @@ function fullPath(name) {
   return path.join(__dirname, '..', name)
 }
 
+function mkdirIfNotExists(path) {
+  if (!fs.existsSync(path)) {
+    fs.mkdirSync(path)
+  }
+}
+
+mkdirIfNotExists(fullPath('dist'))
+
 sfc2js({
   srcDir: fullPath('comp'),
   outDir: fullPath('temp'),
-  outCSSFile: '../html/marklet.min.css',
+  outCSSFile: '../dist/marklet.min.css',
 })
 
-fs.copyFileSync(fullPath('html/marklet.min.css'), fullPath('docs/marklet.min.css'))
+// fs.copyFileSync(fullPath('html/marklet.min.css'), fullPath('docs/marklet.min.css'))
 
 const compiler = webpack({
   target: 'web',
@@ -42,7 +50,7 @@ compiler.run((error, stat) => {
   } else {
     console.log('Succeed.')
     if (process.argv.includes('--prod')) {
-      fs.copyFileSync(fullPath('html/marklet.min.js'), fullPath('docs/marklet.min.js'))
+      // fs.copyFileSync(fullPath('html/marklet.min.js'), fullPath('docs/marklet.min.js'))
     }
   }
 })
