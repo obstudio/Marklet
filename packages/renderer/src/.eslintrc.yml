@@ -1,0 +1,8 @@
+env:
+  browser: true
+  commonjs: true
+  node: false
+
+globals:
+  Vue: true
+  
