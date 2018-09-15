@@ -1,5 +1,5 @@
 const webpack = require('webpack')
-const sfc2js = require('sfc2js').default
+const sfc2js = require('sfc2js')
 const path = require('path')
 const fs = require('fs')
 
