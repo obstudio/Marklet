@@ -30,59 +30,59 @@ h4 {
   font-size: 1em; }
 
 
-[id-6ie4u9] li {
+[id-60pg95] li {
   display: inline; }
 
 
 
-[id-gmcatc] p {
+[id-24ouhy] p {
   margin-top: 0;
   margin-bottom: 16px; }
 
 
-[id-27zk9w] {
+[id-cqm71a] {
   margin: 0 0 16px;
   padding: 4px 1em;
   border-left: 0.25em solid; }
-  [id-27zk9w] > :first-child {
+  [id-cqm71a] > :first-child {
     margin-top: 0; }
-  [id-27zk9w] > :last-child {
+  [id-cqm71a] > :last-child {
     margin-bottom: 0; }
-  [id-27zk9w] code {
+  [id-cqm71a] code {
     background-color: inherit !important; }
 
 
-[id-scksy4] {
+[id-1onr8p] {
   height: 0.25em;
   padding: 0;
   margin: 24px 0;
   overflow: hidden;
   border: 0; }
-  [id-scksy4]::before {
+  [id-1onr8p]::before {
     display: table;
     content: ""; }
-  [id-scksy4]::after {
+  [id-1onr8p]::after {
     display: table;
     clear: both;
     content: ""; }
 
 
-[id-nyoxta] blockquote {
+[id-8its28] blockquote {
   border: 1px solid !important;
   margin-bottom: -1px;
   padding: 8px 1em; }
-  [id-nyoxta] blockquote:first-child {
+  [id-8its28] blockquote:first-child {
     border-top-left-radius: 8px;
     border-top-right-radius: 8px; }
-  [id-nyoxta] blockquote:last-child {
+  [id-8its28] blockquote:last-child {
     border-bottom-left-radius: 8px;
     border-bottom-right-radius: 8px;
     margin-bottom: 16px; }
-  [id-nyoxta] blockquote span:first-child {
+  [id-8its28] blockquote span:first-child {
     font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace; }
-  [id-nyoxta] blockquote > br + span {
+  [id-8its28] blockquote > br + span {
     padding-left: 16px; }
-  [id-nyoxta] blockquote > br + span em {
+  [id-8its28] blockquote > br + span em {
     padding: 4px; }
 
 
