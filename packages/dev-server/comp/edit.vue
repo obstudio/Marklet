@@ -13,7 +13,7 @@ module.exports = {
   }),
   watch: {
     source(value) {
-      this.nodes = window.marklet.parse(value)
+      this.nodes = window.Marklet.parse(value)
     }
   },
 }

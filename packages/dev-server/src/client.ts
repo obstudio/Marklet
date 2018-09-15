@@ -1,7 +1,25 @@
+import Vue from 'vue'
+import { DocLexer } from 'markletjs'
+declare module 'vue/types/vue' {
+  interface Vue {
+    $eventBus: typeof eventBus
+  }
+}
 const eventBus = new Vue()
 Vue.prototype.$eventBus = eventBus
+
+Vue.use(require('marklet-renderer'))
+
 class WatchClient {
-  constructor({ url = `ws://${location.host}/`, retry = true, timeout = 5000 } = {}) {
+  private url: string
+  private retry: boolean
+  private timeout: number
+  private ws: WebSocket
+  constructor({
+    url = `ws://${location.host}/`,
+    retry = true,
+    timeout = 5000
+  } = {}) {
     this.url = url
     this.retry = retry
     this.timeout = timeout
@@ -51,13 +69,15 @@ class WatchClient {
 const client = new WatchClient()
 addEventListener('beforeunload', () => client.close())
 
-
-window.marklet = {
+export const Marklet = {
   comp: {
-    watch: require('../temp/watch.vue'),
-    edit: require('../temp/edit.vue'),
+    watch: require('@/watch.vue'),
+    edit: require('@/edit.vue'),
   },
-  start({ el, type }) {
+  parse(source, config) {
+    return new DocLexer(config).parse(source)
+  },
+  start({ el, type }: { el: string | Element, type: 'watch' | 'edit' }) {
     new Vue(this.comp[type]).$mount(el)
     document.title = 'Marklet - ' + type
   }

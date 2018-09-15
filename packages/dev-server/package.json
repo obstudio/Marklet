@@ -18,6 +18,8 @@
   },
   "dependencies": {
     "marklet-renderer": "1.0.0",
+    "markletjs": "^1.1.0",
+    "vue": "^2.5.17",
     "ws": "^6.0.0"
   }
 }

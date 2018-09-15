@@ -1,4 +1,3 @@
-import { DocLexer, DocLexerConfig } from 'markletjs'
 import { Server as WSServer, OPEN as WSOPEN } from 'ws'
 import * as path from 'path'
 import * as http from 'http'
@@ -26,20 +25,20 @@ function toDocMessage(filename) {
   })
 }
 
-function createServer(type: 'edit' | 'watch'): http.Server {
-  return http.createServer((request, response) => {
+function createServer(type: 'edit' | 'watch') {
+  const httpServer = http.createServer((request, response) => {
     let pathname = url.parse(request.url).pathname.slice(1)
     if (!pathname) {
       pathname = 'index.html'
-    } else if (pathname.startsWith('node_modules')) {
+    } /* else if (pathname.startsWith('node_modules')) {
       pathname = '../' + pathname
-    } else if (pathname === 'start') {
+    }  */else if (pathname === 'start') {
       response.writeHead(200, { 'Content-Type': 'text/javascript' })
-      response.write(`marklet.start({ el: '#app', type: '${type}' })`)
+      response.write(`Marklet.start({ el: '#app', type: '${type}' })`)
       response.end()
       return
     }
-    fs.readFile(path.join(__dirname, '../html', pathname), (error, data) => {
+    fs.readFile(path.join(__dirname, pathname), (error, data) => {
       if (error) {
         console.log(error)
         response.writeHead(404, { 'Content-Type': 'text/html' })
@@ -65,17 +64,22 @@ function createServer(type: 'edit' | 'watch'): http.Server {
       response.end()
     })
   })
+  const wsServer = new WSServer({ server: httpServer })
+  return {
+    httpServer,
+    wsServer
+  }
 }
 
-interface watchOptions {
+interface WatchOptions {
   source: string
   port?: number
 }
 
-export function watch(options: watchOptions): void {
+export function watch(options: WatchOptions): void {
   const port = options.port || 8080
-  const httpServer = createServer('watch').listen(port)
-  const wsServer = new WSServer({ server: httpServer })
+  const { httpServer, wsServer } = createServer('watch')
+  httpServer.listen(port)
   wsServer.on('connection', (ws) => {
     ws.send(toDocMessage(options.source))
   })
@@ -92,6 +96,7 @@ interface EditOptions {
 
 export function edit(options: EditOptions): void {
   const port = options.port || 8080
-  const httpServer = createServer('edit').listen(port)
+  const { httpServer } = createServer('edit')
+  httpServer.listen(port)
   console.log(`Server running at http://localhost:${port}/`)
 }

@@ -11,7 +11,7 @@ module.exports = {
   }),
   created() {
     this.$eventBus.$on('server.message.document', (data) => {
-      this.nodes = window.marklet.parse(data)
+      this.nodes = window.Marklet.parse(data)
     })
   }
 }
