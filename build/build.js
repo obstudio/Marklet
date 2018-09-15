@@ -11,6 +11,9 @@ sfc2js({
   srcDir: fullPath('comp'),
   outDir: fullPath('temp'),
   outCSSFile: '../html/marklet.min.css',
+  defaultScript: {
+    props: ['node'],
+  }
 })
 
 fs.copyFileSync(fullPath('html/marklet.min.css'), fullPath('docs/marklet.min.css'))
