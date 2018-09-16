@@ -2,6 +2,7 @@
   "references": [
     { "path": "./packages/core" },
     { "path": "./packages/dev-server" },
+    { "path": "./packages/detok" },
     { "path": "./packages/parser" },
     { "path": "./packages/syntax" }
   ],

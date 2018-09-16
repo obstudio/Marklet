@@ -1,22 +1,26 @@
-const cheerio = require('cheerio')
+import cheerio from 'cheerio'
+import { TokenLike, LexerToken } from '../../core'
+type InlineTokenTypes = 'br' | 'code' | 'span' | 'em' | 'strong' | 'del'
+type BlockTokenTypes = 'text' | 'heading' | 'section' | 'quote' | 'separator' | 'codeblock' | 'usage' | 'usages' | 'list' | 'inlinelist' | 'table' | 'paragraph'
 
-function iterate(el) {
+function iterate(el: CheerioElement) {
   let result = ''
   for (const child of el.children) {
     if (child.type === 'text') {
       result += child.nodeValue
     } else if (child.type === 'tag') {
-      result += textDetokenizers[child.tagName](child)
+      result += textDetokenizers[<InlineTokenTypes>child.tagName](child)
     }
   }
   return result
 }
 
-function makeSimpleWrap(leftWrap, rightWrap = leftWrap) {
-  return (el) => leftWrap + iterate(el) + rightWrap
+function makeSimpleWrap(leftWrap: string, rightWrap = leftWrap) {
+  return (el: CheerioElement) => leftWrap + iterate(el) + rightWrap
 }
 
-const textDetokenizers = {
+
+export const textDetokenizers: Record<InlineTokenTypes, (el: CheerioElement) => string> = {
   br() {
     return '\n'
   },
@@ -39,8 +43,8 @@ const textDetokenizers = {
   del: makeSimpleWrap('-')
 }
 
-const detokenizers = {
-  text(token) {
+export const detokenizers: Record<BlockTokenTypes, (tok: TokenLike) => string> = {
+  text(token: string) {
     const $ = cheerio.load(token)
     const root = $('body')
     let result = ''
@@ -48,18 +52,18 @@ const detokenizers = {
 
     return result
   },
-  heading(token) {
+  heading(token: LexerToken) {
     const prefix = '#'.repeat(token.level)
     return prefix + ' ' + detokenize(token.text)
       + (token.center ? ' ' + prefix : '')
   },
-  section(token) {
+  section(token: LexerToken) {
     return '^'.repeat(token.level) + ' ' + detokenize(token.text)
   },
-  quote(token) {
+  quote(token: LexerToken) {
     return '>' + token.style + ' ' + detokenize(token.content)
   },
-  separator(token) {
+  separator(token: LexerToken) {
     const sep = token.thick ? '=' : '-'
     switch (token.style) {
     case 'normal':
@@ -70,49 +74,44 @@ const detokenizers = {
       return sep + ('.' + sep).repeat(2)
     }
   },
-  codeblock(token) {
+  codeblock(token: LexerToken) {
     return '```' + token.lang + '\n' + token.text + '\n```'
   },
-  usage(token) {
+  usage(token: LexerToken) {
     return '? ' + detokenize(token.text) + '\n' + detokenize(token.content)
   },
-  usages(token) {
+  usages(token: LexerToken) {
     return detokenize(token.content)
   },
-  list(token) {
+  list(token: LexerToken) {
     let result = ''
     let count = 0
     for (const item of token.content) {
-      const bullet = item.ordered ? ++count : '-'
-      result += ' '.repeat(token.indent) + bullet + ' ' + detokenize(item.content)
+      const bullet = (<LexerToken>item).ordered ? ++count : '-'
+      result += ' '.repeat(token.indent) + bullet + ' ' + detokenize((<LexerToken>item).content)
     }
     return result
   },
-  inlinelist(token) {
+  inlinelist(token: LexerToken) {
     return '+' + token.content.join('+') + '+'
   },
   table(/* token */) {
     // TODO: add detok when lexer implement this
     return ''
   },
-  paragraph(token) {
+  paragraph(token: LexerToken) {
     return detokenize(token.text)
   }
 }
 
-function detokenize(input) {
+export function detokenize(input: TokenLike[] | TokenLike) {
   if (Array.isArray(input)) {
     let result = ''
     for (const token of input) {
-      result += typeof token === 'string' ? detokenizers.text(token) : detokenizers[token.type](token) + '\n\n'
+      result += typeof token === 'string' ? detokenizers.text(token) : detokenizers[<BlockTokenTypes>token.type](token) + '\n\n'
     }
     return result
   } else {
-    return typeof input === 'string' ? detokenizers.text(input) : detokenizers[input.type](input)
+    return typeof input === 'string' ? detokenizers.text(input) : detokenizers[<BlockTokenTypes>input.type](input)
   }
-}
-
-module.exports = {
-  detokenize,
-  detokenizers
 }

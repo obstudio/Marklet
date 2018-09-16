@@ -23,7 +23,7 @@ export interface LexerOptions {
   config?: LexerConfig
 }
 
-interface LexerToken {
+export interface LexerToken {
   type?: string
   text?: string
   content?: TokenLike[]

@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/obstudio/Marklet#readme",
   "devDependencies": {
+    "@types/cheerio": "^0.22.9",
     "@types/js-yaml": "^3.11.2",
     "@types/node": "^10.9.4",
     "@types/ws": "^6.0.0",
