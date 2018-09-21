@@ -1,4 +1,4 @@
-import { Lexer, LexerConfig, TokenLike } from 'marklet-core'
+import { Lexer, LexerConfig, TokenLike } from '@marklet/core'
 
 function escape(html: string): string {
   return html
@@ -9,7 +9,7 @@ function escape(html: string): string {
     .replace(/'/g, '&#39;')
 }
 
-function collect(content) {
+function collect(content: TokenLike[]) {
   return content
 }
 
@@ -226,7 +226,7 @@ export class DocLexer extends Lexer {
       getters: {
         next(capture) {
           const result = this.parse(capture.reverse().find(item => !!item) || '')
-          return result.map(token => token.text || token).join('')
+          return result/* .map(token => token.text || token) */.join('')
         },
       },
       config: {

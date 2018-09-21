@@ -1,4 +1,4 @@
-import { Lexer, StringMap, LexerRules } from 'marklet-core'
+import { Lexer, LexerRules } from '@marklet/core'
 
 type SyntaxRule = SyntaxMetaRule | SyntaxIncludeRule | SyntaxRegexRule
 interface SyntaxToken { scope: string, text: string }
@@ -19,7 +19,7 @@ interface SyntaxRegexRule {
 }
 
 export class SyntaxLexer extends Lexer {
-  constructor(contexts: StringMap<SyntaxRule[]>, macros: StringMap<string> = {}) {
+  constructor(contexts: Record<string, SyntaxRule[]>, macros: Record<string, string> = {}) {
     function traverse(context: SyntaxRule[]): void {
       let meta = '', firstRule = context[0]
       if ('meta' in firstRule) {
@@ -48,6 +48,6 @@ export class SyntaxLexer extends Lexer {
       })
     }
     for (const key in contexts) traverse(contexts[key])
-    super(<LexerRules> contexts, { macros })
+    super(<LexerRules>contexts, { macros })
   }
 }

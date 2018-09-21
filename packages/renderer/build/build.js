@@ -20,7 +20,7 @@ sfc2js.install(require('@sfc2js/clean-css'))
 sfc2js.transpile({
   srcDir: fullPath('comp'),
   outDir: fullPath('temp'),
-  outCSSFile: '../html/marklet.min.css',
+  outCSSFile: '../dist/marklet.min.css',
   useCache: false,
   defaultScript: {
     props: ['node'],

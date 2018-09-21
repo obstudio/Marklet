@@ -1,5 +1,5 @@
 {
-  "name": "marklet-cli",
+  "name": "@marklet/cli",
   "version": "1.0.0",
   "description": "",
   "author": "jjyyxx <1449843302@qq.com>",
@@ -22,7 +22,7 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "commander": "^2.18.0",
-    "markletjs": "^1.1.0",
-    "marklet-dev-server": "^1.0.0"
+    "@marklet/parser": "^1.0.0",
+    "@marklet/dev-server": "^1.0.0"
   }
 }

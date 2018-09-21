@@ -1,18 +1,17 @@
-export type StringMap<V> = { [key: string]: V }
-type ResultMap<T extends StringMap<(...arg: any[]) => any>> = {
+type ResultMap<T extends Record<string, (...arg: any[]) => any>> = {
   [key in keyof T]: ReturnType<T[key]>
 }
 
 type StringLike = string | RegExp
 type Capture = RegExpExecArray & ResultMap<GetterFunctionMap>
-type GetterFunction = (capture: RegExpExecArray) => any
-type GetterFunctionMap = StringMap<GetterFunction>
+type GetterFunction = (this: Lexer, capture: RegExpExecArray) => any
+type GetterFunctionMap = Record<string, GetterFunction>
 export interface LexerConfig { [key: string]: any }
 export interface LexerOptions {
   /** lexer capture getters */
   getters?: GetterFunctionMap
   /** lexer rule regex macros */
-  macros?: StringMap<StringLike>
+  macros?: Record<string, StringLike>
   /** entrance context */
   entrance?: string
   /** default context */
@@ -78,7 +77,7 @@ type LexerContext = string | NativeLexerRule[]
 type LexerRule<S extends StringLike> = LexerRegexRule<S> | LexerIncludeRule
 type LooseLexerRule = LexerRule<StringLike>
 type NativeLexerRule = LexerRule<RegExp>
-export type LexerRules = StringMap<LooseLexerRule[]>
+export type LexerRules = Record<string, LooseLexerRule[]>
 
 function getString(string: StringLike): string {
   return string instanceof RegExp ? string.source : string
@@ -86,23 +85,23 @@ function getString(string: StringLike): string {
 
 export class Lexer {
   config: LexerConfig
-  private rules: StringMap<NativeLexerRule[]> = {}
+  private rules: Record<string, NativeLexerRule[]> = {}
   private getters: GetterFunctionMap
   private entrance: string
   private default: string
   private requireBound: boolean
   private _warnings: LexerWarning[]
   private _isRunning: boolean = false
-  
+
   constructor(rules: LexerRules, options: LexerOptions = {}) {
     this.getters = options.getters || {}
     this.config = options.config || {}
     this.entrance = options.entrance || 'main'
     this.default = options.default || 'text'
-    this.requireBound = !!options.requireBound 
+    this.requireBound = !!options.requireBound
 
     const _macros = options.macros || {}
-    const macros: StringMap<string> = {}
+    const macros: Record<string, string> = {}
     for (const key in _macros) {
       macros[key] = getString(_macros[key])
     }
@@ -131,7 +130,7 @@ export class Lexer {
         rule.regex = new RegExp('^(?:' + src + ')', flags)
         if (rule.push instanceof Array) rule.push.forEach(resolve)
       }
-      return <NativeLexerRule> rule
+      return <NativeLexerRule>rule
     }
 
     for (const key in rules) {
@@ -148,7 +147,7 @@ export class Lexer {
         result.splice(i, 1, ...this.getContext(rule.include))
       }
     }
-    return <LexerRegexRule<RegExp>[]> result
+    return <LexerRegexRule<RegExp>[]>result
   }
 
   private _parse(source: string, context: LexerContext, isTopLevel: boolean = false): {
@@ -201,7 +200,7 @@ export class Lexer {
         let content: TokenLike[] = [], push = rule.push
         if (typeof push === 'function') push = push.call(this, capture)
         if (push) {
-          const subtoken = this._parse(source, <LexerContext> push)
+          const subtoken = this._parse(source, <LexerContext>push)
           content = subtoken.result.map((tok) => {
             if (this.requireBound && typeof tok === 'object') {
               tok.start += index
@@ -218,9 +217,9 @@ export class Lexer {
         if (!pop && index === start) {
           throw new Error(`Endless loop at '${
             source.slice(0, 10)
-          } ${
+            } ${
             source.length > 10 ? '...' : ''
-          }'.`)
+            }'.`)
         }
 
         // resolve unmatch
@@ -272,7 +271,7 @@ export class Lexer {
     return { index, result, warnings }
   }
 
-  pushWarning(message) {
+  pushWarning(message: string) {
     this._warnings.push({ message })
   }
 

@@ -1,5 +1,5 @@
 {
-  "name": "marklet-test",
+  "name": "@marklet/test",
   "version": "1.0.0",
   "description": "",
   "author": "jjyyxx <1449843302@qq.com>",
@@ -18,6 +18,6 @@
   },
   "dependencies": {
     "markletjs": "1.1.0",
-    "marklet-detokenizer": "1.0.0"
+    "@marklet/detokenizer": "1.0.0"
   }
 }

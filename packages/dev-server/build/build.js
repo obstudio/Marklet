@@ -1,5 +1,5 @@
 const webpack = require('webpack')
-const sfc2js = require('sfc2js').default
+const sfc2js = require('sfc2js')
 const path = require('path')
 const fs = require('fs')
 
@@ -15,10 +15,16 @@ function mkdirIfNotExists(path) {
 
 mkdirIfNotExists(fullPath('dist'))
 
-sfc2js({
+sfc2js.install(require('@sfc2js/clean-css'))
+
+sfc2js.transpile({
   srcDir: fullPath('comp'),
   outDir: fullPath('temp'),
   outCSSFile: '../dist/dev.min.css',
+  useCache: false,
+  defaultScript: {
+    props: ['node'],
+  },
 })
 
 const compiler = webpack({
@@ -50,5 +56,5 @@ compiler.run((error, stat) => {
     console.log('Succeed.')
   }
   fs.copyFileSync(fullPath('index.html'), fullPath('dist/index.html'))
-  fs.copyFileSync(path.join(path.dirname(require.resolve('marklet-renderer')), 'marklet.min.css'), fullPath('dist/marklet.min.css'))
+  fs.copyFileSync(path.join(path.dirname(require.resolve('@marklet/renderer')), 'marklet.min.css'), fullPath('dist/marklet.min.css'))
 })

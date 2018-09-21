@@ -1,5 +1,5 @@
 {
-  "name": "marklet-renderer",
+  "name": "@marklet/renderer",
   "version": "1.0.0",
   "description": "",
   "author": "jjyyxx <1449843302@qq.com>",
@@ -19,7 +19,6 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "markletjs": "1.1.0",
     "vue": "^2.5.17"
   }
 }

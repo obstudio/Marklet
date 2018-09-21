@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { DocLexer } from 'markletjs'
+import { DocLexer, DocLexerConfig } from '@marklet/parser'
 declare module 'vue/types/vue' {
   interface Vue {
     $eventBus: typeof eventBus
@@ -8,7 +8,7 @@ declare module 'vue/types/vue' {
 const eventBus = new Vue()
 Vue.prototype.$eventBus = eventBus
 
-Vue.use(require('marklet-renderer'))
+Vue.use(require('@marklet/renderer'))
 
 class WatchClient {
   private url: string
@@ -74,7 +74,7 @@ export const Marklet = {
     watch: require('@/watch.vue'),
     edit: require('@/edit.vue'),
   },
-  parse(source, config) {
+  parse(source: string, config: DocLexerConfig) {
     return new DocLexer(config).parse(source)
   },
   start({ el, type }: { el: string | Element, type: 'watch' | 'edit' }) {

@@ -18,7 +18,7 @@ WSServer.prototype.broadcast = function (data) {
   })
 }
 
-function toDocMessage(filename) {
+function toDocMessage(filename: string) {
   return JSON.stringify({
     type: 'document',
     data: fs.readFileSync(filename).toString()

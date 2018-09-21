@@ -1,5 +1,3 @@
-const { DocLexer } = require('markletjs')
-
 module.exports = {
   _Vue: null,
   install(Vue) {
@@ -12,10 +10,7 @@ module.exports = {
     Vue.component('usages', require('@/usages.vue'))
     this._Vue = Vue
   },
-  parse(source, config) {
-    return new DocLexer(config).parse(source)
-  },
-  embed(source, el, config) {
+  embed(data, el) {
     const element = typeof el === 'string' ? document.querySelector(el) : el
     const Vue = this._Vue
     if (!element) {
@@ -25,7 +20,7 @@ module.exports = {
     } else {
       return new Vue({
         el: element,
-        data: this.parse(source, config),
+        data,
         render(h) {
           return h('nodes', { props: { content: this.$data } })
         }
