@@ -4,7 +4,7 @@
   "description": "A markup language designed for API manual pages.",
   "main": "dist/Marklet.js",
   "scripts": {
-    "bootstrap": "lerna bootstrap --hoist",
+    "bootstrap": "lerna bootstrap --hoist --no-ci",
     "build:full": "tsc -b && node packages\\renderer\\build\\build.js && node packages\\dev-server\\build\\build.js",
     "build": "tsc -b",
     "test": "node packages/test/runner.js",

@@ -7,7 +7,8 @@ env:
 before_install:
 - node ./ci/version_check.js
 install:
-- npx lerna bootstrap --hoist
+- npm i
+- npm run bootstrap
 script:
 - npm run lint
 - npm run build:full
