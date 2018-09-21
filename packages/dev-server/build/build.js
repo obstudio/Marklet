@@ -41,7 +41,8 @@ const compiler = webpack({
     filename: 'marklet.min.js',
     library: 'Marklet',
     libraryExport: 'Marklet',
-    libraryTarget: 'umd'
+    libraryTarget: 'umd',
+    globalObject: 'typeof self !== \'undefined\' ? self : this'
   }
 })
 

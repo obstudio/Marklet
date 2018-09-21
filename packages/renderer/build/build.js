@@ -40,7 +40,8 @@ const compiler = webpack({
     path: path.resolve(__dirname, '../dist'),
     filename: 'renderer.min.js',
     library: 'Marklet',
-    libraryTarget: 'umd'
+    libraryTarget: 'umd',
+    globalObject: 'typeof self !== \'undefined\' ? self : this'
   }
 })
 

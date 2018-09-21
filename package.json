@@ -5,7 +5,7 @@
   "main": "dist/Marklet.js",
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist --no-ci",
-    "build:full": "tsc -b && node packages\\renderer\\build\\build.js && node packages\\dev-server\\build\\build.js",
+    "build:full": "tsc -b && node packages/renderer/build/build.js --prod && node packages/dev-server/build/build.js --prod",
     "build": "tsc -b",
     "test": "node packages/test/runner.js",
     "lint": "tslint packages/**/src/*.ts && eslint ."
