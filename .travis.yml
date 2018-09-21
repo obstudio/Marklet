@@ -5,13 +5,13 @@ env:
   global:
     - secure: "ikFQOw+feac3+WhVb1QtCeAqp9OpQprD4oXmG4+q3MVAHFiP2pLcfZbrExr0bu472eEHLpRDjjlxHEGxcnJoSool4LUCkgTnlpN8/iGzug0gnv1/XoLZiwKVbonOQHaksJ8vGBIXFMPbXRYfc1DjSyWQhwxkdhrIGUEyPs0IqrBZ4nzbpCG/hsSbkKG6xMu5sXXwM/4Nmklx8kZRMWCQXB09gMysmt1TmPwxogyxXg1xm8GaSfA5GQHJZyW3oQpvGMKaXyDLymjLw66rlrUhZ9u0TKklkBqtVlhBnGm/eXxNFnDTfz+D8K3v2MSoSRuFb8bsofLHDFDm9suBuVV83nmINhkIcsmxEbS5B+Cv916za0NgCKxKJW/DRuCCoOdjRrXk36oC+7DCvEIVH8Hsraj7oC/WgBWSHCkI12UAXhxoSHrS3OiNxJEVZJXqIUzzzbyJJE5DTHElmBm1T6ZM7WEydzAPfhtzs/d5SsjwP0w6n+8SrnKifuBaFNw7wv40sdwey9TKJEXD84AeBsbTmJQCljJuKZntQryfoCVYB82OasEoEF0ryCnc0to1/lszXLAKJBv7gOTxzQ62tKo3wJo2L6FhGIOYG5n0NVXz7kC+5rKh5ZIwKx42oT9P4OAAwpM3p+LxzS7lkn6WLamFlioCFnzmvItO9yOFR/pIiKY="
 before_install:
-- node ./ci/version_check.js
+- node ./build/check.js
 install:
 - npm i
 - npm run bootstrap
 script:
 - npm run lint
-- npm run build:full
+- npm run build:prod
 - npm run test
 deploy:
   - skip_cleanup: true
@@ -24,7 +24,7 @@ deploy:
       branch: master
   - skip_cleanup: true
     provider: script
-    script: node ./ci/auto_release.js
+    script: node ./build/release.js
     on:
       repo: obstudio/Marklet
       branch: master
