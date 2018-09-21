@@ -8,7 +8,6 @@ before_install:
 - node ./ci/version_check.js
 install:
 - npm i
-- npm i -D @octokit/rest
 - npm run bootstrap
 script:
 - npm run lint
