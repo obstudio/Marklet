@@ -15,6 +15,7 @@ function mkdirIfNotExists(path) {
 
 mkdirIfNotExists(fullPath('dist'))
 
+sfc2js.install(require('@sfc2js/sass'))
 sfc2js.install(require('@sfc2js/clean-css'))
 
 sfc2js.transpile({
