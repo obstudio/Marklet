@@ -5,8 +5,8 @@
   "main": "dist/Marklet.js",
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist --no-ci",
-    "build": "tsc -b && node build -sr",
-    "build:prod": "tsc -b && node build -psr",
+    "build": "tsc -b && node build/build -sr",
+    "build:prod": "tsc -b && node build/build -psr",
     "build:renderer": "node build/build -r",
     "build:server": "node build/build -s",
     "build:tsc": "tsc -b",
