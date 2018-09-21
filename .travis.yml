@@ -9,6 +9,7 @@ before_install:
 install:
 - npm i
 - npm i -D @octokit/rest
+- npm run bootstrap
 script:
 - npm run lint
 - npm run build:full
