@@ -44,8 +44,8 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
       path: fullPath(name, 'dist'),
       filename: options.output,
       library: 'Marklet',
-      libraryExport: 'Marklet',
       libraryTarget: 'umd',
+      libraryExport: options.libraryExport,
       globalObject: 'typeof self !== \'undefined\' ? self : this'
     }
   })
@@ -100,6 +100,7 @@ Promise.resolve().then(() => {
     return bundle('dev-server', {
       entry: 'dist/client.js',
       output: 'marklet.min.js',
+      libraryExport: 'Marklet',
       callback(relPath) {
         fs.copyFileSync(relPath('index.html'), relPath('dist/index.html'))
         fs.copyFileSync(fullPath('renderer/dist/marklet.min.css'), relPath('dist/marklet.min.css'))  
