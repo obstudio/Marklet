@@ -70,6 +70,24 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
 })
 
 Promise.resolve().then(() => {
+  if (program.renderer) {
+    mkdirIfNotExists('renderer/dist')
+  
+    sfc2js.transpile({
+      ...sfc2jsOptions,
+      baseDir: fullPath('renderer'),
+      outCSSFile: '../dist/marklet.min.css',
+      defaultScript: {
+        props: ['node'],
+      },
+    })
+
+    return bundle('renderer', {
+      entry: 'src/index.js',
+      output: 'renderer.min.js',
+    })
+  }
+}).then(() => {
   if (program.server) {
     mkdirIfNotExists('dev-server/dist')
   
@@ -86,24 +104,6 @@ Promise.resolve().then(() => {
         fs.copyFileSync(relPath('index.html'), relPath('dist/index.html'))
         fs.copyFileSync(fullPath('renderer/dist/marklet.min.css'), relPath('dist/marklet.min.css'))  
       }
-    })
-  }
-}).then(() => {
-  if (program.renderer) {
-    mkdirIfNotExists('renderer/dist')
-  
-    sfc2js.transpile({
-      ...sfc2jsOptions,
-      baseDir: fullPath('renderer'),
-      outCSSFile: '../dist/marklet.min.css',
-      defaultScript: {
-        props: ['node'],
-      },
-    })
-
-    return bundle('renderer', {
-      entry: 'src/index.js',
-      output: 'renderer.min.js',
     })
   }
 })
