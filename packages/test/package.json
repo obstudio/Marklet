@@ -1,7 +1,7 @@
 {
   "name": "@marklet/test",
   "version": "1.0.4",
-  "description": "",
+  "private": true,
   "author": "jjyyxx <1449843302@qq.com>",
   "homepage": "https://github.com/obstudio/Marklet",
   "license": "MIT",

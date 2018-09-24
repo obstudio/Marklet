@@ -11,6 +11,7 @@
     "build:renderer": "node build/build -r",
     "build:server": "node build/build -s",
     "build:tsc": "tsc -b",
+    "clear": "node build/clear",
     "test": "node packages/test/runner.js",
     "lint": "tslint packages/**/src/*.ts && eslint ."
   },

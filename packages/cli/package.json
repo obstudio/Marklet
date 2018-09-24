@@ -1,20 +1,19 @@
 {
   "name": "@marklet/cli",
   "version": "1.0.4",
-  "description": "",
+  "description": "A command line interface for marklet.",
   "author": "jjyyxx <1449843302@qq.com>",
+  "contributors": [
+    "shigma <1700011071@pku.edu.cn>"
+  ],
   "homepage": "https://github.com/obstudio/Marklet",
   "license": "MIT",
-  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/obstudio/Marklet.git"
   },
   "bin": {
-    "marklet": "./src/index.js"
-  },
-  "scripts": {
-    "test": "echo \"Error: run tests from root\" && exit 1"
+    "marklet": "index.js"
   },
   "bugs": {
     "url": "https://github.com/obstudio/Marklet/issues"
