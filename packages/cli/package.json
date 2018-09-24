@@ -24,6 +24,5 @@
     "chalk": "^2.4.1",
     "commander": "^2.18.0",
     "js-yaml": "^3.12.0"
-  },
-  "gitHead": "91e820f46cc3fde486b9eee8d64381d5404345d0"
+  }
 }

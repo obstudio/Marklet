@@ -18,6 +18,5 @@
   "dependencies": {
     "@marklet/detokenizer": "^1.0.4",
     "markletjs": "^1.1.4"
-  },
-  "gitHead": "91e820f46cc3fde486b9eee8d64381d5404345d0"
+  }
 }
