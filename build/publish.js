@@ -26,6 +26,7 @@ class Package {
     this.major = semver.major(this.current.version)
     this.minor = semver.minor(this.current.version)
     this.patch = semver.patch(this.current.version)
+    this.newVersion = toVersion(this)
     delete this.current.gitHead
   }
   
@@ -38,17 +39,13 @@ class Package {
     result[flag] ++
     if (flag !== 'patch') result.patch = 0
     if (flag === 'major') result.minor = 0
-    if (semver.gt(toVersion(result), this.version)) {
-      Object.assign(this, result)
+    if (semver.gt(toVersion(result), this.newVersion)) {
+      this.newVersion = toVersion(result)
     }
   }
 
-  get version() {
-    return toVersion(this)
-  }
-
   toJSON() {
-    this.current.version = this.version
+    this.current.version = this.newVersion
     return this.current
   }
 }
@@ -59,13 +56,26 @@ packageNames.forEach(name => packages[name] = new Package(name))
 
 program
   .usage('<major|minor|patch> [names...]')
+  .option('-a, --all')
   .parse(process.argv)
 
 let flag = 'patch'
 const flags = [ 'major', 'minor', 'patch' ]
 if (flags.includes(program.args[0])) flag = program.args.shift()
+if (program.all) program.args[0] = packageNames
 
-program.args.forEach(name => packages[name] && packages[name].bump(flag))
+program.args.forEach((name) => {
+  if (name in packages) {
+    packages[name].bump(flag)
+    const npmName = packages[name].current.name
+    packageNames.forEach((_name) => {
+      if (npmName in (packages[_name].current.devDependencies || {})
+        || npmName in (packages[_name].current.dependencies || {})) {
+        packages[_name].bump('patch')
+      }
+    })
+  }
+})
 
 packageNames.forEach((name) => {
   fs.writeFileSync(

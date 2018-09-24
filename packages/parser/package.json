@@ -1,6 +1,6 @@
 {
   "name": "@marklet/parser",
-  "version": "1.0.4",
+  "version": "1.0.9",
   "description": "A document lexer for marklet.",
   "author": "shigma <1700011071@pku.edu.cn>",
   "contributors": [

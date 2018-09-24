@@ -1,6 +1,6 @@
 {
   "name": "@marklet/detok",
-  "version": "1.0.4",
+  "version": "1.0.9",
   "description": "A detokenizer for marklet.",
   "author": "jjyyxx <1449843302@qq.com>",
   "contributors": [

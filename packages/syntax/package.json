@@ -1,6 +1,6 @@
 {
   "name": "@marklet/syntax",
-  "version": "1.0.4",
+  "version": "1.0.9",
   "description": "A common language lexer for marklet.",
   "author": "shigma <1700011071@pku.edu.cn>",
   "homepage": "https://github.com/obstudio/Marklet",
