@@ -27,7 +27,6 @@ const env = program.prod ? 'production' : 'development'
 const sfc2jsOptions = {
   srcDir: 'comp',
   outDir: 'temp',
-  useCache: false,
 }
 
 const bundle = (name, options) => new Promise((resolve, reject) => {
