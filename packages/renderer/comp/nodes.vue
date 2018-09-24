@@ -1,11 +1,5 @@
-<template>
-  <component :is="tag">
-    <component v-for="(comp, index) in content"
-      :is="comp.type" :class="comp.type" :node="comp" :key="index"/>
-  </component>
-</template>
-
 <script>
+
 module.exports = {
   props: {
     tag: {
@@ -18,5 +12,16 @@ module.exports = {
     }
   }
 }
+
 </script>
+
+<template>
+  <component :is="tag">
+    <template v-for="(comp, index) in content">
+      <component
+        :is="'ml-' + comp.type" :class="comp.type" :node="comp" :key="index"/>
+      <slot/>
+    </template>
+  </component>
+</template>
 

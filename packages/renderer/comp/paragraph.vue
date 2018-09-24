@@ -4,10 +4,10 @@
 
 <style lang="scss" scoped>
 
-  p {
-    margin-top: 0;
-    margin-bottom: 16px;
-  }
+p {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
 
 </style>
 

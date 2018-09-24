@@ -13,7 +13,7 @@ function collect(content: TokenLike[]) {
   return content
 }
 
-export interface DocLexerConfig extends LexerConfig {
+interface MarkletLexerConfig extends LexerConfig {
   /** enable header to align at center */
   header_align?: boolean
   /** allow section syntax */
@@ -22,8 +22,8 @@ export interface DocLexerConfig extends LexerConfig {
   default_language?: string
 }
 
-export class DocLexer extends Lexer {
-  constructor(config: DocLexerConfig = {}) {
+class MarkletLexer extends Lexer {
+  constructor(config: MarkletLexerConfig = {}) {
     super({
       main: [{
         type: 'newline',
@@ -239,17 +239,22 @@ export class DocLexer extends Lexer {
   }
 }
 
-interface parseOptions {
+export interface ParseOptions {
   input: string
-  config?: DocLexerConfig
+  config?: MarkletLexerConfig
 }
 
-export function parse(options: parseOptions): TokenLike[] {
+export function parse(options: ParseOptions): TokenLike[] {
   let source
   if (options.input) {
     source = options.input
   } else {
     throw new Error("'input' option is required.")
   }
-  return new DocLexer(options.config).parse(source)
+  return new MarkletLexer(options.config).parse(source)
+}
+
+export {
+  MarkletLexer as Lexer,
+  MarkletLexerConfig as LexerConfig,
 }

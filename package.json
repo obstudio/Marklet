@@ -1,10 +1,7 @@
 {
-  "name": "markletjs",
-  "version": "1.1.0",
-  "description": "A markup language designed for API manual pages.",
-  "main": "dist/Marklet.js",
   "scripts": {
-    "publish": "lerna publish --no-git-tag-version --no-push",
+    "start": "npm run build && node packages/cli -m edit",
+    "publish": "git stash && lerna publish --no-git-tag-version && git stash pop",
     "bootstrap": "lerna bootstrap --hoist --no-ci",
     "build": "tsc -b && node build/build -sr",
     "build:prod": "tsc -b && node build/build -psr",
@@ -14,9 +11,6 @@
     "clear": "node build/clear",
     "test": "node packages/test/runner.js",
     "lint": "tslint packages/**/src/*.ts && eslint ."
-  },
-  "bin": {
-    "marklet": "./bin/cli.js"
   },
   "repository": {
     "type": "git",

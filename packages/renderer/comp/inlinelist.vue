@@ -5,7 +5,9 @@
 </template>
 
 <style scoped>
+
 li {
   display: inline;
 }
+
 </style>

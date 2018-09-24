@@ -1,10 +1,5 @@
-<template>
-  <div>
-    <nodes :content="nodes"/>
-  </div>
-</template>
-
 <script>
+
 module.exports = {
   data: () => ({
     nodes: []
@@ -15,7 +10,14 @@ module.exports = {
     })
   }
 }
+
 </script>
+
+<template>
+  <div>
+    <ml-nodes :content="nodes"/>
+  </div>
+</template>
 
 <style>
 

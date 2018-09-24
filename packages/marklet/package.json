@@ -9,6 +9,10 @@
   "homepage": "https://github.com/obstudio/Marklet",
   "license": "MIT",
   "main": "index.js",
+  "typings": "index.d.ts",
+  "bin": {
+    "marklet": "cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/obstudio/Marklet.git"
@@ -25,7 +29,6 @@
   },
   "dependencies": {
     "@marklet/cli": "^1.0.4",
-    "@marklet/core": "^1.0.4",
     "@marklet/parser": "^1.0.4",
     "@marklet/renderer": "^1.0.4"
   },
