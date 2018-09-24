@@ -28,7 +28,7 @@ const Renderer = {
       }
     }
     if (!ASTNodes) ASTNodes = _Vue.extend(NodesComponent)
-    return new ASTNodes({ propsData: { content } }).$mount(element)
+    new ASTNodes({ propsData: { content } }).$mount(element)
   }
 }
 
