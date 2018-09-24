@@ -1,5 +1,3 @@
-let ASTNodes = null
-
 const HeadingComponent = require('@/heading.vue')
 const InlinelistComponent = require('@/inlinelist.vue')
 const NodesComponent = require('@/nodes.vue')
@@ -8,8 +6,11 @@ const QuoteComponent = require('@/quote.vue')
 const SeparatorComponent = require('@/separator.vue')
 const UsagesComponent = require('@/usages.vue')
 
-module.exports = {
+let _Vue = null, ASTNodes = null
+
+const Renderer = {
   install(Vue) {
+    _Vue = Vue
     Vue.component('heading', HeadingComponent)
     Vue.component('inlinelist', InlinelistComponent)
     Vue.component('nodes', NodesComponent)
@@ -17,18 +18,18 @@ module.exports = {
     Vue.component('quote', QuoteComponent)
     Vue.component('separator', SeparatorComponent)
     Vue.component('usages', UsagesComponent)
-    ASTNodes = Vue.extend(NodesComponent)
   },
   embed(element, content) {
-    if (!ASTNodes) {
-      if (window && typeof window === 'object' && window.Vue) {
-        ASTNodes = window.Vue.extend(NodesComponent)
+    if (!_Vue) {
+      if (typeof window === 'object' && window && window.Vue) {
+        (_Vue = window.Vue).use(Renderer)
       } else {
         throw new Error('No vue constructor was found.')
       }
     }
-    return new ASTNodes({
-      propsData: { content }
-    }).$mount(element)
+    if (!ASTNodes) ASTNodes = _Vue.extend(NodesComponent)
+    return new ASTNodes({ propsData: { content } }).$mount(element)
   }
 }
+
+module.exports = Renderer

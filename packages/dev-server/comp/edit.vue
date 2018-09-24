@@ -1,11 +1,5 @@
-<template>
-  <div>
-    <textarea v-model="source"/>
-    <nodes :content="nodes"/>
-  </div>
-</template>
-
 <script>
+
 module.exports = {
   data: () => ({
     source: '',
@@ -17,7 +11,15 @@ module.exports = {
     }
   },
 }
+
 </script>
+
+<template>
+  <div>
+    <textarea v-model="source"/>
+    <ml-nodes :content="nodes"/>
+  </div>
+</template>
 
 <style>
 
