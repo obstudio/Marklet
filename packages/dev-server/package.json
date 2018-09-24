@@ -3,9 +3,16 @@
   "version": "1.0.4",
   "description": "A develop server for marklet.",
   "author": "jjyyxx <1449843302@qq.com>",
+  "contributors": [
+    "shigma <1700011071@pku.edu.cn>"
+  ],
   "homepage": "https://github.com/obstudio/Marklet",
   "license": "MIT",
   "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/obstudio/Marklet.git"
