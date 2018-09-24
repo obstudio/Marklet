@@ -1,5 +1,5 @@
 import cheerio from 'cheerio'
-import { TokenLike, LexerToken } from '../../core'
+import { TokenLike, LexerToken } from '@marklet/core'
 type InlineTokenTypes = 'br' | 'code' | 'span' | 'em' | 'strong' | 'del'
 type BlockTokenTypes = 'text' | 'heading' | 'section' | 'quote' | 'separator' | 'codeblock' | 'usage' | 'usages' | 'list' | 'inlinelist' | 'table' | 'paragraph'
 

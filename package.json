@@ -5,7 +5,7 @@
   "main": "dist/Marklet.js",
   "scripts": {
     "all": "npm run lint && npm run build:prod && npm run test",
-    "publish": "lerna publish --no-git-tag-version --no-push",
+    "publish": "git stash && lerna publish --no-git-tag-version && git stash pop",
     "bootstrap": "lerna bootstrap --hoist --no-ci",
     "build": "tsc -b && node build/build -sr",
     "build:prod": "tsc -b && node build/build -psr",
