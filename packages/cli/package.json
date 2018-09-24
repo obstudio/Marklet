@@ -1,6 +1,6 @@
 {
   "name": "@marklet/cli",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "",
   "author": "jjyyxx <1449843302@qq.com>",
   "homepage": "https://github.com/obstudio/Marklet",
@@ -20,9 +20,10 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
+    "@marklet/dev-server": "^1.0.4",
+    "@marklet/parser": "^1.0.4",
     "chalk": "^2.4.1",
-    "commander": "^2.18.0",
-    "@marklet/parser": "^1.0.0",
-    "@marklet/dev-server": "^1.0.0"
-  }
+    "commander": "^2.18.0"
+  },
+  "gitHead": "91e820f46cc3fde486b9eee8d64381d5404345d0"
 }

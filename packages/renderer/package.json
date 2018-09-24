@@ -1,6 +1,6 @@
 {
   "name": "@marklet/renderer",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "",
   "author": "jjyyxx <1449843302@qq.com>",
   "homepage": "https://github.com/obstudio/Marklet",
@@ -20,5 +20,6 @@
   },
   "peerDependencies": {
     "vue": "^2.5.17"
-  }
+  },
+  "gitHead": "91e820f46cc3fde486b9eee8d64381d5404345d0"
 }

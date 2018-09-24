@@ -1,6 +1,6 @@
 {
   "name": "markletjs",
-  "version": "1.1.0",
+  "version": "1.1.4",
   "description": "",
   "author": "jjyyxx <1449843302@qq.com>",
   "homepage": "https://github.com/obstudio/Marklet",
@@ -17,9 +17,10 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/cli": "1.0.0",
-    "@marklet/core": "1.0.0",
-    "@marklet/parser": "1.0.0",
-    "@marklet/renderer": "1.0.0"
-  }
+    "@marklet/cli": "^1.0.4",
+    "@marklet/core": "^1.0.4",
+    "@marklet/parser": "^1.0.4",
+    "@marklet/renderer": "^1.0.4"
+  },
+  "gitHead": "91e820f46cc3fde486b9eee8d64381d5404345d0"
 }

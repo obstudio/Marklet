@@ -1,6 +1,6 @@
 {
   "name": "@marklet/detokenizer",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "",
   "author": "jjyyxx <1449843302@qq.com>",
   "homepage": "https://github.com/obstudio/Marklet",
@@ -17,6 +17,7 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "cheerio": "^1.0.0-rc.2"    
-  }
+    "cheerio": "^1.0.0-rc.2"
+  },
+  "gitHead": "91e820f46cc3fde486b9eee8d64381d5404345d0"
 }

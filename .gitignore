@@ -5,3 +5,4 @@ dist
 temp
 html/*.min.*
 !test
+*.tgz
