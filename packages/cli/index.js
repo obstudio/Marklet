@@ -3,6 +3,7 @@
 const fs = require('fs')
 const path = require('path')
 const chalk = require('chalk')
+const yaml = require('js-yaml')
 const program = require('commander')
 const { parse } = require('@marklet/parser')
 const { edit, watch } = require('@marklet/dev-server')
@@ -33,7 +34,11 @@ if (!program.args.length) {
 
 function loadFromFile(filepath) {
   try {
-    return require(filepath)
+    if (['.yml', '.yaml'].includes(path.extname(filepath))) {
+      return yaml.safeLoad(fs.readFileSync(filepath).toString())
+    } else {
+      return require(filepath)
+    }
   } catch (error) {
     if (program.args.length) {
       process.stderr.write(chalk.red('ERROR: '))

@@ -9,6 +9,9 @@
   "homepage": "https://github.com/obstudio/Marklet",
   "license": "MIT",
   "main": "index.js",
+  "bin": {
+    "marklet": "cli.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/obstudio/Marklet.git"

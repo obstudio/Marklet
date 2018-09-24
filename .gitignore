@@ -3,6 +3,5 @@ package-lock.json
 test.*
 dist
 temp
-html/*.min.*
 !test
 *.tgz
