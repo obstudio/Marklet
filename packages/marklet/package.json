@@ -1,11 +1,11 @@
 {
   "name": "markletjs",
   "version": "1.1.4",
-  "description": "",
+  "description": "A markup language designed for API manual pages.",
   "author": "jjyyxx <1449843302@qq.com>",
   "homepage": "https://github.com/obstudio/Marklet",
   "license": "MIT",
-  "main": "src/index.js",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/obstudio/Marklet.git"
