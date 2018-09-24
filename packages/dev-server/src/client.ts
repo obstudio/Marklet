@@ -1,5 +1,5 @@
 import Vue from 'vue'
-import { DocLexer, DocLexerConfig } from '@marklet/parser'
+import { Lexer, LexerConfig } from '@marklet/parser'
 declare module 'vue/types/vue' {
   interface Vue {
     $eventBus: typeof eventBus
@@ -74,8 +74,8 @@ export const Marklet = {
     watch: require('@/watch.vue'),
     edit: require('@/edit.vue'),
   },
-  parse(source: string, config: DocLexerConfig) {
-    return new DocLexer(config).parse(source)
+  parse(source: string, config: LexerConfig) {
+    return new Lexer(config).parse(source)
   },
   start({ el, type }: { el: string | Element, type: 'watch' | 'edit' }) {
     new Vue(this.comp[type]).$mount(el)

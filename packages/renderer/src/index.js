@@ -1,30 +1,34 @@
+let ASTNodes = null
+
+const HeadingComponent = require('@/heading.vue')
+const InlinelistComponent = require('@/inlinelist.vue')
+const NodesComponent = require('@/nodes.vue')
+const ParagraphComponent = require('@/paragraph.vue')
+const QuoteComponent = require('@/quote.vue')
+const SeparatorComponent = require('@/separator.vue')
+const UsagesComponent = require('@/usages.vue')
+
 module.exports = {
-  _Vue: null,
   install(Vue) {
-    Vue.component('heading', require('@/heading.vue'))
-    Vue.component('inlinelist', require('@/inlinelist.vue'))
-    Vue.component('nodes', require('@/nodes.vue'))
-    Vue.component('paragraph', require('@/paragraph.vue'))
-    Vue.component('quote', require('@/quote.vue'))
-    Vue.component('separator', require('@/separator.vue'))
-    Vue.component('usages', require('@/usages.vue'))
-    this._Vue = Vue
+    Vue.component('heading', HeadingComponent)
+    Vue.component('inlinelist', InlinelistComponent)
+    Vue.component('nodes', NodesComponent)
+    Vue.component('paragraph', ParagraphComponent)
+    Vue.component('quote', QuoteComponent)
+    Vue.component('separator', SeparatorComponent)
+    Vue.component('usages', UsagesComponent)
+    ASTNodes = Vue.extend(NodesComponent)
   },
-  embed(data, el) {
-    const element = typeof el === 'string' ? document.querySelector(el) : el
-    const Vue = this._Vue
-    if (!element) {
-      throw new Error('Specified element not exists.')
-    } else if (!Vue) {
-      throw new Error('The renderer is a vue plugin. It should be installed before using.')
-    } else {
-      return new Vue({
-        el: element,
-        data,
-        render(h) {
-          return h('nodes', { props: { content: this.$data } })
-        }
-      })
+  embed(element, content) {
+    if (!ASTNodes) {
+      if (window && typeof window === 'object' && window.Vue) {
+        ASTNodes = window.Vue.extend(NodesComponent)
+      } else {
+        throw new Error('No vue constructor was found.')
+      }
     }
+    return new ASTNodes({
+      propsData: { content }
+    }).$mount(element)
   }
 }
