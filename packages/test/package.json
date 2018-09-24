@@ -16,7 +16,7 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/detokenizer": "^1.0.4",
+    "@marklet/detok": "^1.0.4",
     "markletjs": "^1.1.4"
   }
 }

@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "npm run build && node packages/cli -m edit",
-    "publish": "git stash && lerna publish --no-git-tag-version && git stash pop",
+    "publish": "lerna publish --no-git-tag-version",
     "bootstrap": "lerna bootstrap --hoist --no-ci",
     "build": "tsc -b && node build/build -sr",
     "build:prod": "tsc -b && node build/build -psr",
