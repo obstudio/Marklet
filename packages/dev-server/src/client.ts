@@ -12,7 +12,7 @@ const eventBus = new Vue()
 Vue.prototype.$eventBus = eventBus
 Vue.use(renderer)
 
-class WatchClient {
+const client = new class WatchClient {
   private url: string
   private retry: boolean
   private timeout: number
@@ -27,22 +27,15 @@ class WatchClient {
     this.retry = retry
     this.timeout = timeout
 
-    this.ws = this.createWebSocket()
-    this.registerListeners()
+    this.createWebSocket()
   }
 
   createWebSocket() {
-    return new WebSocket(this.url)
-  }
-
-  registerListeners() {
+    this.ws = new WebSocket(this.url)
     this.ws.addEventListener('close', (e) => {
       if (e.code !== 1000 && this.retry) {
         eventBus.$emit('ws.reconnect')
-        setTimeout(() => {
-          this.ws = this.createWebSocket()
-          this.registerListeners()
-        }, this.timeout)
+        setTimeout(() => this.createWebSocket(), this.timeout)
       } else {
         eventBus.$emit('ws.close')
       }
@@ -67,9 +60,8 @@ class WatchClient {
   close() {
     if (this.ws.readyState < 2) this.ws.close()
   }
-}
+}()
 
-const client = new WatchClient()
 addEventListener('beforeunload', () => client.close())
 
 export const Marklet = {

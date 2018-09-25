@@ -23,7 +23,7 @@ function execSync(command) {
 }
 
 function resolve(...names) {
-  return path.resolve(__dirname, '../packages', ...names)
+  return path.join(__dirname, '../packages', ...names)
 }
 
 module.exports = {

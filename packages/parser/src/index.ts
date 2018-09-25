@@ -80,7 +80,7 @@ class MarkletLexer extends Lexer {
         }
       }, {
         type: 'usages',
-        regex: /(?= *\? )/,
+        regex: /(?= *\? +\S)/,
         push: [{
           type: 'usage',
           regex: / *\? +([^\n]+?)/,

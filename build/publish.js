@@ -46,13 +46,14 @@ const packageNames = fs.readdirSync(path.join(__dirname, '../packages'))
 packageNames.forEach(name => packages[name] = new Package(name))
 
 program
-  .usage('[major|minor|patch] [names...]')
+  .usage('[options] [names...]')
   .option('-a, --all')
+  .option('-M, --major')
+  .option('-m, --minor')
+  .option('-p, --patch')
   .parse(process.argv)
 
-let flag = 'patch'
-const flags = [ 'major', 'minor', 'patch' ]
-if (flags.includes(program.args[0])) flag = program.args.shift()
+const flag = program.major ? 'major' : program.minor ? 'minor' : 'patch'
 if (program.all) program.args = packageNames
 
 function bump(name, flag) {

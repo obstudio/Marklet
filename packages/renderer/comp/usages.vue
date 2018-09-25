@@ -1,9 +1,11 @@
 <template>
   <div>
-    <ml-nodes tag="blockquote" :content="usage"
-      v-for="(usage, index) in node.content" :key="index">
-      <br/>
-    </ml-nodes>
+    <blockquote v-for="(usage, index) in node.content" :key="index">
+      <template v-for="(comp, index) in usage">
+        <component :is="comp.type" :node="comp" :key="index"/>
+        <br :key="index"/>
+      </template>
+    </blockquote>
   </div>
 </template>
 

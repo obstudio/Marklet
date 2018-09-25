@@ -1,4 +1,4 @@
-const { exec, resolve } = require('./util')
+const util = require('./util')
 const { minify } = require('html-minifier')
 const program = require('commander')
 const webpack = require('webpack')
@@ -9,7 +9,7 @@ sfc2js.install(require('@sfc2js/sass'))
 sfc2js.install(require('@sfc2js/clean-css'))
 
 function mkdirIfNotExists(name) {
-  fs.existsSync(resolve(name)) || fs.mkdirSync(resolve(name))
+  fs.existsSync(util.resolve(name)) || fs.mkdirSync(util.resolve(name))
 }
 
 program
@@ -31,14 +31,14 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
   const compiler = webpack({
     target: 'web',
     mode: env,
-    entry: resolve(name, options.entry),
+    entry: util.resolve(name, options.entry),
     resolve: {
       alias: {
-        '@': resolve(name, 'temp')
+        '@': util.resolve(name, 'temp')
       }
     },
     output: {
-      path: resolve(name, 'dist'),
+      path: util.resolve(name, 'dist'),
       filename: options.output,
       library: 'Marklet',
       libraryTarget: 'umd',
@@ -46,7 +46,6 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
       globalObject: 'typeof self !== \'undefined\' ? self : this'
     }
   })
-  console.log(2)
 
   new webpack.ProgressPlugin().apply(compiler)
 
@@ -70,7 +69,7 @@ Promise.resolve().then(() => {
 
     sfc2js.transpile({
       ...sfc2jsOptions,
-      baseDir: resolve('renderer'),
+      baseDir: util.resolve('renderer'),
       outCSSFile: '../dist/marklet.min.css',
       defaultScript: {
         props: ['node'],
@@ -87,27 +86,27 @@ Promise.resolve().then(() => {
     mkdirIfNotExists('dev-server/dist')
   
     if (program.tsc) {
-      exec('tsc -p packages/dev-server')
+      util.exec('tsc -p packages/dev-server')
     }
 
     if (program.prod) {
       fs.writeFileSync(
-        resolve('dev-server/dist/index.html'),
-        minify(fs.readFileSync(resolve('dev-server/src/index.html')).toString(), {
+        util.resolve('dev-server/dist/index.html'),
+        minify(fs.readFileSync(util.resolve('dev-server/src/index.html')).toString(), {
           collapseWhitespace: true,
           removeAttributeQuotes: true,
         })
       )
     } else {
       fs.copyFileSync(
-        resolve('dev-server/src/index.html'),
-        resolve('dev-server/dist/index.html')
+        util.resolve('dev-server/src/index.html'),
+        util.resolve('dev-server/dist/index.html')
       )
     }
   
     sfc2js.transpile({
       ...sfc2jsOptions,
-      baseDir: resolve('dev-server'),
+      baseDir: util.resolve('dev-server'),
       outCSSFile: '../dist/client.min.css',
     })
 
