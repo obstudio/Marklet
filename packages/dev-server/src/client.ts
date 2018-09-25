@@ -1,22 +1,23 @@
 import Vue from 'vue'
+import * as renderer from '@marklet/renderer'
 import { Lexer, LexerConfig } from '@marklet/parser'
 
 declare module 'vue/types/vue' {
   interface Vue {
-    $eventBus: typeof eventBus
+    $eventBus: Vue
   }
 }
 
 const eventBus = new Vue()
 Vue.prototype.$eventBus = eventBus
-
-Vue.use(require('@marklet/renderer'))
+Vue.use(renderer)
 
 class WatchClient {
   private url: string
   private retry: boolean
   private timeout: number
   private ws: WebSocket
+
   constructor({
     url = `ws://${location.host}/`,
     retry = true,
@@ -72,15 +73,15 @@ const client = new WatchClient()
 addEventListener('beforeunload', () => client.close())
 
 export const Marklet = {
-  comp: {
-    'ml-watch': require('@/watch.vue'),
-    'ml-edit': require('@/edit.vue'),
+  components: {
+    watch: require('@/watch.vue'),
+    edit: require('@/edit.vue'),
   },
   parse(source: string, config: LexerConfig) {
     return new Lexer(config).parse(source)
   },
-  start({ el, type }: { el: string | Element, type: 'watch' | 'edit' }) {
-    new Vue(this.comp['ml-' + type]).$mount(el)
+  start({ el, type }: { el: string | HTMLElement, type: 'watch' | 'edit' }) {
     document.title = 'Marklet - ' + type
+    new Vue(this.components[type]).$mount(el)
   }
 }

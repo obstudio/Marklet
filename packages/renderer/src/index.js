@@ -19,7 +19,7 @@ const Renderer = {
     Vue.component('separator', SeparatorComponent)
     Vue.component('usages', UsagesComponent)
   },
-  embed(element, content) {
+  embed(element, content = []) {
     if (!_Vue) {
       if (typeof window === 'object' && window && window.Vue) {
         (_Vue = window.Vue).use(Renderer)

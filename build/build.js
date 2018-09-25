@@ -1,18 +1,15 @@
-const webpack = require('webpack')
+const { exec, resolve } = require('./util')
+const { minify } = require('html-minifier')
 const program = require('commander')
+const webpack = require('webpack')
 const sfc2js = require('sfc2js')
-const path = require('path')
 const fs = require('fs')
 
 sfc2js.install(require('@sfc2js/sass'))
 sfc2js.install(require('@sfc2js/clean-css'))
 
-function fullPath(...names) {
-  return path.join(__dirname, '../packages', ...names)
-}
-
 function mkdirIfNotExists(name) {
-  fs.existsSync(fullPath(name)) || fs.mkdirSync(fullPath(name))
+  fs.existsSync(resolve(name)) || fs.mkdirSync(resolve(name))
 }
 
 program
@@ -20,6 +17,7 @@ program
   .option('-p, --prod')
   .option('-r, --renderer')
   .option('-s, --server')
+  .option('-t, --tsc')
   .parse(process.argv)
 
 const env = program.prod ? 'production' : 'development'
@@ -33,14 +31,14 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
   const compiler = webpack({
     target: 'web',
     mode: env,
-    entry: fullPath(name, options.entry),
+    entry: resolve(name, options.entry),
     resolve: {
       alias: {
-        '@': fullPath(name, 'temp')
+        '@': resolve(name, 'temp')
       }
     },
     output: {
-      path: fullPath(name, 'dist'),
+      path: resolve(name, 'dist'),
       filename: options.output,
       library: 'Marklet',
       libraryTarget: 'umd',
@@ -48,9 +46,10 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
       globalObject: 'typeof self !== \'undefined\' ? self : this'
     }
   })
-  
+  console.log(2)
+
   new webpack.ProgressPlugin().apply(compiler)
-  
+
   compiler.run((error, stat) => {
     if (error) {
       console.log(error)
@@ -61,9 +60,6 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
     } else {
       console.log('Bundle Succeed.')
     }
-    if (options.callback) {
-      options.callback((...names) => fullPath(name, ...names))
-    }
     resolve()
   })
 })
@@ -71,10 +67,10 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
 Promise.resolve().then(() => {
   if (program.renderer) {
     mkdirIfNotExists('renderer/dist')
-  
+
     sfc2js.transpile({
       ...sfc2jsOptions,
-      baseDir: fullPath('renderer'),
+      baseDir: resolve('renderer'),
       outCSSFile: '../dist/marklet.min.css',
       defaultScript: {
         props: ['node'],
@@ -90,20 +86,37 @@ Promise.resolve().then(() => {
   if (program.server) {
     mkdirIfNotExists('dev-server/dist')
   
+    if (program.tsc) {
+      exec('tsc -p packages/dev-server')
+    }
+
+    if (program.prod) {
+      fs.writeFileSync(
+        resolve('dev-server/dist/index.html'),
+        minify(fs.readFileSync(resolve('dev-server/src/index.html')).toString(), {
+          collapseWhitespace: true,
+          removeAttributeQuotes: true,
+        })
+      )
+    } else {
+      fs.copyFileSync(
+        resolve('dev-server/src/index.html'),
+        resolve('dev-server/dist/index.html')
+      )
+    }
+  
     sfc2js.transpile({
       ...sfc2jsOptions,
-      baseDir: fullPath('dev-server'),
-      outCSSFile: '../dist/dev.min.css',
+      baseDir: resolve('dev-server'),
+      outCSSFile: '../dist/client.min.css',
     })
 
     return bundle('dev-server', {
       entry: 'dist/client.js',
-      output: 'marklet.min.js',
+      output: 'client.min.js',
       libraryExport: 'Marklet',
-      callback(relPath) {
-        fs.copyFileSync(relPath('index.html'), relPath('dist/index.html'))
-        fs.copyFileSync(fullPath('renderer/dist/marklet.min.css'), relPath('dist/marklet.min.css'))  
-      }
     })
   }
+}).catch((error) => {
+  console.log(error)
 })

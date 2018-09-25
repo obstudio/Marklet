@@ -4,26 +4,7 @@ const chalk = require('chalk')
 const semver = require('semver')
 const cp = require('child_process')
 const program = require('commander')
-
-function exec(command) {
-  return new Promise((resolve) => {
-    console.log(`${chalk.blue('$')} ${command}\n`)
-    const child = cp.exec(command)
-    child.stdout.pipe(process.stdout)
-    child.stderr.pipe(process.stderr)
-    child.on('close', (code) => {
-      console.log()
-      resolve(code)
-    })
-  })
-}
-
-function execSync(command) {
-  console.log(`${chalk.blue('$')} ${command}\n`)
-  const result = cp.execSync(command).toString('utf8')
-  console.log(result)
-  return result
-}
+const { exec, execSync } = require('./util')
 
 function toVersion(version) {
   return `${version.major}.${version.minor}.${version.patch}`
