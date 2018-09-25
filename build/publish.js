@@ -51,6 +51,7 @@ program
   .option('-M, --major')
   .option('-m, --minor')
   .option('-p, --patch')
+  .option('-N, --no-npm')
   .parse(process.argv)
 
 const flag = program.major ? 'major' : program.minor ? 'minor' : 'patch'
@@ -81,22 +82,25 @@ ${chalk.cyanBright(packages[name].newVersion)}`)
 })
 
 let counter = 0, promise = Promise.resolve(), failed = false
-packageNames.forEach((name) => {
-  if (packages[name].newVersion !== packages[name].previous.version) {
-    if (packages[name].current.private) return
-    const npmVersion = execSync(`npm show ${packages[name].current.name} version`)
-    if (semver.gte(npmVersion, packages[name].newVersion)) return
-    counter += 1
-    fs.writeFileSync(
-      path.join(__dirname, `../packages/${name}/package.json`),
-      JSON.stringify(packages[name], null, 2),
-    )
-    promise = promise.then((code) => {
-      failed = failed || code
-      return exec(`cd packages/${name} && npm publish`)
-    })
-  }
-})
+
+if (program.npm) {
+  packageNames.forEach((name) => {
+    if (packages[name].newVersion !== packages[name].previous.version) {
+      if (packages[name].current.private) return
+      const npmVersion = execSync(`npm show ${packages[name].current.name} version`)
+      if (semver.gte(npmVersion, packages[name].newVersion)) return
+      counter += 1
+      fs.writeFileSync(
+        path.join(__dirname, `../packages/${name}/package.json`),
+        JSON.stringify(packages[name], null, 2),
+      )
+      promise = promise.then((code) => {
+        failed = failed || code
+        return exec(`cd packages/${name} && npm publish`)
+      })
+    }
+  })
+}
 
 promise.then(() => {
   if (!counter) {

@@ -1,27 +1,25 @@
 language: node_js
+
 node_js:
-- node
+  - node
+
 env:
   global:
-    - secure: "ikFQOw+feac3+WhVb1QtCeAqp9OpQprD4oXmG4+q3MVAHFiP2pLcfZbrExr0bu472eEHLpRDjjlxHEGxcnJoSool4LUCkgTnlpN8/iGzug0gnv1/XoLZiwKVbonOQHaksJ8vGBIXFMPbXRYfc1DjSyWQhwxkdhrIGUEyPs0IqrBZ4nzbpCG/hsSbkKG6xMu5sXXwM/4Nmklx8kZRMWCQXB09gMysmt1TmPwxogyxXg1xm8GaSfA5GQHJZyW3oQpvGMKaXyDLymjLw66rlrUhZ9u0TKklkBqtVlhBnGm/eXxNFnDTfz+D8K3v2MSoSRuFb8bsofLHDFDm9suBuVV83nmINhkIcsmxEbS5B+Cv916za0NgCKxKJW/DRuCCoOdjRrXk36oC+7DCvEIVH8Hsraj7oC/WgBWSHCkI12UAXhxoSHrS3OiNxJEVZJXqIUzzzbyJJE5DTHElmBm1T6ZM7WEydzAPfhtzs/d5SsjwP0w6n+8SrnKifuBaFNw7wv40sdwey9TKJEXD84AeBsbTmJQCljJuKZntQryfoCVYB82OasEoEF0ryCnc0to1/lszXLAKJBv7gOTxzQ62tKo3wJo2L6FhGIOYG5n0NVXz7kC+5rKh5ZIwKx42oT9P4OAAwpM3p+LxzS7lkn6WLamFlioCFnzmvItO9yOFR/pIiKY="
+    - secure: ikFQOw+feac3+WhVb1QtCeAqp9OpQprD4oXmG4+q3MVAHFiP2pLcfZbrExr0bu472eEHLpRDjjlxHEGxcnJoSool4LUCkgTnlpN8/iGzug0gnv1/XoLZiwKVbonOQHaksJ8vGBIXFMPbXRYfc1DjSyWQhwxkdhrIGUEyPs0IqrBZ4nzbpCG/hsSbkKG6xMu5sXXwM/4Nmklx8kZRMWCQXB09gMysmt1TmPwxogyxXg1xm8GaSfA5GQHJZyW3oQpvGMKaXyDLymjLw66rlrUhZ9u0TKklkBqtVlhBnGm/eXxNFnDTfz+D8K3v2MSoSRuFb8bsofLHDFDm9suBuVV83nmINhkIcsmxEbS5B+Cv916za0NgCKxKJW/DRuCCoOdjRrXk36oC+7DCvEIVH8Hsraj7oC/WgBWSHCkI12UAXhxoSHrS3OiNxJEVZJXqIUzzzbyJJE5DTHElmBm1T6ZM7WEydzAPfhtzs/d5SsjwP0w6n+8SrnKifuBaFNw7wv40sdwey9TKJEXD84AeBsbTmJQCljJuKZntQryfoCVYB82OasEoEF0ryCnc0to1/lszXLAKJBv7gOTxzQ62tKo3wJo2L6FhGIOYG5n0NVXz7kC+5rKh5ZIwKx42oT9P4OAAwpM3p+LxzS7lkn6WLamFlioCFnzmvItO9yOFR/pIiKY=
+
 before_install:
-- node ./build/check.js
+  - node ./build/check.js
+
 install:
-- npm i
-- npm run bootstrap
+  - npm i
+  - npm run bootstrap
+
 script:
-- npm run lint
-- npm run build:prod
-- npm run test
+  - npm run lint
+  - npm run build:prod
+  - npm run test
+
 deploy:
-  - skip_cleanup: true
-    provider: npm
-    email: obfishstudio@gmail.com
-    api_key:
-      secure: "Men/sZtTCPjmgBXy9tfpofFzsaslKgEHXsyKB67rCNT/cf0uPeHc+QHWFyJslqHAIB962OwrnlaWDajvmIdj7Vs3VfI2NNNAXXpkT2R1SJV9Th5pljG4rqY7oT/2r77PNBaLMC8YPLCJMjDBrJ15ja7WrpUqOEL2Pj8hS3qkk6w9L5pWghuT3K52Mub1QEwlCPj6VxS+pJxxFiFDzZY5NBhFzbjks1rbD8WEhiFBaZwmNrzAF0vfQj1qQOXnGuQBNiQEBq5LAcbQHkqnO4BVDOROt9EL0Q7N5obn0Siv8AO8i0eKxEsegopwtJTevlaOt0LOhoLsSNYF7gTXYpfGHA6eFg3JgcZVj7dlInXGcTOohZK8HGc+Op/qqvlDHl3h9kyWN99BxCktZkFS1YjbpgMZRQG0a9pxKUQBH9n9s8LtfOREhzp0XUQeBEjD1uTkqRWX26x48AQ+ixuOGxSDAhKOB+rsH22TcsWK+fwer5TXglnceKhveAF0+X+CF4Oq0DWT+8r5GvglGT7LBYnyj3DeY3V7DEMciRvzwcLpjt2g4kFYnPYYtOcWrE7SG5eHHtCQDcdrcp1rvuWVv8egkiOLMFiPtv3HrIcsG8M0bPmwy6eV0iWDJT7TLpWULuzv96cyNBWHh4aXVrm/4xsBQVxdZX9Y9rv/+rvLqtB4MHY="
-    on:
-      repo: obstudio/Marklet
-      branch: master
   - skip_cleanup: true
     provider: script
     script: node ./build/release.js

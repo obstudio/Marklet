@@ -12,16 +12,6 @@
     "test": "node packages/test/runner.js",
     "lint": "tslint packages/**/src/*.ts && eslint ."
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/obstudio/Marklet.git"
-  },
-  "author": "",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/obstudio/Marklet/issues"
-  },
-  "homepage": "https://github.com/obstudio/Marklet#readme",
   "devDependencies": {
     "@octokit/rest": "^15.12.0",
     "@sfc2js/clean-css": "^1.1.1",
