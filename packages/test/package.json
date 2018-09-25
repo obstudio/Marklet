@@ -1,6 +1,6 @@
 {
   "name": "@marklet/test",
-  "version": "1.0.4",
+  "version": "1.0.9",
   "private": true,
   "author": "jjyyxx <1449843302@qq.com>",
   "homepage": "https://github.com/obstudio/Marklet",
@@ -16,8 +16,7 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/detokenizer": "^1.0.4",
+    "@marklet/detok": "^1.0.4",
     "markletjs": "^1.1.4"
-  },
-  "gitHead": "91e820f46cc3fde486b9eee8d64381d5404345d0"
+  }
 }

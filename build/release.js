@@ -1,17 +1,18 @@
-const Octokit = require('@octokit/rest')
-const octokit = new Octokit()
+const { version } = require('../packages/marklet/package.json')
+const { major, minor } = require('semver')
+const github = new (require('@octokit/rest'))()
+const tag = `v${major(version)}.${minor(version)}`
 
-octokit.authenticate({
+github.authenticate({
   type: 'oauth',
   token: process.env.GITHUB_OAUTH
 })
 
-const { version } = require('../package.json')
-octokit.repos.createRelease({
+github.repos.createRelease({
   repo: 'Marklet',
   owner: 'obstudio',
-  tag_name: version,
-  name: version
+  tag_name: tag,
+  name: tag,
 }).then(() => {
-  console.log('Release created successfully')
+  console.log('Release created successfully.')
 })

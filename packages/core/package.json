@@ -1,6 +1,6 @@
 {
   "name": "@marklet/core",
-  "version": "1.0.4",
+  "version": "1.0.9",
   "description": "A lexer for marklet.",
   "author": "shigma <1700011071@pku.edu.cn>",
   "contributors": [
@@ -19,6 +19,5 @@
   },
   "bugs": {
     "url": "https://github.com/obstudio/Marklet/issues"
-  },
-  "gitHead": "91e820f46cc3fde486b9eee8d64381d5404345d0"
+  }
 }

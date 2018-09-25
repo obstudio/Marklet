@@ -1,6 +1,6 @@
 {
   "name": "markletjs",
-  "version": "1.1.4",
+  "version": "1.1.10",
   "description": "A markup language designed for API manual pages.",
   "author": "jjyyxx <1449843302@qq.com>",
   "contributors": [
@@ -31,6 +31,5 @@
     "@marklet/cli": "^1.0.4",
     "@marklet/parser": "^1.0.4",
     "@marklet/renderer": "^1.0.4"
-  },
-  "gitHead": "91e820f46cc3fde486b9eee8d64381d5404345d0"
+  }
 }

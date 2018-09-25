@@ -1,6 +1,6 @@
 {
   "name": "@marklet/dev-server",
-  "version": "1.0.4",
+  "version": "1.0.9",
   "description": "A develop server for marklet.",
   "author": "jjyyxx <1449843302@qq.com>",
   "contributors": [
@@ -25,6 +25,5 @@
     "@marklet/renderer": "^1.0.4",
     "vue": "^2.5.17",
     "ws": "^6.0.0"
-  },
-  "gitHead": "91e820f46cc3fde486b9eee8d64381d5404345d0"
+  }
 }
