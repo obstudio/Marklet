@@ -1,0 +1,29 @@
+{
+  "name": "@marklet/renderer",
+  "version": "1.1.2",
+  "description": "A html renderer for marklet.",
+  "author": "jjyyxx <1449843302@qq.com>",
+  "contributors": [
+    "shigma <1700011071@pku.edu.cn>"
+  ],
+  "homepage": "https://github.com/obstudio/Marklet",
+  "license": "MIT",
+  "main": "dist/renderer.min.js",
+  "typings": "index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obstudio/Marklet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/obstudio/Marklet/issues"
+  },
+  "dependencies": {
+    "@marklet/core": "^1.0.9"
+  },
+  "peerDependencies": {
+    "vue": "^2.5.17"
+  }
+}

@@ -1,6 +1,14 @@
 {
+  "editor.tabSize": 2,
   "eslint.validate": [
     "javascript",
     "vue"
-  ]
+  ],
+  "files.exclude": {
+    "**/package-lock.json": true,
+    "package.json.lerna_backup": true,
+    "packages/**/node_modules": true,
+    "packages/**/tsconfig.json": true
+  },
+  "editor.wordSeparators": "`~!@#%^&*()-=+[{]}\\|;:'\",.<>/?",
 }

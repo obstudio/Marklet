@@ -1,78 +1,121 @@
-const {
-  parseComponent,
-  compileToFunctions,
-} = require('vue-template-compiler')
-
+const util = require('./util')
+const { minify } = require('html-minifier')
+const program = require('commander')
 const webpack = require('webpack')
-const sass = require('sass')
-const path = require('path')
+const sfc2js = require('sfc2js')
 const fs = require('fs')
 
-function fullPath(name) {
-  return path.join(__dirname, '..', name)
+sfc2js.install(require('@sfc2js/sass'))
+sfc2js.install(require('@sfc2js/clean-css'))
+
+function mkdirIfNotExists(name) {
+  fs.existsSync(util.resolve(name)) || fs.mkdirSync(util.resolve(name))
 }
 
-function getRandomId() {
-  const id = Math.floor(Math.random() * 36 ** 6).toString(36)
-  return '0'.repeat(6 - id.length) + id
+program
+  .option('-d, --dev')
+  .option('-p, --prod')
+  .option('-r, --renderer')
+  .option('-s, --server')
+  .option('-t, --tsc')
+  .parse(process.argv)
+
+const env = program.prod ? 'production' : 'development'
+
+const sfc2jsOptions = {
+  srcDir: 'comp',
+  outDir: 'temp',
 }
 
-let css = ''
-
-fs.readdirSync(fullPath('comp'))
-  .filter(name => name.endsWith('.vue'))
-  .forEach(name => {
-    name = name.slice(0, -4)
-    const compPath = fullPath('comp/' + name) + '.vue'
-    const distPath = fullPath('dist/' + name)
-    const id = getRandomId()
-    let scoped = false
-
-    const { script, template, styles } = parseComponent(fs.readFileSync(compPath).toString())
-    const { render, staticRenderFns: fns } = compileToFunctions(template.content)
-
-    css += styles.map(style => {
-      scoped |= style.scoped
-      return sass.renderSync({
-        data: style.scoped ? `[id-${id}].${name}{${style.content}}` : style.content,
-        outputStyle: 'compressed',
-      }).css
-    }).join('')
-
-    fs.writeFileSync(distPath + '.js', script ? script.content : `
-      module.exports = { props: ['node'] }
-    `)
-
-    fs.writeFileSync(distPath + '.vue.js', scoped ? `
-      const data = require('./${name}');
-      (data.mixins || (data.mixins = [])).push({ mounted() { this.$el.setAttribute('id-${id}', '') } });
-      module.exports = { ...data, render: ${render}, staticRenderFns: [${fns.join(',')}] };
-    ` : `
-      module.exports = { ...require('./${name}'), render: ${render}, staticRenderFns: [${fns.join(',')}] };
-    `)
+const bundle = (name, options) => new Promise((resolve, reject) => {
+  const compiler = webpack({
+    target: 'web',
+    mode: env,
+    entry: util.resolve(name, options.entry),
+    resolve: {
+      alias: {
+        '@': util.resolve(name, 'temp')
+      }
+    },
+    output: {
+      path: util.resolve(name, 'dist'),
+      filename: options.output,
+      library: 'Marklet',
+      libraryTarget: 'umd',
+      libraryExport: options.libraryExport,
+      globalObject: 'typeof self !== \'undefined\' ? self : this'
+    }
   })
 
-fs.writeFileSync(fullPath('html/marklet.min.css'), css)
-fs.copyFileSync(fullPath('html/marklet.min.css'), fullPath('docs/marklet.min.css'))
+  new webpack.ProgressPlugin().apply(compiler)
 
-const compiler = webpack({
-  target: 'web',
-  entry: path.resolve(__dirname, '../html/marklet.js'),
-  output: {
-    path: path.resolve(__dirname, '../html'),
-    filename: 'marklet.min.js'
-  },
+  compiler.run((error, stat) => {
+    if (error) {
+      console.log(error)
+      reject()
+    } else if (stat.compilation.errors.length) {
+      console.log(stat.compilation.errors.join('\n'))
+      reject()
+    } else {
+      console.log('Bundle Succeed.')
+    }
+    resolve()
+  })
 })
 
-new webpack.ProgressPlugin().apply(compiler)
+Promise.resolve().then(() => {
+  if (program.renderer) {
+    mkdirIfNotExists('renderer/dist')
 
-compiler.run((error, stat) => {
-  if (error) {
-    console.log(error)
-  } else if (stat.compilation.errors.length) {
-    console.log(stat.compilation.errors.join('\n'))
-  } else {
-    console.log('Succeed.')
-    fs.copyFileSync(fullPath('html/marklet.min.js'), fullPath('docs/marklet.min.js'))
+    sfc2js.transpile({
+      ...sfc2jsOptions,
+      baseDir: util.resolve('renderer'),
+      outCSSFile: '../dist/marklet.min.css',
+      defaultScript: {
+        props: ['node'],
+      },
+    })
+
+    return bundle('renderer', {
+      entry: 'src/index.js',
+      output: 'renderer.min.js',
+    })
   }
+}).then(() => {
+  if (program.server) {
+    mkdirIfNotExists('dev-server/dist')
+  
+    if (program.tsc) {
+      util.exec('tsc -p packages/dev-server')
+    }
+
+    if (program.prod) {
+      fs.writeFileSync(
+        util.resolve('dev-server/dist/index.html'),
+        minify(fs.readFileSync(util.resolve('dev-server/src/index.html')).toString(), {
+          collapseWhitespace: true,
+          removeAttributeQuotes: true,
+        })
+      )
+    } else {
+      fs.copyFileSync(
+        util.resolve('dev-server/src/index.html'),
+        util.resolve('dev-server/dist/index.html')
+      )
+    }
+  
+    sfc2js.transpile({
+      ...sfc2jsOptions,
+      baseDir: util.resolve('dev-server'),
+      outCSSFile: '../dist/client.min.css',
+    })
+
+    return bundle('dev-server', {
+      entry: 'dist/client.js',
+      output: 'client.min.js',
+      libraryExport: 'Marklet',
+    })
+  }
+}).catch((error) => {
+  console.log(error)
 })

@@ -1,47 +1,40 @@
 {
-  "name": "markletjs",
-  "version": "1.1.0",
-  "description": "",
-  "main": "dist/Marklet.js",
   "scripts": {
-    "build:full": "tsc && node ./build/build",
-    "build": "node ./build/build",
-    "test": "node ./test/runner.js",
-    "lint": "tslint src/*.ts && eslint ."
+    "start": "npm run build && node packages/cli -m edit",
+    "publish": "lerna publish --no-git-tag-version",
+    "bootstrap": "lerna bootstrap --hoist --no-ci",
+    "build": "tsc -b && node build/build -sr",
+    "build:prod": "tsc -b && node build/build -psr",
+    "build:renderer": "node build/build -r",
+    "build:server": "node build/build -s",
+    "build:tsc": "tsc -b",
+    "clear": "node build/clear",
+    "test": "node packages/test/runner.js",
+    "lint": "tslint packages/**/src/*.ts && eslint ."
   },
-  "bin": {
-    "marklet": "./bin/cli.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/obstudio/Marklet.git"
-  },
-  "author": "",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/obstudio/Marklet/issues"
-  },
-  "homepage": "https://github.com/obstudio/Marklet#readme",
   "devDependencies": {
+    "@octokit/rest": "^15.12.0",
+    "@sfc2js/clean-css": "^1.1.1",
+    "@sfc2js/sass": "^1.0.1",
+    "@types/cheerio": "^0.22.9",
     "@types/js-yaml": "^3.11.2",
-    "@types/node": "^10.9.4",
-    "@types/ws": "^6.0.0",
+    "@types/node": "^10.10.1",
+    "@types/ws": "^6.0.1",
     "ajv": "^6.5.3",
+    "chalk": "^2.4.1",
     "cheerio": "^1.0.0-rc.2",
-    "eslint": "^5.5.0",
+    "commander": "^2.18.0",
+    "eslint": "^5.6.0",
     "eslint-plugin-vue": "^5.0.0-beta.3",
     "fast-deep-equal": "^2.0.1",
-    "sass": "^1.13.1",
+    "html-minifier": "^3.5.20",
+    "lerna": "^3.4.0",
+    "node-sass": "^4.9.3",
+    "prettier": "^1.14.3",
+    "semver": "^5.5.1",
+    "sfc2js": "^3.3.0",
     "tslint": "^5.11.0",
     "typescript": "^3.0.3",
-    "vue-template-compiler": "^2.5.17",
-    "webpack": "^4.17.1"
-  },
-  "dependencies": {
-    "chalk": "^2.4.1",
-    "commander": "^2.17.1",
-    "js-yaml": "^3.12.0",
-    "vue": "^2.5.17",
-    "ws": "^6.0.0"
+    "webpack": "^4.19.1"
   }
 }

@@ -1,13 +1,18 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "target": "es2017",
-        "noImplicitAny": false,
-        "sourceMap": true,
-        "allowJs": true,
-        "outDir": "dist"
-    },
-    "include": [
-        "src"
-    ]
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "target": "es2018",
+    "noImplicitAny": true,
+    "composite": true,
+    "esModuleInterop": true
+  },
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/dev-server" },
+    { "path": "./packages/detok" },
+    { "path": "./packages/parser" },
+    { "path": "./packages/syntax" }
+  ],
+  "files": []
 }

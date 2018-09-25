@@ -1,0 +1,29 @@
+{
+  "name": "@marklet/dev-server",
+  "version": "1.0.11",
+  "description": "A develop server for marklet.",
+  "author": "jjyyxx <1449843302@qq.com>",
+  "contributors": [
+    "shigma <1700011071@pku.edu.cn>"
+  ],
+  "homepage": "https://github.com/obstudio/Marklet",
+  "license": "MIT",
+  "main": "dist/server.js",
+  "typings": "dist/server.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obstudio/Marklet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/obstudio/Marklet/issues"
+  },
+  "dependencies": {
+    "@marklet/parser": "^1.0.4",
+    "@marklet/renderer": "^1.1.2",
+    "vue": "^2.5.17",
+    "ws": "^6.0.0"
+  }
+}

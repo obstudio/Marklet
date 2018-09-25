@@ -2,5 +2,6 @@ node_modules
 package-lock.json
 test.*
 dist
-html/*.min.*
+temp
 !test
+*.tgz

@@ -1,0 +1,23 @@
+{
+  "name": "@marklet/core",
+  "version": "1.0.9",
+  "description": "A lexer for marklet.",
+  "author": "shigma <1700011071@pku.edu.cn>",
+  "contributors": [
+    "jjyyxx <1449843302@qq.com>"
+  ],
+  "homepage": "https://github.com/obstudio/Marklet",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obstudio/Marklet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/obstudio/Marklet/issues"
+  }
+}

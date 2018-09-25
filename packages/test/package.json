@@ -1,0 +1,22 @@
+{
+  "name": "@marklet/test",
+  "version": "1.0.9",
+  "private": true,
+  "author": "jjyyxx <1449843302@qq.com>",
+  "homepage": "https://github.com/obstudio/Marklet",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obstudio/Marklet.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/obstudio/Marklet/issues"
+  },
+  "dependencies": {
+    "@marklet/detok": "^1.0.4",
+    "markletjs": "^1.1.4"
+  }
+}

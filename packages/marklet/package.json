@@ -1,0 +1,35 @@
+{
+  "name": "markletjs",
+  "version": "1.1.12",
+  "description": "A markup language designed for API manual pages.",
+  "author": "jjyyxx <1449843302@qq.com>",
+  "contributors": [
+    "shigma <1700011071@pku.edu.cn>"
+  ],
+  "homepage": "https://github.com/obstudio/Marklet",
+  "license": "MIT",
+  "main": "index.js",
+  "typings": "index.d.ts",
+  "bin": {
+    "marklet": "cli.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obstudio/Marklet.git"
+  },
+  "keywords": [
+    "marklet",
+    "markdown",
+    "markup",
+    "parser",
+    "renderer"
+  ],
+  "bugs": {
+    "url": "https://github.com/obstudio/Marklet/issues"
+  },
+  "dependencies": {
+    "@marklet/cli": "^1.1.4",
+    "@marklet/parser": "^1.0.4",
+    "@marklet/renderer": "^1.1.2"
+  }
+}

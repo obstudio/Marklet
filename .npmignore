@@ -1,9 +1,0 @@
-test.*
-.eslintrc.js
-.eslintignore
-.gitattributes
-tslint.json
-test/
-docs/
-.vscode/
-build/

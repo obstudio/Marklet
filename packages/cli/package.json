@@ -1,0 +1,28 @@
+{
+  "name": "@marklet/cli",
+  "version": "1.1.4",
+  "description": "A command line interface for marklet.",
+  "author": "jjyyxx <1449843302@qq.com>",
+  "contributors": [
+    "shigma <1700011071@pku.edu.cn>"
+  ],
+  "homepage": "https://github.com/obstudio/Marklet",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obstudio/Marklet.git"
+  },
+  "bin": {
+    "marklet": "index.js"
+  },
+  "bugs": {
+    "url": "https://github.com/obstudio/Marklet/issues"
+  },
+  "dependencies": {
+    "@marklet/dev-server": "^1.0.11",
+    "@marklet/parser": "^1.0.4",
+    "chalk": "^2.4.1",
+    "commander": "^2.18.0",
+    "js-yaml": "^3.12.0"
+  }
+}
