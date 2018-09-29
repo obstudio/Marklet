@@ -19,5 +19,8 @@
   },
   "bugs": {
     "url": "https://github.com/obstudio/Marklet/issues"
+  },
+  "dependencies": {
+    "@marklet/core": "^2.0.0-beta.0"
   }
 }

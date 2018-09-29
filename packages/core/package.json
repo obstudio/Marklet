@@ -1,7 +1,7 @@
 {
   "name": "@marklet/core",
-  "version": "1.0.9",
-  "description": "A lexer for marklet.",
+  "version": "2.0.0-beta.0",
+  "description": "Some core conceptions of marklet.",
   "author": "shigma <1700011071@pku.edu.cn>",
   "contributors": [
     "jjyyxx <1449843302@qq.com>"

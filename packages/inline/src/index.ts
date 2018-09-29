@@ -1,99 +1,53 @@
-type StringLike = string | RegExp
+import {
+  StringLike,
+  LexerConfig,
+  LexerClass,
+  LexerRegexRule,
+  MatchStatus,
+  parseRule,
+} from '@marklet/core'
 
-interface InlineCapture extends RegExpExecArray {
-  inner: string
+export { LexerConfig }
+
+class InlineCapture extends Array<string> implements RegExpExecArray {
+  index: number
+  input: string
+  lexer: InlineLexer
+
+  constructor(lexer: InlineLexer, array: RegExpExecArray) {
+    super(...array)
+    this.lexer = lexer
+    this.index = array.index
+    this.input = array.input
+  }
+
+  get inner(): string {
+    const match = this.reverse().find(item => !!item)
+    return match ? this.lexer.parse(match).output : ''
+  }
 }
 
-interface InlineLexerRule<S extends StringLike = StringLike> {
-  /** the regular expression to execute */
-  regex?: S
-  /**
-   * a string containing all the rule flags:
-   * - `b`: match when the context begins
-   * - `e`: match end of line
-   * - `i`: ignore case
-   * - `p`: pop from the current context
-   */
-  flags?: string
-  /** default type of the token */
-  type?: string
-  /** whether the rule is to be executed */
-  test?: string | boolean | ((this: InlineLexer, config: LexerConfig) => boolean)
-  /** a result token */
-  token?: string | ((this: InlineLexer, capture: InlineCapture) => string)
-  /** pop from the current context */
-  pop?: boolean
-  /** match when the context begins */
-  context_begins?: boolean
-  /** whether to ignore case */
-  ignore_case?: boolean
-  /** match end of line */
-  eol?: boolean
-}
+type InlineLexerRule<S extends StringLike = RegExp> = LexerRegexRule<S, InlineLexer, InlineCapture>
 
-export type LexerConfig = Record<string, any>
 export type InlineLexerRules = InlineLexerRule<StringLike>[]
-export interface InlineResult {
+export interface InlineLexerResult {
   index: number
   output: string
 }
 
-export class InlineLexer {
+export class InlineLexer implements LexerClass {
   config: LexerConfig
-  private Capture: any
-  private rules: InlineLexerRule<RegExp>[]
+  private rules: InlineLexerRule[]
 
   constructor(rules: InlineLexerRules, config: LexerConfig = {}) {
-    const self = this
+    this.rules = rules.map(rule => parseRule(rule) as InlineLexerRule)
     this.config = config
-
-    this.Capture = class extends Array<string> implements InlineCapture {
-      index: number
-      input: string
-    
-      constructor(array: RegExpExecArray) {
-        super(...array)
-        this.index = array.index
-        this.input = array.input
-      }
-
-      get inner(): string {
-        const match = this.reverse().find(item => !!item)
-        return match ? self.parse(match).output : ''
-      }
-    }
-
-    this.rules = rules.map((rule) => {
-      if (rule.regex === undefined) {
-        rule.regex = /(?=[\s\S])/
-        if (!rule.type) rule.type = 'default'
-      }
-      if (rule.test === undefined) rule.test = true
-      let src = rule.regex instanceof RegExp ? rule.regex.source : rule.regex
-      let flags = ''
-      rule.flags = rule.flags || ''
-      if (rule.flags.replace(/[biep]/g, '')) {
-        throw new Error(`'${rule.flags}' contains invalid rule flags.`)
-      }
-      if (rule.flags.includes('p')) rule.pop = true
-      if (rule.flags.includes('b')) rule.context_begins = true
-      if (rule.flags.includes('e') || rule.eol) src += ' *(?:\\n+|$)'
-      if (rule.flags.includes('i') || rule.ignore_case) flags += 'i'
-      rule.regex = new RegExp('^(?:' + src + ')', flags)
-      return rule as InlineLexerRule<RegExp>
-    })
   }
 
-  private _parse(source: string): InlineResult {
+  private _parse(source: string): InlineLexerResult {
     let index = 0, unmatch = '', output = ''
     while (source) {
-      /**
-       * Matching status:
-       * 0. No match was found
-       * 1. Found match and continue
-       * 2. Found match and pop
-       */
-      let status = 0
+      let status: MatchStatus = MatchStatus.NO_MATCH
       for (const rule of this.rules) {
         if (rule.context_begins && index) continue
 
@@ -120,13 +74,12 @@ export class InlineLexer {
             source.length > 10 ? '...' : ''
           }'.`)
         }
-        const capture = new this.Capture(match)
+        const capture = new InlineCapture(this, match)
         source = source.slice(capture[0].length)
         index += capture[0].length
 
         // pop
-        const pop = rule.pop
-        status = pop ? 2 : 1
+        status = rule.pop ? MatchStatus.POP : MatchStatus.CONTINUE
 
         // resolve unmatch
         if (unmatch) {
@@ -146,8 +99,8 @@ export class InlineLexer {
         break
       }
 
-      if (status === 2) break
-      if (status === 0) {
+      if (status === MatchStatus.POP) break
+      if (status === MatchStatus.NO_MATCH) {
         unmatch += source.charAt(0)
         source = source.slice(1)
         index += 1
@@ -158,7 +111,7 @@ export class InlineLexer {
     return { index, output }
   }
 
-  parse(source: string): InlineResult {
+  parse(source: string): InlineLexerResult {
     return this._parse(source.replace(/\r\n/g, '\n'))
   }
 }
