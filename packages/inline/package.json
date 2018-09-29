@@ -1,8 +1,11 @@
 {
-  "name": "@marklet/syntax",
-  "version": "1.0.10",
-  "description": "A common language lexer for marklet.",
+  "name": "@marklet/inline",
+  "version": "1.0.0",
+  "description": "A fast inline lexer for marklet.",
   "author": "shigma <1700011071@pku.edu.cn>",
+  "contributors": [
+    "jjyyxx <1449843302@qq.com>"
+  ],
   "homepage": "https://github.com/obstudio/Marklet",
   "license": "MIT",
   "main": "dist/index.js",
@@ -18,7 +21,6 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/lexer": "^1.0.10",
-    "js-yaml": "^3.12.0"
+    "@marklet/core": "^2.0.0"
   }
 }

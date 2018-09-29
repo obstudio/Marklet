@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "target": "es2018",
+    "noImplicitAny": true,
+    "composite": true,
+    "esModuleInterop": true
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "@marklet/parser",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "A document lexer for marklet.",
   "author": "shigma <1700011071@pku.edu.cn>",
   "contributors": [
@@ -21,6 +21,8 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/core": "^1.0.4"
+    "@marklet/core": "^2.0.0",
+    "@marklet/lexer": "^1.0.10",
+    "@marklet/inline": "^1.0.0"
   }
 }

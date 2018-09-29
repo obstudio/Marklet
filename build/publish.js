@@ -4,7 +4,7 @@ const chalk = require('chalk')
 const semver = require('semver')
 const cp = require('child_process')
 const program = require('commander')
-const { exec, execSync } = require('./util')
+const { exec } = require('./util')
 
 function toVersion(version) {
   return `${version.major}.${version.minor}.${version.patch}`
@@ -13,12 +13,11 @@ function toVersion(version) {
 class Package {
   constructor(name) {
     this.current = require(`../packages/${name}/package.json`)
-    this.previous = JSON.parse(cp.execSync(`git show HEAD:packages/${name}/package.json`).toString('utf8'))
+    this.previous = JSON.parse(cp.execSync(`git show HEAD:packages/${name}/package.json`).toString().trim())
     this.major = semver.major(this.previous.version)
     this.minor = semver.minor(this.previous.version)
     this.patch = semver.patch(this.previous.version)
     this.newVersion = this.current.version
-    delete this.current.gitHead
   }
   
   bump(flag) {
@@ -48,10 +47,10 @@ packageNames.forEach(name => packages[name] = new Package(name))
 program
   .usage('[options] [names...]')
   .option('-a, --all')
-  .option('-M, --major')
-  .option('-m, --minor')
-  .option('-p, --patch')
-  .option('-N, --no-npm')
+  .option('-1, --major')
+  .option('-2, --minor')
+  .option('-3, --patch')
+  .option('-p, --publish')
   .parse(process.argv)
 
 const flag = program.major ? 'major' : program.minor ? 'minor' : 'patch'
@@ -83,24 +82,29 @@ ${chalk.cyanBright(packages[name].newVersion)}`)
 
 let counter = 0, promise = Promise.resolve(), failed = false
 
-if (program.npm) {
-  packageNames.forEach((name) => {
-    if (packages[name].newVersion !== packages[name].previous.version) {
-      if (packages[name].current.private) return
-      const npmVersion = execSync(`npm show ${packages[name].current.name} version`)
-      if (semver.gte(npmVersion, packages[name].newVersion)) return
-      counter += 1
-      fs.writeFileSync(
-        path.join(__dirname, `../packages/${name}/package.json`),
-        JSON.stringify(packages[name], null, 2),
-      )
-      promise = promise.then((code) => {
-        failed = failed || code
-        return exec(`cd packages/${name} && npm publish`)
-      })
-    }
-  })
+if (program.publish) {
+  console.log('\nWaiting for packages to publish ...')
 }
+
+packageNames.forEach((name) => {
+  if (packages[name].newVersion !== packages[name].previous.version) {
+    fs.writeFileSync(
+      path.join(__dirname, `../packages/${name}/package.json`),
+      JSON.stringify(packages[name], null, 2),
+    )
+    if (packages[name].current.private || !program.publish) return
+    const npmVersion = cp.execSync(`npm show ${packages[name].current.name} version`).toString().trim()
+    if (semver.gte(npmVersion, packages[name].newVersion)) return
+    console.log(` - ${name} (${packages[name].current.name}): \
+${chalk.green(npmVersion)} => \
+${chalk.greenBright(packages[name].newVersion)}`)
+    counter += 1
+    promise = promise.then((code) => {
+      failed = failed || code
+      return exec(`cd packages/${name} && npm publish`)
+    })
+  }
+})
 
 promise.then(() => {
   if (!counter) {
