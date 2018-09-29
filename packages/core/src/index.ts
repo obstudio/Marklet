@@ -1,7 +1,7 @@
 export type StringLike = string | RegExp
 
 export type LexerConfig = Record<string, any>
-export type LexerMacros = Record<string, StringLike>
+export type LexerMacros<S extends StringLike = StringLike> = Record<string, S>
 
 export type TokenLike = string | LexerToken
 export interface LexerToken {
@@ -15,14 +15,14 @@ export interface LexerToken {
 
 export type LexerRule<
   S extends StringLike = RegExp,
-  T extends LexerInstance = LexerInstance,
+  T extends Lexer<any> = Lexer<any>,
   R extends RegExpExecArray = RegExpExecArray,
 > = LexerIncludeRule | LexerRegexRule<S, T, R>
 
 export interface LexerIncludeRule { include: string }
 export interface LexerRegexRule<
   S extends StringLike = RegExp,
-  T extends LexerInstance = LexerInstance,
+  T extends Lexer<any> = Lexer<any>,
   R extends RegExpExecArray = RegExpExecArray,
 > {
   /** the regular expression to execute */
@@ -61,12 +61,13 @@ export interface LexerRegexRule<
   eol?: boolean
 }
 
-/** Transform a string-like object into a raw string. */
+/** transform a string-like object into a raw string */
 export function getString(string: StringLike): string {
   return string instanceof RegExp ? string.source : string
 }
 
-export function parseRule(rule: LexerRule<StringLike>, macros: LexerMacros = {}): LexerRule {
+/** transform lexer rules with string into ones with regexp */
+export function parseRule(rule: LexerRule<StringLike>, macros: LexerMacros<string> = {}): LexerRule {
   if (!('include' in rule)) {
     if (rule.regex === undefined) {
       rule.regex = /(?=[\s\S])/
@@ -94,20 +95,6 @@ export function parseRule(rule: LexerRule<StringLike>, macros: LexerMacros = {})
   return rule as LexerRule
 }
 
-export interface LexerInstance {
-  config: LexerConfig
-  parse(source: string): any
-}
-
-export interface InlineLexerResult {
-  index: number
-  output: string
-}
-
-export interface InlineLexerInstance extends LexerInstance {
-  parse(source: string): InlineLexerResult
-}
-
 export enum MatchStatus {
   /** No match was found */
   NO_MATCH,
@@ -115,4 +102,130 @@ export enum MatchStatus {
   CONTINUE,
   /** Found match and pop */
   POP,
+}
+
+export interface LexerResult<R extends string | TokenLike[]> {
+  /** current index of the source string */
+  index: number
+  /** output string or array */
+  output: R
+}
+
+export interface LexerMeta<R extends string | TokenLike[]> extends Partial<LexerResult<R>> {
+  /** record where the match starts */
+  start?: number
+  /** a copy of source string */
+  source?: string
+  /** a string collecting unmatch chars */
+  unmatch?: string
+  /** whether running at top level */
+  isTopLevel?: boolean
+  /** current lexing context */
+  context?: LexerRegexRule[]
+}
+
+export abstract class Lexer<R extends string | TokenLike[]> {
+  meta: LexerMeta<R>
+  config: LexerConfig
+
+  constructor(config: LexerConfig) {
+    this.config = config || {}
+  }
+
+  initialize?(...args: any[]): void | LexerResult<R>
+  getCapture?(rule: LexerRegexRule, capture: RegExpExecArray): RegExpExecArray
+  getContent?(rule: LexerRegexRule): TokenLike[]
+  pushToken?(rule: LexerRegexRule, capture: RegExpExecArray, content: TokenLike[]): void
+  pushUnmatch?(): void
+
+  run(source: string, isTopLevel?: boolean, ...args: any[]): LexerResult<R> {
+    // store meta data from lower level
+    const _meta = this.meta
+    this.meta = {
+      source,
+      isTopLevel,
+      index: 0,
+      unmatch: '',
+    }
+
+    // initialize or simply get the result
+    const final = this.initialize(...args)
+    if (final) return final
+    
+    // walk through the source string
+    while (this.meta.source) {
+      let status: MatchStatus = MatchStatus.NO_MATCH
+      for (const rule of this.meta.context) {
+        // Step 1: test before matching
+        if (rule.top_level && !this.meta.isTopLevel) continue
+        if (rule.context_begins && this.meta.index) continue
+        
+        let test = rule.test
+        if (typeof test === 'string') {
+          if (test.charAt(0) === '!') {
+            test = !this.config[test.slice(1)]
+          } else {
+            test = !!this.config[test]
+          }
+        } else if (typeof test === 'function') {
+          test = !!test.call(this, this.config)
+        }
+        if (!test) continue
+
+        // Step 2: exec regex and get capture
+        const match = rule.regex.exec(this.meta.source)
+        if (!match) continue
+        this.meta.source = this.meta.source.slice(match[0].length)
+        this.meta.start = this.meta.index
+        this.meta.index += match[0].length
+        const capture = this.getCapture ? this.getCapture(rule, match) : match
+
+        // Step 3: reset match status
+        status = rule.pop ? MatchStatus.POP : MatchStatus.CONTINUE
+
+        // Step 4: get inner tokens
+        const content = rule.push && this.getContent ? this.getContent(rule) : []
+
+        // Step 5: detect endless loop
+        if (!rule.pop && this.meta.start === this.meta.index) {
+          throw new Error(`Endless loop at '${
+            this.meta.source.slice(0, 10)
+          } ${
+            this.meta.source.length > 10 ? '...' : ''
+          }'.`)
+        }
+
+        // Step 6: handle unmatched chars
+        if (this.pushUnmatch && this.meta.unmatch) {
+          this.pushUnmatch()
+          this.meta.unmatch = ''
+        }
+
+        // Step 7: push generated token
+        this.pushToken(rule, capture, content)
+
+        // Step 8: break loop
+        break
+      }
+
+      if (status === MatchStatus.POP) break
+      if (status === MatchStatus.NO_MATCH) {
+        this.meta.unmatch += this.meta.source.charAt(0)
+        this.meta.source = this.meta.source.slice(1)
+        this.meta.index += 1
+      }
+    }
+
+    // handle ramaining unmatched chars
+    if (this.pushUnmatch && this.meta.unmatch) this.pushUnmatch()
+
+    const result: LexerResult<R> = {
+      index: this.meta.index,
+      output: this.meta.output,
+    }
+
+    // restore meta data for lower level
+    this.meta = _meta
+    return result
+  }
 }

@@ -1,6 +1,6 @@
 import { LexerConfig, TokenLike } from '@marklet/core'
 import { InlineLexer } from '@marklet/inline'
-import { Lexer } from '@marklet/lexer'
+import { DocumentLexer } from '@marklet/lexer'
 
 function escape(html: string): string {
   return html
@@ -101,7 +101,7 @@ class MarkletInlineLexer extends InlineLexer {
   }
 }
 
-class MarkletLexer extends Lexer {
+class MarkletLexer extends DocumentLexer {
   constructor(config: MarkletLexerConfig = {}) {
     super({
       text: new MarkletInlineLexer(config),
