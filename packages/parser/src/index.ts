@@ -1,6 +1,4 @@
-import { LexerConfig, TokenLike } from '@marklet/core'
-import { InlineLexer } from '@marklet/inline'
-import { DocumentLexer } from '@marklet/lexer'
+import { LexerConfig, TokenLike, DocumentLexer, InlineLexer } from '@marklet/core'
 
 function escape(html: string): string {
   return html

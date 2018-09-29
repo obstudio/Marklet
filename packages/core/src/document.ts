@@ -8,7 +8,7 @@ import {
   LexerConfig,
   LexerRule,
   LexerRegexRule,
-} from '@marklet/core'
+} from './lexer'
 
 export interface LexerOptions {
   /** lexer rule regex macros */
@@ -28,8 +28,20 @@ type DocumentLexerRule = LexerRegexRule<RegExp, DocumentLexer>
 type NativeLexerContext = DocumentLexerRule[] | InlineLexer
 export type LexerContexts = Record<string, LexerRule<StringLike, DocumentLexer>[] | InlineLexer>
 
+enum ContextReason {
+  INCLUDE,
+  PUSH,
+  INLINE,
+  INITIAL,
+}
+
+interface ContextLog {
+  name: string
+  reason: ContextReason
+}
+
 export class DocumentLexer extends Lexer<TokenLike[]> {
-  private stackTrace: string[]
+  private stackTrace: ContextLog[]
   private contexts: Record<string, LexerRule[] | InlineLexer> = {}
   private entrance: string
   private inlineEntrance: string
@@ -56,23 +68,24 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
 
   getContext(
     context: string | InlineLexer | LexerRule[],
+    reason: ContextReason,
     strictMode: boolean = false,
-    pushStack: boolean = true,
   ) {
     const name = typeof context === 'string' ? context : 'anonymous'
-    if (pushStack) {
-      this.stackTrace.push(name)
+    if (reason === ContextReason.INITIAL) {
+      this.stackTrace = [{ name, reason }]
+    } else if (reason !== ContextReason.INCLUDE) {
+      this.stackTrace.push({ name, reason })
     } else {
-      this.stackTrace[this.stackTrace.length - 1] = name
+      this.stackTrace[this.stackTrace.length - 1].name = name
     }
-    console.log('PUSH:', this.stackTrace)
     const result = typeof context === 'string' ? this.contexts[context] : context
     if (!result) throw new Error(`Context '${context}' was not found.`)
     if (result instanceof Array) {
       for (let i = result.length - 1; i >= 0; i -= 1) {
         const rule: LexerRule = result[i]
         if ('include' in rule) {
-          const includes = this.getContext(rule.include, false, false)
+          const includes = this.getContext(rule.include, ContextReason.INCLUDE)
           if (includes instanceof Array) {
             result.splice(i, 1, ...includes)
           } else {
@@ -97,8 +110,6 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
   initialize(context: NativeLexerContext) {
     if (!(context instanceof Array)) {
       const result = context.run(this.meta.source)
-      this.stackTrace.pop()
-      console.log('POP:', this.stackTrace)
       return {
         index: result.index,
         output: [result.output],
@@ -109,7 +120,7 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
   }
 
   getContent(rule: DocumentLexerRule) {
-    const context = this.getContext(rule.push, rule.strict)
+    const context = this.getContext(rule.push, ContextReason.PUSH, rule.strict)
     const result = this.run(this.meta.source, false, context)
     const content = result.output.map((token) => {
       if (this.requireBound && typeof token === 'object') {
@@ -119,7 +130,6 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
       return token
     })
     this.stackTrace.pop()
-    console.log('POP:', this.stackTrace)
     this.meta.source = this.meta.source.slice(result.index)
     this.meta.index += result.index
     return content
@@ -156,19 +166,17 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
   }
 
   inline(source: string, context: string = this.inlineEntrance): string {
-    const inlineContext = this.getContext(context)
+    const inlineContext = this.getContext(context, ContextReason.INLINE)
     if (inlineContext instanceof Array) {
       throw new Error(`'${context}' is not a inline context.`)
     }
     const result = inlineContext.run(source).output
     this.stackTrace.pop()
-    console.log('POP:', this.stackTrace)
     return result
   }
 
   parse(source: string, context: string = this.entrance): TokenLike[] {
-    this.stackTrace = []
-    const initialContext = this.getContext(context)
+    const initialContext = this.getContext(context, ContextReason.INITIAL)
     source = source.replace(/\r\n/g, '\n')
     try {
       return this.run(source, true, initialContext).output

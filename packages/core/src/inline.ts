@@ -5,10 +5,10 @@ import {
   LexerResult,
   LexerConfig,
   LexerRegexRule,
-} from '@marklet/core'
+} from './lexer'
 
 type InlineLexerRule = LexerRegexRule<RegExp, InlineLexer, InlineCapture>
-export type InlineLexerContext = LexerRegexRule<StringLike, InlineLexer, InlineCapture>[]
+export type InlineContext = LexerRegexRule<StringLike, InlineLexer, InlineCapture>[]
 
 class InlineCapture extends Array<string> implements RegExpExecArray {
   index: number
@@ -31,7 +31,7 @@ class InlineCapture extends Array<string> implements RegExpExecArray {
 export class InlineLexer extends Lexer<string> {
   private rules: InlineLexerRule[]
 
-  constructor(context: InlineLexerContext, config: LexerConfig) {
+  constructor(context: InlineContext, config: LexerConfig) {
     super(config)
     this.rules = context.map(rule => parseRule(rule) as InlineLexerRule)
   }

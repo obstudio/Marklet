@@ -1,4 +1,4 @@
-import { DocumentLexer, LexerContexts } from '@marklet/lexer'
+import { DocumentLexer, LexerContexts } from '@marklet/core'
 
 type SyntaxRule = SyntaxMetaRule | SyntaxIncludeRule | SyntaxRegexRule
 interface SyntaxToken { scope: string, text: string }
