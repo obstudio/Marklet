@@ -1,39 +1,10 @@
-type ResultMap<T extends Record<string, (...arg: any[]) => any>> = {
-  [key in keyof T]: ReturnType<T[key]>
-}
-
 type StringLike = string | RegExp
-type Capture = RegExpExecArray & ResultMap<GetterFunctionMap>
-type GetterFunction = (this: InlineLexer, capture: RegExpExecArray) => any
-type GetterFunctionMap = Record<string, GetterFunction>
-export interface LexerConfig { [key: string]: any }
-export interface LexerOptions {
-  /** lexer capture getters */
-  getters?: GetterFunctionMap
-  /** lexer rule regex macros */
-  macros?: Record<string, StringLike>
-  /** entrance context */
-  entrance?: string
-  /** default context */
-  default?: string
-  /** assign start/end to tokens */
-  requireBound?: boolean
-  /** other configurations */
-  config?: LexerConfig
+
+interface InlineCapture extends RegExpExecArray {
+  inner: string
 }
 
-export interface LexerToken {
-  type?: string
-  text?: string
-  content?: TokenLike[]
-  start?: number
-  end?: number
-  [key: string]: any
-}
-
-export type TokenLike = string | LexerToken
-interface LexerIncludeRule { include: string }
-interface LexerRegexRule<S extends StringLike> {
+interface InlineLexerRule<S extends StringLike = StringLike> {
   /** the regular expression to execute */
   regex?: S
   /**
@@ -42,124 +13,79 @@ interface LexerRegexRule<S extends StringLike> {
    * - `e`: match end of line
    * - `i`: ignore case
    * - `p`: pop from the current context
-   * - `t`: match top level context
    */
   flags?: string
   /** default type of the token */
   type?: string
   /** whether the rule is to be executed */
-  test?: string | boolean | ((config: LexerConfig) => boolean)
+  test?: string | boolean | ((this: InlineLexer, config: LexerConfig) => boolean)
   /** a result token */
-  token?: TokenLike | TokenLike[] | ((
-    this: InlineLexer, capture: Capture, content: TokenLike[], rule: this
-  ) => TokenLike | TokenLike[])
-  /** the inner context */
-  push?: string | LexerRule<S>[] | ((
-    this: InlineLexer, capture: Capture
-  ) => string | LexerRule<S>[] | false)
+  token?: string | ((this: InlineLexer, capture: InlineCapture) => string)
   /** pop from the current context */
   pop?: boolean
   /** match when the context begins */
   context_begins?: boolean
-  /** match top level context */
-  top_level?: boolean
   /** whether to ignore case */
   ignore_case?: boolean
   /** match end of line */
   eol?: boolean
 }
 
-interface LexerWarning {
-  message: string
-}
-
-type LexerContext = string | NativeLexerRule[]
-type LexerRule<S extends StringLike> = LexerRegexRule<S> | LexerIncludeRule
-type LooseLexerRule = LexerRule<StringLike>
-type NativeLexerRule = LexerRule<RegExp>
-export type LexerRules = Record<string, LooseLexerRule[]>
-
-function getString(string: StringLike): string {
-  return string instanceof RegExp ? string.source : string
+export type LexerConfig = Record<string, any>
+export type InlineLexerRules = InlineLexerRule<StringLike>[]
+export interface InlineResult {
+  index: number
+  output: string
 }
 
 export class InlineLexer {
   config: LexerConfig
-  private rules: Record<string, NativeLexerRule[]> = {}
-  private getters: GetterFunctionMap
-  private entrance: string
-  private default: string
-  private requireBound: boolean
-  private _warnings: LexerWarning[]
-  private _isRunning: boolean = false
+  private Capture: any
+  private rules: InlineLexerRule<RegExp>[]
 
-  constructor(rules: LexerRules, options: LexerOptions = {}) {
-    this.getters = options.getters || {}
-    this.config = options.config || {}
-    this.entrance = options.entrance || 'main'
-    this.default = options.default || 'text'
-    this.requireBound = !!options.requireBound
+  constructor(rules: InlineLexerRules, config: LexerConfig = {}) {
+    const self = this
+    this.config = config
 
-    const _macros = options.macros || {}
-    const macros: Record<string, string> = {}
-    for (const key in _macros) {
-      macros[key] = getString(_macros[key])
-    }
-
-    function resolve(rule: LooseLexerRule): NativeLexerRule {
-      if (!('include' in rule)) {
-        if (rule.regex === undefined) {
-          rule.regex = /(?=[\s\S])/
-          if (!rule.type) rule.type = 'default'
-        }
-        if (rule.test === undefined) rule.test = true
-        let src = getString(rule.regex)
-        let flags = ''
-        for (const key in macros) {
-          src = src.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${macros[key]})`)
-        }
-        rule.flags = rule.flags || ''
-        if (rule.flags.replace(/[biept]/g, '')) {
-          throw new Error(`'${rule.flags}' contains invalid rule flags.`)
-        }
-        if (rule.flags.includes('p')) rule.pop = true
-        if (rule.flags.includes('b')) rule.context_begins = true
-        if (rule.flags.includes('t')) rule.top_level = true
-        if (rule.flags.includes('e') || rule.eol) src += ' *(?:\\n+|$)'
-        if (rule.flags.includes('i') || rule.ignore_case) flags += 'i'
-        rule.regex = new RegExp('^(?:' + src + ')', flags)
-        if (rule.push instanceof Array) rule.push.forEach(resolve)
+    this.Capture = class extends Array<string> implements InlineCapture {
+      index: number
+      input: string
+    
+      constructor(array: RegExpExecArray) {
+        super(...array)
+        this.index = array.index
+        this.input = array.input
       }
-      return <NativeLexerRule>rule
-    }
 
-    for (const key in rules) {
-      this.rules[key] = rules[key].map(resolve)
-    }
-  }
-
-  private getContext(context: LexerContext): LexerRegexRule<RegExp>[] {
-    const result = typeof context === 'string' ? this.rules[context] : context
-    if (!result) throw new Error(`Context '${context}' was not found.`)
-    for (let i = result.length - 1; i >= 0; i -= 1) {
-      const rule: NativeLexerRule = result[i]
-      if ('include' in rule) {
-        result.splice(i, 1, ...this.getContext(rule.include))
+      get inner(): string {
+        const match = this.reverse().find(item => !!item)
+        return match ? self.parse(match).output : ''
       }
     }
-    return <LexerRegexRule<RegExp>[]>result
+
+    this.rules = rules.map((rule) => {
+      if (rule.regex === undefined) {
+        rule.regex = /(?=[\s\S])/
+        if (!rule.type) rule.type = 'default'
+      }
+      if (rule.test === undefined) rule.test = true
+      let src = rule.regex instanceof RegExp ? rule.regex.source : rule.regex
+      let flags = ''
+      rule.flags = rule.flags || ''
+      if (rule.flags.replace(/[biep]/g, '')) {
+        throw new Error(`'${rule.flags}' contains invalid rule flags.`)
+      }
+      if (rule.flags.includes('p')) rule.pop = true
+      if (rule.flags.includes('b')) rule.context_begins = true
+      if (rule.flags.includes('e') || rule.eol) src += ' *(?:\\n+|$)'
+      if (rule.flags.includes('i') || rule.ignore_case) flags += 'i'
+      rule.regex = new RegExp('^(?:' + src + ')', flags)
+      return rule as InlineLexerRule<RegExp>
+    })
   }
 
-  private _parse(source: string, context: LexerContext, isTopLevel: boolean = false): {
-    index: number
-    result: TokenLike[]
-    warnings: LexerWarning[]
-  } {
-    let index = 0, unmatch = ''
-    const result: TokenLike[] = []
-    const rules = this.getContext(context)
-    const warnings: LexerWarning[] = this._warnings = []
-    source = source.replace(/\r\n/g, '\n')
+  private _parse(source: string): InlineResult {
+    let index = 0, unmatch = '', output = ''
     while (source) {
       /**
        * Matching status:
@@ -168,8 +94,7 @@ export class InlineLexer {
        * 2. Found match and pop
        */
       let status = 0
-      for (const rule of rules) {
-        if (rule.top_level && !isTopLevel) continue
+      for (const rule of this.rules) {
         if (rule.context_begins && index) continue
 
         // test
@@ -178,7 +103,7 @@ export class InlineLexer {
           if (test.charAt(0) === '!') {
             test = !this.config[test.slice(1)]
           } else {
-            test = this.config[test]
+            test = !!this.config[test]
           }
         } else if (typeof test === 'function') {
           test = test.call(this, this.config)
@@ -186,104 +111,54 @@ export class InlineLexer {
         if (!test) continue
 
         // regex
-        const capture = rule.regex.exec(source)
-        if (!capture) continue
+        const match = rule.regex.exec(source)
+        if (!match) continue
+        if (!match[0].length) {
+          throw new Error(`Endless loop at '${
+            source.slice(0, 10)
+          } ${
+            source.length > 10 ? '...' : ''
+          }'.`)
+        }
+        const capture = new this.Capture(match)
         source = source.slice(capture[0].length)
-        const start = index
         index += capture[0].length
 
         // pop
         const pop = rule.pop
         status = pop ? 2 : 1
 
-        // push
-        let content: TokenLike[] = [], push = rule.push
-        if (typeof push === 'function') push = push.call(this, capture)
-        if (push) {
-          const subtoken = this._parse(source, <LexerContext>push)
-          content = subtoken.result.map((tok) => {
-            if (this.requireBound && typeof tok === 'object') {
-              tok.start += index
-              tok.end += index
-            }
-            return tok
-          })
-          warnings.concat(subtoken.warnings)
-          source = source.slice(subtoken.index)
-          index += subtoken.index
-        }
-
-        // detect error
-        if (!pop && index === start) {
-          throw new Error(`Endless loop at '${
-            source.slice(0, 10)
-            } ${
-            source.length > 10 ? '...' : ''
-            }'.`)
-        }
-
         // resolve unmatch
         if (unmatch) {
-          result.push(unmatch)
+          output += unmatch
           unmatch = ''
         }
 
         // token
         let token = rule.token
         if (typeof token === 'function') {
-          for (const key in this.getters) { // redundant define led to some efficiency loss, consider monkey-patch RegExpExecArray or try other solutions?
-            Object.defineProperty(capture, key, {
-              get: () => this.getters[key].call(this, capture)
-            })
-          }
-          token = token.call(this, capture, content)
+          token = token.call(this, capture)
         } else if (token === undefined) {
-          if (push) {
-            token = content
-          } else if (!pop) {
-            token = capture[0]
-          }
+          token = capture[0]
         }
-        if (token instanceof Array) token = { content: token }
-        if (token) {
-          if (typeof token === 'object') {
-            token.type = token.type || rule.type
-            if (this.requireBound) {
-              token.start = start
-              token.end = index
-            }
-          }
-          result.push(token)
-        }
+        output += token
 
         break
       }
 
-      if (!status) {
+      if (status === 2) break
+      if (status === 0) {
         unmatch += source.charAt(0)
         source = source.slice(1)
         index += 1
       }
-      if (status === 2) break
     }
 
-    if (unmatch) result.push(unmatch)
-    return { index, result, warnings }
+    if (unmatch) output += unmatch
+    return { index, output }
   }
 
-  pushWarning(message: string) {
-    this._warnings.push({ message })
-  }
-
-  parse(source: string, context?: string): TokenLike[] {
-    let result
-    if (this._isRunning) {
-      result = this._parse(source, context || this.default).result
-    } else {
-      this._isRunning = true
-      result = this._parse(source, context || this.entrance, true).result
-      this._isRunning = false
-    }
-    return result
+  parse(source: string): InlineResult {
+    return this._parse(source.replace(/\r\n/g, '\n'))
   }
 }
