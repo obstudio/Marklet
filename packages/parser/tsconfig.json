@@ -8,6 +8,8 @@
     "rootDir": "src"
   },
   "references": [
-    { "path": "../core" }
+    { "path": "../core" },
+    { "path": "../inline" },
+    { "path": "../lexer" }
   ]
 }
