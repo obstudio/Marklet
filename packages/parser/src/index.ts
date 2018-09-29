@@ -1,4 +1,5 @@
 import { Lexer, LexerConfig, TokenLike } from '@marklet/core'
+import { InlineLexer } from '@marklet/inline'
 
 function escape(html: string): string {
   return html

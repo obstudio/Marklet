@@ -1,7 +1,7 @@
 {
-  "name": "@marklet/parser",
-  "version": "1.0.9",
-  "description": "A document lexer for marklet.",
+  "name": "@marklet/inline",
+  "version": "1.0.0",
+  "description": "An inline lexer for marklet.",
   "author": "shigma <1700011071@pku.edu.cn>",
   "contributors": [
     "jjyyxx <1449843302@qq.com>"
@@ -19,9 +19,5 @@
   },
   "bugs": {
     "url": "https://github.com/obstudio/Marklet/issues"
-  },
-  "dependencies": {
-    "@marklet/core": "^1.0.4",
-    "@marklet/inline": "^1.0.0"
   }
 }

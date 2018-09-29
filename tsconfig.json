@@ -11,6 +11,7 @@
     { "path": "./packages/core" },
     { "path": "./packages/dev-server" },
     { "path": "./packages/detok" },
+    { "path": "./packages/inline" },
     { "path": "./packages/parser" },
     { "path": "./packages/syntax" }
   ],
