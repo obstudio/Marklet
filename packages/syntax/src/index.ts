@@ -1,4 +1,4 @@
-import { Lexer, LexerRules } from '@marklet/core'
+import { Lexer, LexerContexts } from '@marklet/lexer'
 
 type SyntaxRule = SyntaxMetaRule | SyntaxIncludeRule | SyntaxRegexRule
 interface SyntaxToken { scope: string, text: string }
@@ -48,6 +48,6 @@ export class SyntaxLexer extends Lexer {
       })
     }
     for (const key in contexts) traverse(contexts[key])
-    super(<LexerRules>contexts, { macros })
+    super(contexts as LexerContexts, { macros })
   }
 }

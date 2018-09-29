@@ -1,4 +1,4 @@
-import { LexerConfig, TokenLike, InlineLexerInstance } from '@marklet/core'
+import { LexerConfig, TokenLike } from '@marklet/core'
 import { InlineLexer } from '@marklet/inline'
 import { Lexer } from '@marklet/lexer'
 
