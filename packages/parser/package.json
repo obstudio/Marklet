@@ -21,7 +21,8 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/core": "^1.0.4",
+    "@marklet/core": "^2.0.0-beta.0",
+    "@marklet/lexer": "^1.0.9",
     "@marklet/inline": "^1.0.0"
   }
 }

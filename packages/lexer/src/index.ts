@@ -2,56 +2,48 @@ import {
   StringLike,
   LexerMacros,
   LexerConfig,
-  LexerClass,
   LexerRule,
-  TokenLike,
+  LexerInstance,
   LexerRegexRule,
+  InlineLexerInstance,
+  TokenLike,
   MatchStatus,
   parseRule,
   getString,
 } from '@marklet/core'
-
-export { LexerConfig }
 
 export interface LexerOptions {
   /** lexer rule regex macros */
   macros?: LexerMacros
   /** entrance context */
   entrance?: string
-  /** default context */
-  default?: string
+  /** default inline context */
+  inlineEntrance?: string
   /** assign start/end to tokens */
   requireBound?: boolean
   /** other configurations */
   config?: LexerConfig
 }
 
-interface LexerWarning {
-  message: string
-}
-
-type LexerContext = string | LexerRule[]
-export type LexerRules = Record<string, LexerRule<StringLike>[]>
+type NativeLexerContext = LexerRegexRule[] | InlineLexerInstance
+export type LexerContexts = Record<string, LexerRule<StringLike, Lexer>[] | InlineLexerInstance>
 
 interface LexerResult {
   index: number
   result: TokenLike[]
-  warnings: LexerWarning[]
 }
 
-export class Lexer implements LexerClass {
+export class Lexer implements LexerInstance {
   config: LexerConfig
-  private rules: Record<string, LexerRule[]> = {}
+  private contexts: Record<string, LexerRule[] | InlineLexerInstance> = {}
   private entrance: string
-  private default: string
+  private inlineEntrance: string
   private requireBound: boolean
-  private _warnings: LexerWarning[]
-  private _isRunning: boolean = false
 
-  constructor(rules: LexerRules, options: LexerOptions = {}) {
+  constructor(contexts: LexerContexts, options: LexerOptions = {}) {
     this.config = options.config || {}
     this.entrance = options.entrance || 'main'
-    this.default = options.default || 'text'
+    this.inlineEntrance = options.inlineEntrance || 'text'
     this.requireBound = !!options.requireBound
 
     const _macros = options.macros || {}
@@ -59,31 +51,59 @@ export class Lexer implements LexerClass {
     for (const key in _macros) {
       macros[key] = getString(_macros[key])
     }
-    for (const key in rules) {
-      this.rules[key] = rules[key].map(rule => parseRule(rule, macros))
+    for (const key in contexts) {
+      const context = contexts[key]
+      this.contexts[key] = context instanceof Array
+        ? context.map(rule => parseRule(rule, macros))
+        : context
     }
   }
 
-  private getContext(context: LexerContext): LexerRegexRule<RegExp>[] {
-    const result = typeof context === 'string' ? this.rules[context] : context
+  private getContext(context: string | InlineLexerInstance | LexerRule[], strictMode?: boolean) {
+    const result = typeof context === 'string' ? this.contexts[context] : context
     if (!result) throw new Error(`Context '${context}' was not found.`)
-    for (let i = result.length - 1; i >= 0; i -= 1) {
-      const rule: LexerRule = result[i]
-      if ('include' in rule) {
-        result.splice(i, 1, ...this.getContext(rule.include))
+    if (result instanceof Array) {
+      for (let i = result.length - 1; i >= 0; i -= 1) {
+        const rule: LexerRule = result[i]
+        if ('include' in rule) {
+          const includes = this.getContext(rule.include)
+          if (includes instanceof Array) {
+            result.splice(i, 1, ...includes)
+          } else {
+            result.splice(i, 1, {
+              regex: /^(?=[\s\S])/,
+              push: rule.include,
+              strict: true,
+            })
+          }
+        }
+      }
+      if (strictMode) {
+        result.push({
+          regex: /^(?=[\s\S])/,
+          pop: true,
+        })
       }
     }
-    return result as LexerRegexRule<RegExp>[]
+    return result as NativeLexerContext
   }
 
-  private _parse(source: string, context: LexerContext, isTopLevel: boolean = false): LexerResult {
+  private _parse(source: string, context: NativeLexerContext, isTopLevel?: boolean): LexerResult {
     let index = 0, unmatch = ''
     const result: TokenLike[] = []
-    const rules = this.getContext(context)
-    const warnings: LexerWarning[] = this._warnings = []
+
+    // apply inline lexer
+    if (!(context instanceof Array)) {
+      const result = context.parse(source)
+      return {
+        index: result.index,
+        result: [result.output],
+      }
+    }
+
     while (source) {
       let status: MatchStatus = MatchStatus.NO_MATCH
-      for (const rule of rules) {
+      for (const rule of context) {
         if (rule.top_level && !isTopLevel) continue
         if (rule.context_begins && index) continue
 
@@ -114,7 +134,8 @@ export class Lexer implements LexerClass {
         // push
         let content: TokenLike[] = [], push = rule.push
         if (push) {
-          const subtoken = this._parse(source, <LexerContext>push)
+          const context = this.getContext(push, rule.strict)
+          const subtoken = this._parse(source, context)
           content = subtoken.result.map((tok) => {
             if (this.requireBound && typeof tok === 'object') {
               tok.start += index
@@ -122,7 +143,6 @@ export class Lexer implements LexerClass {
             }
             return tok
           })
-          warnings.concat(subtoken.warnings)
           source = source.slice(subtoken.index)
           index += subtoken.index
         }
@@ -177,23 +197,20 @@ export class Lexer implements LexerClass {
     }
 
     if (unmatch) result.push(unmatch)
-    return { index, result, warnings }
+    return { index, result }
   }
 
-  pushWarning(message: string) {
-    this._warnings.push({ message })
-  }
-
-  parse(source: string, context?: string): TokenLike[] {
-    let result
-    source = source.replace(/\r\n/g, '\n')
-    if (this._isRunning) {
-      result = this._parse(source, context || this.default).result
-    } else {
-      this._isRunning = true
-      result = this._parse(source, context || this.entrance, true).result
-      this._isRunning = false
+  inline(source: string, context: string = this.inlineEntrance): string {
+    const inlineContext = this.getContext(context)
+    if (inlineContext instanceof Array) {
+      throw new Error(`'${context}' is not a inline context.`)
     }
-    return result
+    return inlineContext.parse(source).output
+  }
+
+  parse(source: string, context: string = this.entrance): TokenLike[] {
+    const initialContext = this.getContext(context)
+    source = source.replace(/\r\n/g, '\n')
+    return this._parse(source, initialContext, true).result
   }
 }

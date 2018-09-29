@@ -15,14 +15,14 @@ export interface LexerToken {
 
 export type LexerRule<
   S extends StringLike = RegExp,
-  T extends LexerClass = LexerClass,
+  T extends LexerInstance = LexerInstance,
   R extends RegExpExecArray = RegExpExecArray,
 > = LexerIncludeRule | LexerRegexRule<S, T, R>
 
 export interface LexerIncludeRule { include: string }
 export interface LexerRegexRule<
-  S extends StringLike = StringLike,
-  T extends LexerClass = LexerClass,
+  S extends StringLike = RegExp,
+  T extends LexerInstance = LexerInstance,
   R extends RegExpExecArray = RegExpExecArray,
 > {
   /** the regular expression to execute */
@@ -33,6 +33,7 @@ export interface LexerRegexRule<
    * - `e`: match end of line
    * - `i`: ignore case
    * - `p`: pop from the current context
+   * - `s`: pop when no match is found
    * - `t`: match top level context
    */
   flags?: string
@@ -45,9 +46,11 @@ export interface LexerRegexRule<
     this: T, capture: R, content: TokenLike[]
   ) => TokenLike | TokenLike[])
   /** the inner context */
-  push?: string | LexerRule<S>[]
+  push?: string | LexerRule<S, T, R>[]
   /** pop from the current context */
   pop?: boolean
+  /** pop when no match is found */
+  strict?: boolean
   /** match when the context begins */
   context_begins?: boolean
   /** match top level context */
@@ -76,10 +79,11 @@ export function parseRule(rule: LexerRule<StringLike>, macros: LexerMacros = {})
       src = src.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${macros[key]})`)
     }
     rule.flags = rule.flags || ''
-    if (rule.flags.replace(/[biept]/g, '')) {
+    if (rule.flags.replace(/[biepst]/g, '')) {
       throw new Error(`'${rule.flags}' contains invalid rule flags.`)
     }
     if (rule.flags.includes('p')) rule.pop = true
+    if (rule.flags.includes('s')) rule.strict = true
     if (rule.flags.includes('b')) rule.context_begins = true
     if (rule.flags.includes('t')) rule.top_level = true
     if (rule.flags.includes('e') || rule.eol) src += ' *(?:\\n+|$)'
@@ -90,9 +94,18 @@ export function parseRule(rule: LexerRule<StringLike>, macros: LexerMacros = {})
   return rule as LexerRule
 }
 
-export interface LexerClass {
+export interface LexerInstance {
   config: LexerConfig
   parse(source: string): any
+}
+
+export interface InlineLexerResult {
+  index: number
+  output: string
+}
+
+export interface InlineLexerInstance extends LexerInstance {
+  parse(source: string): InlineLexerResult
 }
 
 export enum MatchStatus {

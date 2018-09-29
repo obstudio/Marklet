@@ -1,13 +1,12 @@
 import {
   StringLike,
   LexerConfig,
-  LexerClass,
   LexerRegexRule,
+  InlineLexerInstance,
+  InlineLexerResult,
   MatchStatus,
   parseRule,
 } from '@marklet/core'
-
-export { LexerConfig }
 
 class InlineCapture extends Array<string> implements RegExpExecArray {
   index: number
@@ -30,18 +29,14 @@ class InlineCapture extends Array<string> implements RegExpExecArray {
 type InlineLexerRule<S extends StringLike = RegExp> = LexerRegexRule<S, InlineLexer, InlineCapture>
 
 export type InlineLexerRules = InlineLexerRule<StringLike>[]
-export interface InlineLexerResult {
-  index: number
-  output: string
-}
 
-export class InlineLexer implements LexerClass {
+export class InlineLexer implements InlineLexerInstance {
   config: LexerConfig
   private rules: InlineLexerRule[]
 
   constructor(rules: InlineLexerRules, config: LexerConfig = {}) {
     this.rules = rules.map(rule => parseRule(rule) as InlineLexerRule)
-    this.config = config
+    this.config = config || {}
   }
 
   private _parse(source: string): InlineLexerResult {
@@ -67,7 +62,7 @@ export class InlineLexer implements LexerClass {
         // regex
         const match = rule.regex.exec(source)
         if (!match) continue
-        if (!match[0].length) {
+        if (!match[0].length && !rule.pop) {
           throw new Error(`Endless loop at '${
             source.slice(0, 10)
           } ${

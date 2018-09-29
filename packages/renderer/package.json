@@ -21,7 +21,7 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/core": "^1.0.9"
+    "@marklet/core": "^2.0.0-beta.0"
   },
   "peerDependencies": {
     "vue": "^2.5.17"
