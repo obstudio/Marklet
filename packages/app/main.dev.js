@@ -7,8 +7,6 @@ function createMain() {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    center: true,
-    resizable: false,
     useContentSize: true,
     autoHideMenuBar: false,
   })

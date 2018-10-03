@@ -1,0 +1,30 @@
+# Section Test
+
+^ Section 1
+
+Some text
+
+^^ Section 1.1
+
+Section 1.1 end
+
+^^ Section 1.2
+
+Section 1.2 end
+
+---
+
+> Blockquote
+^^ Not a section
+
+^^ Section 1.3
+
+Section 1.3 end
+
+^ Section 2
+
+Section 2 end
+
+===
+
+Some text
