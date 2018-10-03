@@ -150,7 +150,7 @@ export abstract class Lexer<R extends string | TokenLike[]> {
 
     // initialize or simply get the result
     const final = this.initialize(...args)
-    if (final) return final
+    if (final) return this.meta = _meta, final
     
     // walk through the source string
     while (this.meta.source) {
