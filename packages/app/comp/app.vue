@@ -1,10 +1,8 @@
 <script>
 
-const Vue = require('vue')
-
-new Vue({
+module.exports = {
   el: '#app'
-})
+}
 
 </script>
 

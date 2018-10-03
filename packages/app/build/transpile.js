@@ -1,6 +1,6 @@
+const util = require('../../../build/util')
 const sass = require('sass')
 const path = require('path')
-const util = require('./util')
 const sfc2js = require('sfc2js')
 
 util.start()
