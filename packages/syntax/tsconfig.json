@@ -8,6 +8,6 @@
     "rootDir": "src"
   },
   "references": [
-    { "path": "../lexer" }
+    { "path": "../core" }
   ]
 }

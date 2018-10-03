@@ -1,4 +1,4 @@
-import { Lexer, LexerContexts } from '@marklet/lexer'
+import { DocumentLexer, LexerContexts } from '@marklet/core'
 
 type SyntaxRule = SyntaxMetaRule | SyntaxIncludeRule | SyntaxRegexRule
 interface SyntaxToken { scope: string, text: string }
@@ -18,7 +18,7 @@ interface SyntaxRegexRule {
   token?: (capture: RegExpExecArray, content: SyntaxToken[]) => SyntaxToken | SyntaxToken[]
 }
 
-export class SyntaxLexer extends Lexer {
+export class SyntaxLexer extends DocumentLexer {
   constructor(contexts: Record<string, SyntaxRule[]>, macros: Record<string, string> = {}) {
     function traverse(context: SyntaxRule[]): void {
       let meta = '', firstRule = context[0]

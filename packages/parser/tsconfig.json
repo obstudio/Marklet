@@ -9,7 +9,5 @@
   },
   "references": [
     { "path": "../core" },
-    { "path": "../inline" },
-    { "path": "../lexer" }
   ]
 }
