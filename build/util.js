@@ -26,8 +26,44 @@ function resolve(...names) {
   return path.join(__dirname, '../packages', ...names)
 }
 
+const timers = {}
+
+function start(label = '') {
+  if (!timers[label]) timers[label] = { total: 0 }
+  timers[label].start = Date.now()
+  return _getTime(label)
+}
+
+function pause(label = '') {
+  timers[label].total += Date.now() - timers[label].start
+  timers[label].start = Date.now()
+  return _getTime(label)
+}
+
+function finish(label = '') {
+  pause(label)
+  const result = _getTime(label)
+  timers[label].total = 0
+  return `Finished in ${result.toFixed(1)}s.`
+}
+
+function _getTime(label = '') {
+  return label in timers ? timers[label].total / 1000 : 0
+}
+
+function timing(label = '', callback) {
+  start(label)
+  const result = callback()
+  pause(label)
+  return result
+}
+
 module.exports = {
   exec,
   execSync,
   resolve,
+  start,
+  pause,
+  finish,
+  timing,
 }

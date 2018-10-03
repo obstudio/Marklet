@@ -1,0 +1,22 @@
+{
+  "name": "@marklet/app",
+  "version": "1.0.0",
+  "private": true,
+  "author": "shigma <1700011071@pku.edu.cn>",
+  "homepage": "https://github.com/obstudio/Marklet",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obstudio/Marklet.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: run tests from root\" && exit 1"
+  },
+  "bugs": {
+    "url": "https://github.com/obstudio/Marklet/issues"
+  },
+  "dependencies": {
+    "@marklet/parser": "^1.1.1",
+    "vue": "^2.5.17"
+  }
+}
