@@ -1,14 +1,12 @@
 {
   "scripts": {
     "start": "npm run build && node packages/cli -m edit",
-    "publish": "lerna publish --no-git-tag-version",
     "bootstrap": "lerna bootstrap --hoist --no-ci",
     "build": "tsc -b && node build/build -sr",
     "build:prod": "tsc -b && node build/build -psr",
     "build:renderer": "node build/build -r",
     "build:server": "node build/build -s",
     "build:tsc": "tsc -b",
-    "clear": "node build/clear",
     "test": "node packages/test/runner.js",
     "lint": "tslint packages/**/src/*.ts && eslint ."
   },
