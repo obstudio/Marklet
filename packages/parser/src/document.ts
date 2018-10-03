@@ -6,7 +6,7 @@ function collect(content: TokenLike[]) {
   return content
 }
 
-export default class extends DocumentLexer {
+export default class MarkletDocumentLexer extends DocumentLexer {
   constructor(config: LexerConfig = {}) {
     super({
       text: new MarkletInlineLexer(config),

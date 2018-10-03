@@ -1,6 +1,6 @@
 {
   "name": "@marklet/cli",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "A command line interface for marklet.",
   "author": "jjyyxx <1449843302@qq.com>",
   "contributors": [
@@ -19,7 +19,7 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/dev-server": "^1.0.13",
+    "@marklet/dev-server": "^1.0.14",
     "@marklet/parser": "^1.1.1",
     "chalk": "^2.4.1",
     "commander": "^2.18.0",

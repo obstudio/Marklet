@@ -33,7 +33,7 @@ export interface LexerRegexRule<
    * - `e`: match end of line
    * - `i`: ignore case
    * - `p`: pop from the current context
-   * - `s`: pop when no match is found
+   * - `s`: strict mode
    * - `t`: match top level context
    */
   flags?: string
@@ -49,7 +49,7 @@ export interface LexerRegexRule<
   push?: string | LexerRule<S, T, R>[]
   /** pop from the current context */
   pop?: boolean
-  /** pop when no match is found */
+  /** strict mode: pop when no match is found */
   strict?: boolean
   /** match when the context begins */
   context_begins?: boolean

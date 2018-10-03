@@ -11,13 +11,13 @@ let _Vue = null, ASTNodes = null
 const Renderer = {
   install(Vue) {
     _Vue = Vue
-    Vue.component('ml-heading', HeadingComponent)
-    Vue.component('ml-inlinelist', InlinelistComponent)
-    Vue.component('ml-nodes', NodesComponent)
-    Vue.component('ml-paragraph', ParagraphComponent)
-    Vue.component('ml-quote', QuoteComponent)
-    Vue.component('ml-separator', SeparatorComponent)
-    Vue.component('ml-usages', UsagesComponent)
+    Vue.component('mkl-heading', HeadingComponent)
+    Vue.component('mkl-inlinelist', InlinelistComponent)
+    Vue.component('mkl-nodes', NodesComponent)
+    Vue.component('mkl-paragraph', ParagraphComponent)
+    Vue.component('mkl-quote', QuoteComponent)
+    Vue.component('mkl-separator', SeparatorComponent)
+    Vue.component('mkl-usages', UsagesComponent)
   },
   embed(element, content = []) {
     if (!_Vue) {

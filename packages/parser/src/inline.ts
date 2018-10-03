@@ -10,7 +10,7 @@ function escape(html: string): string {
     .replace(/'/g, '&#39;')
 }
 
-export default class extends InlineLexer {
+export default class MarkletInlineLexer extends InlineLexer {
   constructor(config: LexerConfig = {}) {
     super([
       {

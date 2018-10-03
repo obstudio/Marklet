@@ -15,7 +15,7 @@ module.exports = {
 
 <template>
   <div>
-    <ml-nodes :content="nodes"/>
+    <mkl-nodes :content="nodes"/>
   </div>
 </template>
 

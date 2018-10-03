@@ -31,7 +31,7 @@ module.exports = {
       <textarea v-model="source"/>
     </div>
     <div class="output">
-      <ml-nodes :content="nodes"/>
+      <mkl-nodes :content="nodes"/>
     </div>
   </div>
 </template>
