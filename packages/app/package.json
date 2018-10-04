@@ -1,6 +1,6 @@
 {
   "name": "@marklet/app",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "main": "main.js",
   "author": "shigma <1700011071@pku.edu.cn>",
@@ -17,9 +17,9 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/monaco": "^1.1.0",
+    "@marklet/monaco": "^1.2.0",
     "@marklet/parser": "^1.2.0",
-    "@marklet/renderer": "^1.1.5",
+    "@marklet/renderer": "^1.1.6",
     "neat-scroll": "^2.0.1",
     "vue": "^2.5.17"
   }

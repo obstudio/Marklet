@@ -6,10 +6,20 @@
 
 A markup language designed for API manual pages.
 
+## Versions
+
+- markletjs: 1.1.17
+- @marklet/cli: 1.1.9
+- @marklet/core: 3.0.0
+- @marklet/dev-server: 1.0.16
+- @marklet/monaco: 1.2.0
+- @marklet/parser: 1.2.0
+- @marklet/renderer: 1.1.6
+
 ## Node
 
 ```shell
-npm i marklet
+npm i markletjs
 ```
 
 ```javascript
