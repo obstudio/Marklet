@@ -8,6 +8,7 @@ const Renderer = {
     Vue.component('mkl-nodes', require('../temp/nodes.vue'))
     Vue.component('mkl-paragraph', require('../temp/paragraph.vue'))
     Vue.component('mkl-quote', require('../temp/quote.vue'))
+    Vue.component('mkl-scroll', require('../temp/scroll.vue'))
     Vue.component('mkl-separator', require('../temp/separator.vue'))
     Vue.component('mkl-usages', require('../temp/usages.vue'))
   },

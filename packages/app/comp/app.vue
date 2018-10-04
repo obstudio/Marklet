@@ -50,6 +50,10 @@ module.exports = {
         language: 'mkl',
         lineDecorationsWidth: 4,
         minimap: { enabled: false },
+        scrollbar: {
+          verticalScrollbarSize: 20,
+          verticalSliderSize: 12,
+        },
       })
       this._editor.onDidChangeCursorPosition((event) => {
         this.row = event.position.lineNumber
@@ -94,9 +98,9 @@ module.exports = {
 <template>
   <div>
     <div class="input" ref="input"/>
-    <div class="output">
+    <mkl-scroll class="output" :margin="4" :radius="6">
       <mkl-nodes :content="nodes"/>
-    </div>
+    </mkl-scroll>
   </div>
 </template>
 
@@ -116,7 +120,36 @@ module.exports = {
 > .output {
   left: 50%;
   right: 0;
-  padding: 0 24px;
+
+  > .container {
+    padding: 0 24px;
+  }
+}
+
+.monaco-editor {
+  .monaco-scrollable-element {
+    > .scrollbar {
+      transition: opacity 0.3s ease;
+
+      > .slider {
+        opacity: 0.5;
+        border-radius: 6px;
+        background-color: #c0c4cc;
+      }
+
+      &.vertical {
+        margin: 4px 0;
+      }
+
+      &.horizontal {
+        margin: 0 4px;
+      }
+
+      &.invisible.fade {
+        transition: opacity 0.8s ease;
+      }
+    }
+  }
 }
 
 </style>

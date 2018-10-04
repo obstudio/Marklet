@@ -20,6 +20,7 @@
     "@marklet/monaco": "^1.1.0",
     "@marklet/parser": "^1.2.0",
     "@marklet/renderer": "^1.1.5",
+    "neat-scroll": "^2.0.1",
     "vue": "^2.5.17"
   }
 }

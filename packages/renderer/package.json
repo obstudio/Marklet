@@ -24,6 +24,7 @@
     "@marklet/core": "^3.0.0"
   },
   "peerDependencies": {
+    "neat-scroll": "^2.0.1",
     "vue": "^2.5.17"
   }
 }

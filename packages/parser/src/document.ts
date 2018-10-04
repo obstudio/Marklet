@@ -142,6 +142,7 @@ export default class MarkletDocumentLexer extends DocumentLexer {
         },
         {
           type: 'paragraph',
+          regex: /(?=\S)/,
           push: 'text',
           token: (_, [inner]) => ({ text: inner })
         }
