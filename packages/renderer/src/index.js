@@ -3,6 +3,7 @@ let _Vue = null, ASTNodes = null
 const Renderer = {
   install(Vue) {
     _Vue = Vue
+    Vue.component('mkl-codeblock', require('../temp/codeblock.vue'))
     Vue.component('mkl-heading', require('../temp/heading.vue'))
     Vue.component('mkl-inlinelist', require('../temp/inlinelist.vue'))
     Vue.component('mkl-nodes', require('../temp/nodes.vue'))

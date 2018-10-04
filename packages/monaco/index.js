@@ -1,7 +1,7 @@
 const loader = require('monaco-editor/min/vs/loader')
 const isBrowser = typeof window === 'object' && window
 const amdRequire = isBrowser ? loader.require : loader
-const defineLanguage = require('./dist/main').default
+const Marklet = require('./marklet')
 const path = require('path')
 const fs = require('fs')
 
@@ -25,17 +25,26 @@ amdRequire.config({
 // workaround monaco-css not understanding the environment
 if (isBrowser) window.module = undefined
 
-module.exports = {
-  install() {
-    return new Promise((resolve, reject) => {
-      try {
-        amdRequire(['vs/editor/editor.main'], () => {
-          defineLanguage(window.monaco)
-          resolve(window.monaco)
-        })
-      } catch (error) {
-        reject(error)
-      }
+let monaco = null
+
+module.exports = new Promise((resolve, reject) => {
+  try {
+    amdRequire(['vs/editor/editor.main'], () => {
+      monaco = window.monaco
+      monaco.languages.register({
+        id: 'marklet',
+        extensions: ['mkl'],
+      })
+      monaco.languages.setMonarchTokensProvider('marklet', Marklet)
+      resolve(window.monaco)
     })
-  },
+  } catch (error) {
+    reject(error)
+  }
+})
+
+module.exports.install = async function(Vue) {
+  Object.defineProperty(Vue.prototype, '$colorize', {
+    get: () => monaco ? (code, lang) => monaco.editor.colorize(code, lang) : undefined
+  })
 }

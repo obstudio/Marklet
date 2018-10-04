@@ -1,7 +1,9 @@
 <script>
 
 const { DocumentLexer } = require('@marklet/parser')
-const monacoPlugin = require('@marklet/monaco').install()
+const monacoLoader = require('@marklet/monaco')
+
+Vue.use(monacoLoader)
 
 module.exports = {
   el: '#app',
@@ -32,9 +34,12 @@ module.exports = {
     
     this._lexer = new DocumentLexer()
 
-    monacoPlugin.then((monaco) => {
+    monacoLoader.then((monaco) => {
       const model = monaco.editor.createModel(this.source, 'marklet')
       model.onDidChangeContent(() => this.checkChange())
+      const nodes = this.nodes
+      this.nodes = []
+      this.$nextTick(() => this.nodes = nodes)
       this._model = model
       this.loading ^= 1
     })
@@ -43,12 +48,13 @@ module.exports = {
   mounted() {
     window.vm = this
     
-    monacoPlugin.then((monaco) => {
+    monacoLoader.then((monaco) => {
       monaco.editor.setTheme('vs')
       this._editor = monaco.editor.create(this.$refs.input, {
         model: null,
-        language: 'mkl',
+        language: 'marklet',
         lineDecorationsWidth: 4,
+        smoothScrolling: true,
         minimap: { enabled: false },
         scrollbar: {
           verticalScrollbarSize: 20,
@@ -99,7 +105,7 @@ module.exports = {
   <div>
     <div class="input" ref="input"/>
     <mkl-scroll class="output" :margin="4" :radius="6">
-      <mkl-nodes :content="nodes"/>
+      <mkl-nodes ref="nodes" :content="nodes"/>
     </mkl-scroll>
   </div>
 </template>
@@ -123,32 +129,6 @@ module.exports = {
 
   > .container {
     padding: 0 24px;
-  }
-}
-
-.monaco-editor {
-  .monaco-scrollable-element {
-    > .scrollbar {
-      transition: opacity 0.3s ease;
-
-      > .slider {
-        opacity: 0.5;
-        border-radius: 6px;
-        background-color: #c0c4cc;
-      }
-
-      &.vertical {
-        margin: 4px 0;
-      }
-
-      &.horizontal {
-        margin: 0 4px;
-      }
-
-      &.invisible.fade {
-        transition: opacity 0.8s ease;
-      }
-    }
   }
 }
 

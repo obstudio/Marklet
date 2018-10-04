@@ -1,6 +1,4 @@
-import * as Monaco from 'monaco-editor'
-
-const MarkletLanguage: Monaco.languages.IMonarchLanguage = {
+module.exports = {
   tokenizer: {
     root: [
       { include: 'topLevel' },
@@ -15,5 +13,3 @@ const MarkletLanguage: Monaco.languages.IMonarchLanguage = {
     ],
   },
 }
-
-export default MarkletLanguage
