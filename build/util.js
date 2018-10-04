@@ -58,6 +58,12 @@ function timing(label = '', callback) {
   return result
 }
 
+function isElectron() {
+  return typeof process !== 'undefined'
+    && typeof process.versions !== 'undefined'
+    && typeof process.versions.electron !== 'undefined'
+}
+
 module.exports = {
   exec,
   execSync,
@@ -66,4 +72,5 @@ module.exports = {
   pause,
   finish,
   timing,
+  isElectron,
 }

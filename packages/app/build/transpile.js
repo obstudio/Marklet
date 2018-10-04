@@ -30,7 +30,22 @@ module.exports = sfc2js.transpile({
   baseDir: util.resolve(),
   srcDir: 'app/comp',
   outDir: 'app/temp',
-  enterance: process.argv[0].endsWith('electron.exe') ? 'app.vue' : '',
+  enterance: util.isElectron() ? 'app.vue' : '',
 })
+
+if (util.isElectron()) {
+  const result = sfc2js.transpile({
+    baseDir: util.resolve(),
+    srcDir: 'renderer/comp',
+    outDir: 'renderer/temp',
+    enterance: '../src',
+    outCSSFile: '../dist/marklet.min.css',
+    defaultScript: {
+      props: ['node'],
+    },
+  })
+  module.exports.css += result.css
+  module.exports.plugin = result.app
+}
 
 console.log('Transpile Succeed.', util.finish())

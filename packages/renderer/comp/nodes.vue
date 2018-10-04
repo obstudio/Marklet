@@ -25,3 +25,10 @@ module.exports = {
   </component>
 </template>
 
+<style lang="scss" scoped>
+
+> *:first-child {
+  margin-top: 0;
+}
+
+</style>

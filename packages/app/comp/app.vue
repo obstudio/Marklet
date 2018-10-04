@@ -3,8 +3,6 @@
 const { DocumentLexer } = require('@marklet/parser')
 const monacoPlugin = require('@marklet/monaco').install()
 
-Vue.use(require('@marklet/renderer'))
-
 module.exports = {
   el: '#app',
 
@@ -116,6 +114,7 @@ module.exports = {
 > .output {
   left: 50%;
   right: 0;
+  padding: 0 24px;
 }
 
 </style>

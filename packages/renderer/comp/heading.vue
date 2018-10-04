@@ -8,21 +8,17 @@ h1, h2, h3, h4 {
   margin-top: 24px;
   font-weight: bold;
   line-height: 1.25;
-
-  &.center {
-    margin: auto;
-  }
 }
 
 h1 {
   font-size: 2em;
-  margin-top: 48px;
+  padding-top: 0.6em;
   padding-bottom: 0.3em;
 }
 
 h2 {
   font-size: 1.5em;
-  margin-top: 32px;
+  padding-top: 0.3em;
   padding-bottom: 0.3em;
 }
 

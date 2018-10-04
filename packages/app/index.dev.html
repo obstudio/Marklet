@@ -15,6 +15,7 @@
       const style = document.createElement('style')
       style.innerText = result.css
       document.head.appendChild(style)
+      Vue.use(result.plugin)
       new Vue(result.app)
     </script>
   </body>

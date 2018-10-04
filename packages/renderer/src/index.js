@@ -1,23 +1,15 @@
-const HeadingComponent = require('@/heading.vue')
-const InlinelistComponent = require('@/inlinelist.vue')
-const NodesComponent = require('@/nodes.vue')
-const ParagraphComponent = require('@/paragraph.vue')
-const QuoteComponent = require('@/quote.vue')
-const SeparatorComponent = require('@/separator.vue')
-const UsagesComponent = require('@/usages.vue')
-
 let _Vue = null, ASTNodes = null
 
 const Renderer = {
   install(Vue) {
     _Vue = Vue
-    Vue.component('mkl-heading', HeadingComponent)
-    Vue.component('mkl-inlinelist', InlinelistComponent)
-    Vue.component('mkl-nodes', NodesComponent)
-    Vue.component('mkl-paragraph', ParagraphComponent)
-    Vue.component('mkl-quote', QuoteComponent)
-    Vue.component('mkl-separator', SeparatorComponent)
-    Vue.component('mkl-usages', UsagesComponent)
+    Vue.component('mkl-heading', require('../temp/heading.vue'))
+    Vue.component('mkl-inlinelist', require('../temp/inlinelist.vue'))
+    Vue.component('mkl-nodes', require('../temp/nodes.vue'))
+    Vue.component('mkl-paragraph', require('../temp/paragraph.vue'))
+    Vue.component('mkl-quote', require('../temp/quote.vue'))
+    Vue.component('mkl-separator', require('../temp/separator.vue'))
+    Vue.component('mkl-usages', require('../temp/usages.vue'))
   },
   embed(element, content = []) {
     if (!_Vue) {
@@ -27,7 +19,7 @@ const Renderer = {
         throw new Error('No vue constructor was found.')
       }
     }
-    if (!ASTNodes) ASTNodes = _Vue.extend(NodesComponent)
+    if (!ASTNodes) ASTNodes = _Vue.extend(require('../temp/nodes.vue'))
     new ASTNodes({ propsData: { content } }).$mount(element)
   }
 }
