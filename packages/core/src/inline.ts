@@ -11,9 +11,9 @@ type InlineLexerRule = LexerRegexRule<RegExp, InlineLexer, InlineCapture>
 export type InlineContext = LexerRegexRule<StringLike, InlineLexer, InlineCapture>[]
 
 class InlineCapture extends Array<string> implements RegExpExecArray {
-  index: number
-  input: string
-  lexer: InlineLexer
+  public index: number
+  public input: string
+  private lexer: InlineLexer
 
   constructor(lexer: InlineLexer, array: RegExpExecArray) {
     super(...array)

@@ -1,9 +1,9 @@
 export type StringLike = string | RegExp
+export type TokenLike = string | LexerToken
 
 export type LexerConfig = Record<string, any>
 export type LexerMacros<S extends StringLike = StringLike> = Record<string, S>
 
-export type TokenLike = string | LexerToken
 export interface LexerToken {
   type?: string
   text?: string
@@ -14,12 +14,15 @@ export interface LexerToken {
 }
 
 export type LexerRule<
-  S extends StringLike = RegExp,
+  S extends StringLike = StringLike,
   T extends Lexer<any> = Lexer<any>,
   R extends RegExpExecArray = RegExpExecArray,
-> = LexerIncludeRule | LexerRegexRule<S, T, R>
+> = LexerIncludeRule | LexerMetaRule | LexerRegexRule<S, T, R>
+
+export interface LexerMetaRule { meta: string }
 
 export interface LexerIncludeRule { include: string }
+
 export interface LexerRegexRule<
   S extends StringLike = RegExp,
   T extends Lexer<any> = Lexer<any>,
@@ -45,6 +48,10 @@ export interface LexerRegexRule<
   token?: TokenLike | TokenLike[] | ((
     this: T, capture: R, content: TokenLike[]
   ) => TokenLike | TokenLike[])
+  /** token scope */
+  scope?: string
+  /** token scope mapped with captures */
+  captures?: Record<number, string>
   /** the inner context */
   push?: string | LexerRule<S, T, R>[]
   /** pop from the current context */
@@ -67,8 +74,8 @@ export function getString(string: StringLike): string {
 }
 
 /** transform lexer rules with string into ones with regexp */
-export function parseRule(rule: LexerRule<StringLike>, macros: LexerMacros<string> = {}): LexerRule {
-  if (!('include' in rule)) {
+export function parseRule(rule: LexerRule, macros: LexerMacros<string> = {}): LexerRule<RegExp> {
+  if (!('include' in rule || 'meta' in rule)) {
     if (rule.regex === undefined) {
       rule.regex = /(?=[\s\S])/
       if (!rule.type) rule.type = 'default'
@@ -92,7 +99,7 @@ export function parseRule(rule: LexerRule<StringLike>, macros: LexerMacros<strin
     rule.regex = new RegExp('^(?:' + src + ')', flags)
     if (rule.push instanceof Array) rule.push.forEach(_rule => parseRule(_rule, macros))
   }
-  return rule as LexerRule
+  return rule as LexerRule<RegExp>
 }
 
 enum MatchStatus {
@@ -128,7 +135,7 @@ export abstract class Lexer<R extends string | TokenLike[]> {
   meta: LexerMeta<R>
   config: LexerConfig
 
-  constructor(config: LexerConfig) {
+  constructor(config?: LexerConfig) {
     this.config = config || {}
   }
 

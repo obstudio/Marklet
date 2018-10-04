@@ -1,6 +1,7 @@
 <script>
 
 const { DocumentLexer } = require('@marklet/parser')
+window.Monaco = require('@marklet/monaco')
 
 Vue.use(require('@marklet/renderer'))
 

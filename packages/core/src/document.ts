@@ -10,7 +10,7 @@ import {
   LexerRegexRule,
 } from './lexer'
 
-export interface LexerOptions {
+export interface DocumentOptions {
   /** lexer rule regex macros */
   macros?: LexerMacros
   /** entrance context */
@@ -26,7 +26,7 @@ export interface LexerOptions {
 type InlineLexer = Lexer<string>
 type DocumentLexerRule = LexerRegexRule<RegExp, DocumentLexer>
 type NativeLexerContext = DocumentLexerRule[] | InlineLexer
-export type LexerContexts = Record<string, LexerRule<StringLike, DocumentLexer>[] | InlineLexer>
+export type DocumentContexts = Record<string, LexerRule<StringLike, DocumentLexer>[] | InlineLexer>
 
 enum ContextReason {
   INCLUDE,
@@ -42,12 +42,12 @@ interface ContextLog {
 
 export class DocumentLexer extends Lexer<TokenLike[]> {
   private stackTrace: ContextLog[]
-  private contexts: Record<string, LexerRule[] | InlineLexer> = {}
+  private contexts: Record<string, LexerRule<RegExp>[] | InlineLexer> = {}
   private entrance: string
   private inlineEntrance: string
   private requireBound: boolean
 
-  constructor(contexts: LexerContexts, options: LexerOptions = {}) {
+  constructor(contexts: DocumentContexts, options: DocumentOptions = {}) {
     super(options.config)
     this.entrance = options.entrance || 'main'
     this.inlineEntrance = options.inlineEntrance || 'text'
@@ -67,7 +67,7 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
   }
 
   getContext(
-    context: string | InlineLexer | LexerRule[],
+    context: string | InlineLexer | LexerRule<RegExp>[],
     reason: ContextReason,
     strictMode: boolean = false,
   ) {
@@ -83,7 +83,7 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
     if (!result) throw new Error(`Context '${context}' was not found.`)
     if (result instanceof Array) {
       for (let i = result.length - 1; i >= 0; i -= 1) {
-        const rule: LexerRule = result[i]
+        const rule: LexerRule<RegExp> = result[i]
         if ('include' in rule) {
           const includes = this.getContext(rule.include, ContextReason.INCLUDE)
           if (includes instanceof Array) {

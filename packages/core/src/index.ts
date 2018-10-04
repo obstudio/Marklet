@@ -10,13 +10,14 @@ export {
   LexerConfig,
   LexerMacros,
   LexerResult,
+  LexerMetaRule,
   LexerRegexRule,
   LexerIncludeRule,
 } from './lexer'
 
 export {
-  LexerOptions,
-  LexerContexts,
+  DocumentOptions,
+  DocumentContexts,
   DocumentLexer,
 } from './document'
 
@@ -24,3 +25,8 @@ export {
   InlineContext,
   InlineLexer,
 } from './inline'
+
+export {
+  SyntaxOptions,
+  SyntaxLexer,
+} from './syntax'
