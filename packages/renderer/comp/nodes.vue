@@ -17,11 +17,8 @@ module.exports = {
 
 <template>
   <component :is="tag">
-    <template v-for="(comp, index) in content">
-      <component
-        :is="'mkl-' + comp.type" :class="comp.type" :node="comp" :key="index"/>
-      <slot/>
-    </template>
+    <component v-for="(comp, index) in content"
+      :is="'mkl-' + comp.type" :class="comp.type" :node="comp" :key="index"/>
   </component>
 </template>
 

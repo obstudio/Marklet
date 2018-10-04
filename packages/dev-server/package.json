@@ -1,6 +1,6 @@
 {
   "name": "@marklet/dev-server",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "A develop server for marklet.",
   "author": "jjyyxx <1449843302@qq.com>",
   "contributors": [
@@ -21,8 +21,8 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/parser": "^1.1.1",
-    "@marklet/renderer": "^1.1.4",
+    "@marklet/parser": "^1.2.0",
+    "@marklet/renderer": "^1.1.5",
     "vue": "^2.5.17",
     "ws": "^6.0.0"
   }

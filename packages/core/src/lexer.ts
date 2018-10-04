@@ -30,6 +30,8 @@ export interface LexerRegexRule<
 > {
   /** the regular expression to execute */
   regex?: S
+  /** an regex placed at the beginning of inner context */
+  prefix_regex?: S
   /**
    * a string containing all the rule flags:
    * - `b`: match when the context begins
@@ -73,31 +75,44 @@ export function getString(string: StringLike): string {
   return string instanceof RegExp ? string.source : string
 }
 
+function getRegexSource(source: StringLike, macros: LexerMacros<string> = {}) {
+  source = getString(source)
+  for (const key in macros) {
+    source = source.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${macros[key]})`)
+  }
+  return source
+}
+
 /** transform lexer rules with string into ones with regexp */
-export function parseRule(rule: LexerRule, macros: LexerMacros<string> = {}): LexerRule<RegExp> {
+export function parseRule(
+  rule: LexerRule,
+  macros: LexerMacros<string> = {},
+  resolve?: (rule: LexerRegexRule) => void,
+): LexerRule<RegExp> {
   if (!('include' in rule || 'meta' in rule)) {
     if (rule.regex === undefined) {
       rule.regex = /(?=[\s\S])/
       if (!rule.type) rule.type = 'default'
     }
     if (rule.test === undefined) rule.test = true
-    let src = getString(rule.regex)
+    let source = getRegexSource(rule.regex, macros)
     let flags = ''
-    for (const key in macros) {
-      src = src.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${macros[key]})`)
-    }
     rule.flags = rule.flags || ''
     if (rule.flags.replace(/[biepst]/g, '')) {
-      throw new Error(`'${rule.flags}' contains invalid rule flags.`)
+      throw new Error(`'${rule.flags}' contains invalid rule flags. (invalid-flags)`)
     }
     if (rule.flags.includes('p')) rule.pop = true
     if (rule.flags.includes('s')) rule.strict = true
     if (rule.flags.includes('b')) rule.context_begins = true
     if (rule.flags.includes('t')) rule.top_level = true
-    if (rule.flags.includes('e') || rule.eol) src += ' *(?:\\n+|$)'
+    if (rule.flags.includes('e') || rule.eol) source += ' *(?:\\n+|$)'
     if (rule.flags.includes('i') || rule.ignore_case) flags += 'i'
-    rule.regex = new RegExp('^(?:' + src + ')', flags)
-    if (rule.push instanceof Array) rule.push.forEach(_rule => parseRule(_rule, macros))
+    rule.regex = new RegExp('^(?:' + source + ')', flags)
+    if (rule.prefix_regex) {
+      rule.prefix_regex = new RegExp(`^(?:${getRegexSource(rule.prefix_regex, macros)})`)
+    }
+    if (rule.push instanceof Array) rule.push.forEach(_rule => parseRule(_rule, macros, resolve))
+    if (resolve) resolve(rule as LexerRegexRule)
   }
   return rule as LexerRule<RegExp>
 }
@@ -199,7 +214,7 @@ export abstract class Lexer<R extends string | TokenLike[]> {
             this.meta.source.slice(0, 10)
           } ${
             this.meta.source.length > 10 ? '...' : ''
-          }'.`)
+          }'. (endless-loop)`)
         }
 
         // Step 6: handle unmatched chars

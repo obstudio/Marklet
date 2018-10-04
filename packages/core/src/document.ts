@@ -10,6 +10,8 @@ import {
   LexerRegexRule,
 } from './lexer'
 
+import { InlineLexer } from './inline'
+
 export interface DocumentOptions {
   /** lexer rule regex macros */
   macros?: LexerMacros
@@ -23,7 +25,6 @@ export interface DocumentOptions {
   config?: LexerConfig
 }
 
-type InlineLexer = Lexer<string>
 type DocumentLexerRule = LexerRegexRule<RegExp, DocumentLexer>
 type NativeLexerContext = DocumentLexerRule[] | InlineLexer
 export type DocumentContexts = Record<string, LexerRule<StringLike, DocumentLexer>[] | InlineLexer>
@@ -38,6 +39,10 @@ enum ContextReason {
 interface ContextLog {
   name: string
   reason: ContextReason
+}
+
+function randomId(): string {
+  return Math.floor(Math.random() * 36 ** 6).toString(36).padStart(6, '0')
 }
 
 export class DocumentLexer extends Lexer<TokenLike[]> {
@@ -60,16 +65,26 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
     }
     for (const key in contexts) {
       const context = contexts[key]
-      this.contexts[key] = context instanceof Array
-        ? context.map(rule => parseRule(rule, macros))
-        : context
+      if (context instanceof Array) {
+        this.contexts[key] = context.map((rule) => parseRule(rule, macros, (_rule) => {
+          if (typeof _rule.push !== 'string') return
+          const _context = contexts[_rule.push]
+          if (_context && !(_context instanceof Array)) {
+            const fork = _context.fork(_rule.prefix_regex, _rule.strict ? /^(?=[\s\S])/ : null)
+            const forkName = _rule.push + '-fork-' + randomId()
+            this.contexts[forkName] = fork
+            _rule.push = forkName
+          }
+        }))
+      } else {
+        this.contexts[key] = context
+      }
     }
   }
 
   getContext(
     context: string | InlineLexer | LexerRule<RegExp>[],
     reason: ContextReason,
-    strictMode: boolean = false,
   ) {
     const name = typeof context === 'string' ? context : 'anonymous'
     if (reason === ContextReason.INITIAL) {
@@ -80,7 +95,7 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
       this.stackTrace[this.stackTrace.length - 1].name = name
     }
     const result = typeof context === 'string' ? this.contexts[context] : context
-    if (!result) throw new Error(`Context '${context}' was not found.`)
+    if (!result) throw new Error(`Context '${context}' was not found. (context-not-found)`)
     if (result instanceof Array) {
       for (let i = result.length - 1; i >= 0; i -= 1) {
         const rule: LexerRule<RegExp> = result[i]
@@ -89,22 +104,14 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
           if (includes instanceof Array) {
             result.splice(i, 1, ...includes)
           } else {
-            result.splice(i, 1, {
-              regex: /^(?=[\s\S])/,
-              push: rule.include,
-              strict: true,
-            })
+            throw new Error('Including a inline context is illegal. (no-include-inline)')
           }
         }
       }
-      if (strictMode) {
-        result.push({
-          regex: /^(?=[\s\S])/,
-          pop: true,
-        })
-      }
-    }
-    return result as NativeLexerContext
+      return result.slice()
+    } else {
+      return result
+     }
   }
 
   initialize(context: NativeLexerContext) {
@@ -120,7 +127,11 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
   }
 
   getContent(rule: DocumentLexerRule) {
-    const context = this.getContext(rule.push, ContextReason.PUSH, rule.strict)
+    const context = this.getContext(rule.push, ContextReason.PUSH)
+    if (context instanceof Array) {
+      if (rule.prefix_regex) context.unshift({ regex: rule.prefix_regex, pop: true, test: true })
+      if (rule.strict) context.push({ regex: /^(?=[\s\S])/, pop: true, test: true })
+    }
     const result = this.run(this.meta.source, false, context)
     const content = result.output.map((token) => {
       if (this.requireBound && typeof token === 'object') {
@@ -168,7 +179,7 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
   inline(source: string, context: string = this.inlineEntrance): string {
     const inlineContext = this.getContext(context, ContextReason.INLINE)
     if (inlineContext instanceof Array) {
-      throw new Error(`'${context}' is not a inline context.`)
+      throw new Error(`'${context}' is not a inline context. (not-inline-context)`)
     }
     const result = inlineContext.run(source).output
     this.stackTrace.pop()

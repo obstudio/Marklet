@@ -48,7 +48,8 @@ export default class MarkletDocumentLexer extends DocumentLexer {
         {
           type: 'quote',
           regex: />([\w-]*) +/,
-          push: 'block',
+          prefix_regex: /\n[ \t]*\n/,
+          push: 'main',
           token: (cap, content) => ({ style: cap[1], content })
         },
         {
@@ -80,24 +81,17 @@ export default class MarkletDocumentLexer extends DocumentLexer {
             {
               type: 'usage',
               regex: / *\? +([^\n]+?)/,
+              prefix_regex: /(?= *\? )/,
               eol: true,
-              push: [
-                {
-                  regex: /(?= *\? )/,
-                  pop: true
-                },
-                {
-                  include: 'text'
-                }
-              ],
-              token(cap, cont) {
+              push: 'text',
+              token(cap, [inner]) {
                 return {
                   text: this.inline(cap[1]),
-                  content: cont,
+                  detail: inner,
                 }
               }
-            }
-          ]
+            },
+          ],
         },
         {
           type: 'list',
@@ -107,15 +101,11 @@ export default class MarkletDocumentLexer extends DocumentLexer {
             {
               type: 'item',
               regex: /( *)({{bullet}}) +(?=[^\n]+)/,
-              push: [{
-                regex: /\n? *(?={{bullet}} +[^\n]+)/,
-                pop: true
-              }, {
-                include: 'text'
-              }],
-              token(cap, cont) {
+              prefix_regex: /\n? *(?={{bullet}} +[^\n]+)/,
+              push: 'text',
+              token(cap, [inner]) {
                 return {
-                  text: cont.join(''),
+                  text: inner,
                   ordered: cap[2].length > 1,
                   indent: cap[1].length,
                 }
@@ -131,17 +121,10 @@ export default class MarkletDocumentLexer extends DocumentLexer {
             {
               type: 'item',
               regex: /\+/,
-              push: [
-                {
-                  regex: /\+?$|\+\n(?=\+)|\+?(?=\n)|(?=\+)/,
-                  pop: true
-                },
-                {
-                  include: 'text'
-                }
-              ],
-              token(_, cont) {
-                return cont.join('')
+              prefix_regex: /\+?$|\+\n(?=\+)|\+?(?=\n)|(?=\+)/,
+              push: 'text',
+              token(_, [inner]) {
+                return inner
               }
             },
             {
@@ -160,16 +143,7 @@ export default class MarkletDocumentLexer extends DocumentLexer {
         {
           type: 'paragraph',
           push: 'text',
-          token: (_, cont) => ({ text: cont.join('') })
-        }
-      ],
-      block: [
-        {
-          regex: /\n[ \t]*\n/,
-          pop: true
-        },
-        {
-          include: 'main'
+          token: (_, [inner]) => ({ text: inner })
         }
       ],
     }, {

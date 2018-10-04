@@ -1,6 +1,6 @@
 {
   "name": "@marklet/detok",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "A detokenizer for marklet.",
   "author": "jjyyxx <1449843302@qq.com>",
   "contributors": [
@@ -24,6 +24,6 @@
     "cheerio": "^1.0.0-rc.2"
   },
   "devDependencies": {
-    "@marklet/core": "^2.1.0"
+    "@marklet/core": "^3.0.0"
   }
 }

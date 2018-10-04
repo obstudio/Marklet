@@ -31,7 +31,7 @@ class InlineCapture extends Array<string> implements RegExpExecArray {
 export class InlineLexer extends Lexer<string> {
   private rules: InlineLexerRule[]
 
-  constructor(context: InlineContext, config: LexerConfig) {
+  constructor(context: InlineContext, config?: LexerConfig) {
     super(config)
     this.rules = context.map(rule => parseRule(rule) as InlineLexerRule)
   }
@@ -61,5 +61,13 @@ export class InlineLexer extends Lexer<string> {
 
   parse(source: string): LexerResult<string> {
     return this.run(source.replace(/\r\n/g, '\n'), true)
+  }
+
+  fork(prefix?: RegExp, postfix?: RegExp): InlineLexer {
+    const fork = new InlineLexer([])
+    fork.rules = this.rules.slice()
+    if (prefix) fork.rules.unshift({ regex: prefix, pop: true, test: true })
+    if (postfix) fork.rules.push({ regex: postfix, pop: true, test: true })
+    return fork
   }
 }

@@ -1,10 +1,9 @@
 <template>
   <div>
     <blockquote v-for="(usage, index) in node.content" :key="index">
-      <template v-for="(comp, index) in usage">
-        <component :is="comp.type" :node="comp" :key="index"/>
-        <br :key="index"/>
-      </template>
+      <span v-html="usage.text"/>
+      <br/>
+      <span v-html="usage.detail"/>
     </blockquote>
   </div>
 </template>
@@ -13,7 +12,7 @@
 
 blockquote {
   border: 1px solid !important;
-  margin-bottom: -1px;
+  margin: 0 0 -1px 0;
   padding: 8px 1em;
 
   &:first-child {

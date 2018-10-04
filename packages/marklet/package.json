@@ -1,6 +1,6 @@
 {
   "name": "markletjs",
-  "version": "1.1.15",
+  "version": "1.1.16",
   "description": "A markup language designed for API manual pages.",
   "author": "jjyyxx <1449843302@qq.com>",
   "contributors": [
@@ -28,8 +28,8 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/cli": "^1.1.7",
-    "@marklet/parser": "^1.1.1",
-    "@marklet/renderer": "^1.1.4"
+    "@marklet/cli": "^1.1.8",
+    "@marklet/parser": "^1.2.0",
+    "@marklet/renderer": "^1.1.5"
   }
 }

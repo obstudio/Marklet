@@ -41,6 +41,8 @@ module.exports = {
   },
 
   mounted() {
+    window.vm = this
+    
     monacoPlugin.then((monaco) => {
       monaco.editor.setTheme('vs')
       this._editor = monaco.editor.create(this.$refs.input, {
