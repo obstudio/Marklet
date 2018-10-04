@@ -1,22 +1,17 @@
 import * as Monaco from 'monaco-editor'
 import MarkletLanguage from './marklet'
 
-declare global {
-  interface Window {
-    monaco: typeof Monaco
-  }
-}
-
 let $defined = false
 
-export default function defineLanguage() {
+export default function defineLanguage({ languages }: typeof Monaco) {
   if ($defined) return
-  window.monaco.languages.register({
+  
+  languages.register({
     id: 'mkl',
     extensions: ['mkl', 'marklet'],
   })
 
-  window.monaco.languages.setMonarchTokensProvider('mkl', MarkletLanguage)
+  languages.setMonarchTokensProvider('mkl', MarkletLanguage)
 
   $defined = true
 }
