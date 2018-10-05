@@ -1,8 +1,8 @@
 <template>
-  <div>
-    <component :is="'h' + node.level" v-html="node.text"/>
+  <mkl-collapse :initial="node.initial">
+    <component :is="'h' + node.level" v-html="node.text" slot="header"/>
     <mkl-nodes :content="node.content"/>
-  </div>
+  </mkl-collapse>
 </template>
 
 <style lang="scss">

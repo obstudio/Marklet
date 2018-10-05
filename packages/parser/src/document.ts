@@ -44,8 +44,8 @@ export default class MarkletDocumentLexer extends DocumentLexer {
           },
           token(cap, content) {
             const text = this.inline(cap[2])
-            const initialOpen = !cap[3] === (this.config.section_default === 'open')
-            return { level: cap[1].length, text, initialOpen, content }
+            const initial = !cap[3] === (this.config.section_default === 'open') ? 'open' : 'closed'
+            return { level: cap[1].length, text, initial, content }
           }
         },
         {
