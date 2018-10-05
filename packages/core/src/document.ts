@@ -72,7 +72,7 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
   }
 
   getContext(
-    context: string | InlineLexer | LexerRule<RegExp>[],
+    context: string | InlineLexer | LexerRule<RegExp> | LexerRule<RegExp>[],
     operation: ContextOperation,
     prefixRegex?: RegExp,
     postfixRegex?: RegExp,
@@ -85,9 +85,12 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
     } else {
       this.stackTrace[this.stackTrace.length - 1].name = name
     }
-    const rules = typeof context === 'string' ? this.contexts[context] : context
+    let rules = typeof context === 'string' ? this.contexts[context] : context
     if (!rules) throw new Error(`Context '${context}' was not found. (context-not-found)`)
-    if (rules instanceof Array) {
+    if (rules instanceof InlineLexer) {
+      return rules.fork(prefixRegex, postfixRegex)
+    } else {
+      if (!(rules instanceof Array)) rules = [rules]
       for (let i = rules.length - 1; i >= 0; i -= 1) {
         const rule: LexerRule<RegExp> = rules[i]
         if ('include' in rule) {
@@ -103,8 +106,6 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
       if (prefixRegex) result.unshift({ regex: prefixRegex, pop: true, test: true })
       if (postfixRegex) result.push({ regex: postfixRegex, pop: true, test: true })
       return result
-    } else {
-      return rules.fork(prefixRegex, postfixRegex)
     }
   }
 
@@ -151,13 +152,10 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
       token = token.call(this, capture, content)
     } else if (token === undefined) {
       if (rule.push) {
-        token = content
+        token = { content }
       } else if (!rule.pop) {
         token = capture[0]
       }
-    }
-    if (token instanceof Array) {
-      token = { content: token }
     }
     if (token) {
       if (typeof token === 'object') {

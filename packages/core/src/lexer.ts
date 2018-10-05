@@ -47,17 +47,15 @@ export interface LexerRegexRule<
   /** whether the rule is to be executed */
   test?: string | boolean | ((this: T, config: LexerConfig) => boolean)
   /** a result token */
-  token?: TokenLike | TokenLike[] | ((
-    this: T, capture: R, content: TokenLike[]
-  ) => TokenLike | TokenLike[])
+  token?: TokenLike | ((this: T, capture: R, content: TokenLike[]) => TokenLike)
   /** token scope */
   scope?: string
   /** token scope mapped with captures */
   captures?: Record<number, string>
   /** the inner context */
-  push?: string | LexerRule<S, T, R>[]
+  push?: string | LexerRule<S, T, R> | LexerRule<S, T, R>[]
   /** pop from the current context */
-  pop?: boolean
+  pop?: boolean | ((this: T, capture: R) => boolean)
   /** strict mode: pop when no match is found */
   strict?: boolean
   /** match when the context begins */
@@ -116,18 +114,23 @@ export function parseRule(rule: LexerRule, macros: MacroMap = noMacro): LexerRul
     if (rule.flags.replace(/[biepst]/g, '')) {
       throw new Error(`'${rule.flags}' contains invalid rule flags. (invalid-flags)`)
     }
-    if (rule.flags.includes('p')) rule.pop = true
     if (rule.flags.includes('s')) rule.strict = true
     if (rule.flags.includes('b')) rule.context_begins = true
     if (rule.flags.includes('t')) rule.top_level = true
-    if (rule.flags.includes('e') || rule.eol) source += ' *(?:\\n+|$)'
+    if (rule.flags.includes('p') && !rule.pop) rule.pop = true
+    if (rule.flags.includes('e') || rule.eol) source += '[ \t]*(?:\n+|$)'
     if (rule.flags.includes('i') || rule.ignore_case) flags += 'i'
     rule.regex = new RegExp('^(?:' + source + ')', flags)
     const prefix = rule.prefix_regex
     if (isStringLike(prefix)) {
       rule.prefix_regex = new RegExp(`^(?:${macros.resolve(prefix as StringLike)})`)
     }
-    if (rule.push instanceof Array) rule.push.forEach(_rule => parseRule(_rule, macros))
+    const push = rule.push
+    if (push instanceof Array) {
+      push.forEach(_rule => parseRule(_rule, macros))
+    } else if (typeof push === 'object') {
+      rule.push = parseRule(push, macros)
+    }
   }
   return rule as LexerRule<RegExp>
 }
@@ -162,8 +165,8 @@ export interface LexerMeta<R extends string | TokenLike[]> extends Partial<Lexer
 }
 
 export abstract class Lexer<R extends string | TokenLike[]> {
-  meta: LexerMeta<R>
-  config: LexerConfig
+  public meta: LexerMeta<R>
+  public config: LexerConfig
 
   constructor(config?: LexerConfig) {
     this.config = config || {}
@@ -218,7 +221,9 @@ export abstract class Lexer<R extends string | TokenLike[]> {
         const capture = this.getCapture ? this.getCapture(rule, match) : match
 
         // Step 3: reset match status
-        status = rule.pop ? MatchStatus.POP : MatchStatus.CONTINUE
+        let pop = rule.pop
+        if (typeof pop === 'function') pop = pop.call(this, capture)
+        status = pop ? MatchStatus.POP : MatchStatus.CONTINUE
 
         // Step 4: get inner tokens
         const content = rule.push && this.getContent ? this.getContent(rule, capture) : []
