@@ -8,6 +8,8 @@ const Renderer = {
     Vue.component('mkl-collapse', require('../temp/collapse.vue'))
     Vue.component('mkl-heading', require('../temp/heading.vue'))
     Vue.component('mkl-inlinelist', require('../temp/inlinelist.vue'))
+    Vue.component('mkl-list-item', require('../temp/list-item.vue'))
+    Vue.component('mkl-list', require('../temp/list.vue'))
     Vue.component('mkl-nodes', require('../temp/nodes.vue'))
     Vue.component('mkl-paragraph', require('../temp/paragraph.vue'))
     Vue.component('mkl-quote', require('../temp/quote.vue'))

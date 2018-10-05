@@ -1,9 +1,13 @@
-import { DocumentLexer, TokenLike, LexerToken } from '@marklet/core'
+import { DocumentLexer, LexerToken } from '@marklet/core'
 import { LexerConfig } from './index'
 import MarkletInlineLexer from './inline'
 
-function collect(content: TokenLike[]) {
-  return content
+interface ListItem {
+  type: 'list-item'
+  text: string
+  order: string
+  indent?: number
+  children?: ListItem[]
 }
 
 export default class MarkletDocumentLexer extends DocumentLexer {
@@ -20,16 +24,16 @@ export default class MarkletDocumentLexer extends DocumentLexer {
           type: 'heading',
           regex: /(#{1,4}) +([^\n]+?)( +#)?/,
           eol: true,
-          token(cap) {
-            let text, center
-            if (this.config.header_align && cap[3]) {
-              text = this.inline(cap[2])
+          token([_, bullet, text, mark]) {
+            let center
+            if (this.config.header_align && mark) {
+              text = this.inline(text)
               center = true
             } else {
-              text = this.inline(cap[2] + (cap[3] || ''))
+              text = this.inline(text + (mark || ''))
               center = false
             }
-            return { level: cap[1].length, text, center }
+            return { level: bullet.length, text, center }
           }
         },
         {
@@ -42,9 +46,9 @@ export default class MarkletDocumentLexer extends DocumentLexer {
             const level = cap[1].length
             return `(?=[#^]{1,${level}} +[^\\n])`
           },
-          token(cap, content) {
+          token(cap, content, { section_default }) {
             const text = this.inline(cap[2])
-            const initial = !cap[3] === (this.config.section_default === 'open') ? 'open' : 'closed'
+            const initial = !cap[3] === (section_default === 'open') ? 'open' : 'closed'
             return { level: cap[1].length, text, initial, content }
           }
         },
@@ -97,20 +101,40 @@ export default class MarkletDocumentLexer extends DocumentLexer {
         },
         {
           type: 'list',
-          regex: / *(?={{bull}} +[^\n]+)/,
+          regex: /(?=[ \t]*{{bull}}[ \t]+)/,
           strict: true,
           push: {
             type: 'list-item',
-            regex: /( *)({{bull}}) +(?=[^\n]+)/,
-            prefix_regex: /\n? *(?={{bull}} +[^\n]+)/,
+            regex: /([ \t]*)({{bull}})[ \t]+/,
+            prefix_regex: /(?=[ \t]*{{bull}}[ \t]+)/,
             push: 'text',
-            token: (cap, [text]) => ({
-              text,
-              ordered: cap[2].length > 1,
-              indent: cap[1].length,
-            })
+            token([_, indent, bullet], [text], { tab_indent }) {
+              return {
+                text,
+                order: bullet.slice(0, -1),
+                indent: indent.replace(/\t/g, ' '.repeat(tab_indent)).length,
+              }
+            }
           },
-          token: (_, cont) => collect(cont)
+          token(_, content: ListItem[]) {
+            const indents: number[] = []
+            const children: ListItem[] = []
+            content.forEach((item) => {
+              let id = indents.length - 1
+              let node = children
+              for (; id >= 0; id -= 1) {
+                if (indents[id] < item.indent) break
+              }
+              indents.splice(id + 1, Infinity, item.indent)
+              for (; id >= 0; id -= 1) {
+                node = node[node.length - 1].children
+                     = node[node.length - 1].children || []
+              }
+              delete item.indent
+              node.push(item)
+            })
+            return { children }
+          }
         },
         {
           type: 'inlinelist',
@@ -167,13 +191,14 @@ export default class MarkletDocumentLexer extends DocumentLexer {
       ],
     }, {
       macros: {
-        bull: /-|\d+\./,
+        bull: /-|[a-zA-Zα-ωΑ-Ω\d]+\./,
         sign: /[*=<>]+/,
         tab: /\t+| {4,}/,
         eol: /[ \t]*(?:\n|$)/,
         cell: /\S(?: {0,3}\S)*/,
       },
       config: {
+        tab_indent: 2,
         header_align: true,
         allow_section: true,
         marklet_table: true,

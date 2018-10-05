@@ -76,30 +76,34 @@ definitions:
     properties:
       type:
         const: list
-      content:
+      children:
         type: array
         items:
-          type: object
-          properties:
-            type:
-              const: item
-            ordered:
-              type: boolean
-            indent:
-              type: integer
-              minimum: 0
-            text:
-              $ref: '#/definitions/text'
-          required:
-            - type
-            - ordered
-            - indent
-            - content
-          additionalProperties: false
+          $ref: '#/definitions/list-item'
     additionalProperties: false
     required:
       - type
-      - content
+      - children
+
+  list-item:
+    type: object
+    properties:
+      type:
+        const: list-item
+      text:
+        $ref: '#/definitions/text'
+      order:
+        type: string
+        pattern: '[a-zA-Z\d]+'
+      children:
+        type: array
+        items:
+          $ref: '#/definitions/list-item'
+    additionalProperties: false
+    required:
+      - type
+      - text
+      - order
 
   paragraph:
     type: object
