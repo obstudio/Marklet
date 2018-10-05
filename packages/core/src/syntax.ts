@@ -6,6 +6,7 @@ import {
   getString,
   LexerRule,
   LexerMacros,
+  MacroMap,
 } from './lexer'
 
 export interface SyntaxOptions {
@@ -18,21 +19,18 @@ export interface SyntaxOptions {
 export class SyntaxLexer extends Lexer<TokenLike[]> {
   public name: string
   public alias: string[]
+  private macros: MacroMap
   private contexts: Record<string, LexerRule<RegExp>[]> = {}
 
   constructor(options: SyntaxOptions) {
     super()
     this.name = options.name || ''
     this.alias = options.alias || []
+    this.macros = new MacroMap(options.macros || {})
 
-    const _macros = options.macros || {}
-    const macros: LexerMacros<string> = {}
-    for (const key in _macros) {
-      macros[key] = getString(_macros[key])
-    }
     for (const key in options.contexts) {
       const context = options.contexts[key]
-      this.contexts[key] = context.map(rule => parseRule(rule, macros))
+      this.contexts[key] = context.map(rule => parseRule(rule, this.macros))
     }
   }
 }

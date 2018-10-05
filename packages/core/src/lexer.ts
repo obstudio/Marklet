@@ -31,7 +31,7 @@ export interface LexerRegexRule<
   /** the regular expression to execute */
   regex?: S
   /** an regex placed at the beginning of inner context */
-  prefix_regex?: S
+  prefix_regex?: S | ((this: T, capture: R) => StringLike)
   /**
    * a string containing all the rule flags:
    * - `b`: match when the context begins
@@ -70,32 +70,47 @@ export interface LexerRegexRule<
   eol?: boolean
 }
 
-/** transform a string-like object into a raw string */
-export function getString(string: StringLike): string {
-  return string instanceof RegExp ? string.source : string
+export class MacroMap {
+  private data: Record<string, { regex: RegExp, macro: string }> = {}
+
+  constructor(macros: Record<string, StringLike> = {}) {
+    for (const key in macros) {
+      this.data[key] = {
+        regex: new RegExp(`{{${key}}}`, 'g'),
+        macro: `(?:${getString(macros[key])})`,
+      }
+    }
+  }
+
+  resolve(source: StringLike): string {
+    source = getString(source)
+    for (const key in this.data) {
+      source = source.replace(this.data[key].regex, this.data[key].macro)
+    }
+    return source
+  }
 }
 
-function getRegexSource(source: StringLike, macros: LexerMacros<string> = {}) {
-  source = getString(source)
-  for (const key in macros) {
-    source = source.replace(new RegExp(`{{${key}}}`, 'g'), `(?:${macros[key]})`)
-  }
-  return source
+const noMacro = new MacroMap()
+
+/** transform a string-like object into a raw string */
+export function getString(source: StringLike): string {
+  return source instanceof RegExp ? source.source : source
+}
+
+export function isStringLike(source: any): boolean {
+  return typeof source === 'string' || source instanceof RegExp
 }
 
 /** transform lexer rules with string into ones with regexp */
-export function parseRule(
-  rule: LexerRule,
-  macros: LexerMacros<string> = {},
-  resolve?: (rule: LexerRegexRule) => void,
-): LexerRule<RegExp> {
+export function parseRule(rule: LexerRule, macros: MacroMap = noMacro): LexerRule<RegExp> {
   if (!('include' in rule || 'meta' in rule)) {
     if (rule.regex === undefined) {
       rule.regex = /(?=[\s\S])/
       if (!rule.type) rule.type = 'default'
     }
     if (rule.test === undefined) rule.test = true
-    let source = getRegexSource(rule.regex, macros)
+    let source = macros.resolve(rule.regex)
     let flags = ''
     rule.flags = rule.flags || ''
     if (rule.flags.replace(/[biepst]/g, '')) {
@@ -108,11 +123,11 @@ export function parseRule(
     if (rule.flags.includes('e') || rule.eol) source += ' *(?:\\n+|$)'
     if (rule.flags.includes('i') || rule.ignore_case) flags += 'i'
     rule.regex = new RegExp('^(?:' + source + ')', flags)
-    if (rule.prefix_regex) {
-      rule.prefix_regex = new RegExp(`^(?:${getRegexSource(rule.prefix_regex, macros)})`)
+    const prefix = rule.prefix_regex
+    if (isStringLike(prefix)) {
+      rule.prefix_regex = new RegExp(`^(?:${macros.resolve(prefix as StringLike)})`)
     }
-    if (rule.push instanceof Array) rule.push.forEach(_rule => parseRule(_rule, macros, resolve))
-    if (resolve) resolve(rule as LexerRegexRule)
+    if (rule.push instanceof Array) rule.push.forEach(_rule => parseRule(_rule, macros))
   }
   return rule as LexerRule<RegExp>
 }
@@ -156,7 +171,7 @@ export abstract class Lexer<R extends string | TokenLike[]> {
 
   initialize?(...args: any[]): void | LexerResult<R>
   getCapture?(rule: LexerRegexRule, capture: RegExpExecArray): RegExpExecArray
-  getContent?(rule: LexerRegexRule): TokenLike[]
+  getContent?(rule: LexerRegexRule, capture: RegExpExecArray): TokenLike[]
   pushToken?(rule: LexerRegexRule, capture: RegExpExecArray, content: TokenLike[]): void
   pushUnmatch?(): void
 
@@ -206,7 +221,7 @@ export abstract class Lexer<R extends string | TokenLike[]> {
         status = rule.pop ? MatchStatus.POP : MatchStatus.CONTINUE
 
         // Step 4: get inner tokens
-        const content = rule.push && this.getContent ? this.getContent(rule) : []
+        const content = rule.push && this.getContent ? this.getContent(rule, capture) : []
 
         // Step 5: detect endless loop
         if (!rule.pop && this.meta.start === this.meta.index) {

@@ -54,7 +54,7 @@ module.exports = {
         model: null,
         language: 'marklet',
         lineDecorationsWidth: 4,
-        smoothScrolling: true,
+        scrollBeyondLastLine: false,
         minimap: { enabled: false },
         scrollbar: {
           verticalScrollbarSize: 20,
