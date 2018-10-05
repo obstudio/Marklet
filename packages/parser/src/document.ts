@@ -142,18 +142,21 @@ export default class MarkletDocumentLexer extends DocumentLexer {
               type: 'table-cell',
               regex: /({{cell}})({{eol}}|{{tab}})/,
               pop: (cap) => cap[2].includes('\n'),
-              token: ([_, text]) => text
+              token([_, text]) {
+                return this.inline(text)
+              }
             },
           },
-          token: ([header], content) => ({
-            content,
-            columns: header.match(/[*=<>]+/g).map((col) => ({
+          token([header], content) {
+            const columns = header.match(/[*=<>]+/g).map((col) => ({
               bold: col.includes('*'),
               align: col.includes('<') ? 'left'
                 : col.includes('=') ? 'center'
                 : col.includes('>') ? 'right' : 'center'
             }))
-          })
+            content = content.map(row => row.slice(0, columns.length))
+            return { content, columns }
+          }
         },
         {
           type: 'paragraph',
