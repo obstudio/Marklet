@@ -1,10 +1,10 @@
 <template>
   <table>
     <tr v-for="(row, rowIndex) in node.content" :key="rowIndex">
-      <td v-for="(col, colIndex) in row.content" :key="colIndex"
+      <td v-for="(col, colIndex) in row" :key="colIndex"
         v-html="col" :style="{
           textAlign: node.columns[colIndex].align,
-          fontWeight: node.columns[colIndex].bold ? 'bold' : '',
+          fontWeight: node.columns[colIndex].bold ? 'bold' : rowIndex == 0 ? 'bold' : '',
         }"/>
     </tr>
   </table>

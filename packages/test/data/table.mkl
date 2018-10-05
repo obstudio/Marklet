@@ -1,5 +1,8 @@
-# Table Test
+# 表格测试
 
-=         <         <
-*item1    item2     item3
->item4    item5     item6
+下面是一张表格：
+
+=    *<    >
+*居中*    左对齐    _右对齐_
+看上去    -很-    正确
+OH    YEAH    ♪    看不到我吧

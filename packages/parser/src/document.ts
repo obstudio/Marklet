@@ -1,4 +1,4 @@
-import { DocumentLexer, TokenLike } from '@marklet/core'
+import { DocumentLexer, TokenLike, LexerToken } from '@marklet/core'
 import { LexerConfig } from './index'
 import MarkletInlineLexer from './inline'
 
@@ -154,7 +154,7 @@ export default class MarkletDocumentLexer extends DocumentLexer {
                 : col.includes('=') ? 'center'
                 : col.includes('>') ? 'right' : 'center'
             }))
-            content = content.map(row => row.slice(0, columns.length))
+            content = content.map((row: LexerToken) => row.content.slice(0, columns.length))
             return { content, columns }
           }
         },
