@@ -4,6 +4,7 @@
     { "path": "./packages/dev-server" },
     { "path": "./packages/detok" },
     { "path": "./packages/parser" },
+    { "path": "./packages/renderer" },
   ],
   "files": []
 }
