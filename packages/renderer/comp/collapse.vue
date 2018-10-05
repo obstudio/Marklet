@@ -50,7 +50,7 @@ module.exports = {
 </script>
 
 <template>
-  <div class="px-collapse" :class="{ header: $slots.header, closed: isClosed }">
+  <div class="mkl-collapse" :class="{ header: $slots.header, closed: isClosed }">
     <div class="header" tabindex="0" @click="onClickHeader" v-if="$slots.header">
       <slot name="header"/>
     </div>

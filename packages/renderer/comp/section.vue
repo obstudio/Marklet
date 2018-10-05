@@ -1,34 +1,27 @@
 <template>
   <mkl-collapse :initial="node.initial">
-    <component :is="'h' + node.level" v-html="node.text" slot="header"/>
+    <h2 v-html="node.text" slot="header" :class="[ 'level-' + node.level ]"/>
     <mkl-nodes :content="node.content"/>
   </mkl-collapse>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 
-h1, h2, h3, h4 {
-  margin-top: 24px;
-  font-weight: bold;
-  line-height: 1.25;
+&.mkl-collapse > .header {
+  font-size: 1em;
+  padding: 0 0;
+  
+  h2 {
+    margin: 0;
+    line-height: 1.25;
+    padding: 0.3em 0;
+
+    &.level-1 { font-size: 1.6em }
+    &.level-2 { font-size: 1.2em }
+    &.level-3 { font-size: 1.1em }
+    &.level-4 { font-size: 1em }
+  }
 }
-
-h1 {
-  font-size: 2em;
-  padding-top: 0.6em;
-  padding-bottom: 0.3em;
-}
-
-h2 {
-  font-size: 1.5em;
-  padding-top: 0.3em;
-  padding-bottom: 0.3em;
-}
-
-h1, h2 { margin-bottom: 12px }
-h3, h4 { margin-bottom: 16px }
-h3 { font-size: 1.25em }
-h4 { font-size: 1em }
 
 </style>
 

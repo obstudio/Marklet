@@ -1,29 +1,28 @@
 $schema: http://json-schema.org/draft-07/schema#
 
+$ref: '#/definitions/nodes'
+
 definitions:
   text:
     type: string
     format: text
 
-  Element:
-    anyOf:
-      - $ref: '#/definitions/CodeBlock'
-      - $ref: '#/definitions/Heading'
-      - $ref: '#/definitions/InlineList'
-      - $ref: '#/definitions/List'
-      - $ref: '#/definitions/Paragraph'
-      - $ref: '#/definitions/Quote'
-      - $ref: '#/definitions/Section'
-      - $ref: '#/definitions/Separator'
-      - $ref: '#/definitions/Table'
-      - $ref: '#/definitions/Usages'
-
-  Elements:
+  nodes:
     type: array
     items:
-      $ref: '#/definitions/Element'
+      anyOf:
+        - $ref: '#/definitions/codeblock'
+        - $ref: '#/definitions/heading'
+        - $ref: '#/definitions/inlinelist'
+        - $ref: '#/definitions/list'
+        - $ref: '#/definitions/paragraph'
+        - $ref: '#/definitions/quote'
+        - $ref: '#/definitions/section'
+        - $ref: '#/definitions/separator'
+        - $ref: '#/definitions/table'
+        - $ref: '#/definitions/usages'
 
-  CodeBlock:
+  codeblock:
     type: object
     properties:
       type:
@@ -38,19 +37,19 @@ definitions:
       - text
       - lang
 
-  Heading:
+  heading:
     type: object
     properties:
       type:
         const: heading
+      center:
+        type: boolean
       level:
         type: integer
         maximum: 4
         minimum: 1
       text:
         $ref: '#/definitions/text'
-      center:
-        type: boolean
     additionalProperties: false
     required:
       - type
@@ -58,7 +57,7 @@ definitions:
       - text
       - center
 
-  InlineList:
+  inlinelist:
     type: object
     properties:
       type:
@@ -72,7 +71,7 @@ definitions:
       - type
       - content
 
-  List:
+  list:
     type: object
     properties:
       type:
@@ -102,7 +101,7 @@ definitions:
       - type
       - content
 
-  Paragraph:
+  paragraph:
     type: object
     properties:
       type:
@@ -114,7 +113,7 @@ definitions:
       - type
       - text
 
-  Quote:
+  quote:
     type: object
     properties:
       type:
@@ -122,18 +121,22 @@ definitions:
       style:
         type: string
       content:
-        $ref: '#/definitions/Elements'
+        $ref: '#/definitions/nodes'
     additionalProperties: false
     required:
       - type
       - style
       - content
 
-  Section:
+  section:
     type: object
     properties:
       type:
         const: section
+      initial:
+        enum:
+          - open
+          - closed
       level:
         type: integer
         maximum: 4
@@ -141,14 +144,16 @@ definitions:
       text:
         $ref: '#/definitions/text'
       content:
-        $ref: '#/definitions/Elements'
+        $ref: '#/definitions/nodes'
     additionalProperties: false
     required:
       - type
       - level
       - text
+      - initial
+      - content
 
-  Separator:
+  separator:
     type: object
     properties:
       type:
@@ -166,21 +171,39 @@ definitions:
       - style
       - thick
 
-  Table:
+  table:
     type: object
     properties:
       type:
         const: table
+      columns:
+        type: array
+        items:
+          type: object
+          properties:
+            bold:
+              type: boolean
+            align:
+              enum:
+                - left
+                - center
+                - right
+          additionalProperties: false
+          required:
+            - bold
+            - align
       content:
         type: array
         items:
-          $ref: '#/definitions/Elements'
+          type: array
+          items:
+            $ref: '#/definitions/text'
     additionalProperties: false
     required:
       - type
       - content
 
-  Usages:
+  usages:
     type: object
     properties:
       type:
@@ -195,17 +218,14 @@ definitions:
             text:
               $ref: '#/definitions/text'
             content:
-              $ref: '#/definitions/Elements'
+              $ref: '#/definitions/nodes'
+          additionalProperties: false
           required:
             - type
             - text
             - content
-          additionalProperties: false
     additionalProperties: false
     required:
       - type
       - content
       
-type: array
-items:
-  $ref: '#/definitions/Element'

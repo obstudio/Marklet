@@ -4,7 +4,7 @@
       <td v-for="(col, colIndex) in row" :key="colIndex"
         v-html="col" :style="{
           textAlign: node.columns[colIndex].align,
-          fontWeight: node.columns[colIndex].bold ? 'bold' : rowIndex == 0 ? 'bold' : '',
+          fontWeight: node.columns[colIndex].bold ? 'bold' : '',
         }"/>
     </tr>
   </table>
@@ -19,7 +19,8 @@
   margin: 0 auto 16px;
   display: block;
 
-  th, td { padding: 6px 13px }
+  td { padding: 6px 13px }
+  tr:first-child td { font-weight: bold }
 }
 
 </style>
