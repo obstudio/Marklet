@@ -138,18 +138,15 @@ export default class MarkletDocumentLexer extends DocumentLexer {
         },
         {
           type: 'inlinelist',
-          regex: /(?=\+)/,
+          regex: /(?=\+[ \t])/,
+          strict: true,
           push: [
             {
               type: 'inlinelist-item',
-              regex: /\+/,
-              prefix_regex: /\+?$|\+\n(?=\+)|\+?(?=\n)|(?=\+)/,
+              regex: /\+([ \t]+|[ \t]*\n(?=\+))/,
+              prefix_regex: /\n|(?=\+)/,
               push: 'text',
-              token: (_, [text]) => text
-            },
-            {
-              regex: /\n|$/,
-              pop: true
+              token: (_, [text]) => text.trim()
             }
           ],
         },
