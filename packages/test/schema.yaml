@@ -1,0 +1,211 @@
+$schema: http://json-schema.org/draft-07/schema#
+
+definitions:
+  text:
+    type: string
+    format: text
+
+  Element:
+    anyOf:
+      - $ref: '#/definitions/CodeBlock'
+      - $ref: '#/definitions/Heading'
+      - $ref: '#/definitions/InlineList'
+      - $ref: '#/definitions/List'
+      - $ref: '#/definitions/Paragraph'
+      - $ref: '#/definitions/Quote'
+      - $ref: '#/definitions/Section'
+      - $ref: '#/definitions/Separator'
+      - $ref: '#/definitions/Table'
+      - $ref: '#/definitions/Usages'
+
+  Elements:
+    type: array
+    items:
+      $ref: '#/definitions/Element'
+
+  CodeBlock:
+    type: object
+    properties:
+      type:
+        const: codeblock
+      lang:
+        type: string
+      text:
+        type: string
+    additionalProperties: false
+    required:
+      - type
+      - text
+      - lang
+
+  Heading:
+    type: object
+    properties:
+      type:
+        const: heading
+      level:
+        type: integer
+        maximum: 4
+        minimum: 1
+      text:
+        $ref: '#/definitions/text'
+      center:
+        type: boolean
+    additionalProperties: false
+    required:
+      - type
+      - level
+      - text
+      - center
+
+  InlineList:
+    type: object
+    properties:
+      type:
+        const: inlinelist
+      content:
+        type: array
+        items:
+          $ref: '#/definitions/text'
+    additionalProperties: false
+    required:
+      - type
+      - content
+
+  List:
+    type: object
+    properties:
+      type:
+        const: list
+      content:
+        type: array
+        items:
+          type: object
+          properties:
+            type:
+              const: item
+            ordered:
+              type: boolean
+            indent:
+              type: integer
+              minimum: 0
+            text:
+              $ref: '#/definitions/text'
+          required:
+            - type
+            - ordered
+            - indent
+            - content
+          additionalProperties: false
+    additionalProperties: false
+    required:
+      - type
+      - content
+
+  Paragraph:
+    type: object
+    properties:
+      type:
+        const: paragraph
+      text:
+        $ref: '#/definitions/text'
+    additionalProperties: false
+    required:
+      - type
+      - text
+
+  Quote:
+    type: object
+    properties:
+      type:
+        const: quote
+      style:
+        type: string
+      content:
+        $ref: '#/definitions/Elements'
+    additionalProperties: false
+    required:
+      - type
+      - style
+      - content
+
+  Section:
+    type: object
+    properties:
+      type:
+        const: section
+      level:
+        type: integer
+        maximum: 4
+        minimum: 1
+      text:
+        $ref: '#/definitions/text'
+      content:
+        $ref: '#/definitions/Elements'
+    additionalProperties: false
+    required:
+      - type
+      - level
+      - text
+
+  Separator:
+    type: object
+    properties:
+      type:
+        const: separator
+      style:
+        enum:
+          - normal
+          - dashed
+          - dotted
+      thick:
+        type: boolean
+    additionalProperties: false
+    required:
+      - type
+      - style
+      - thick
+
+  Table:
+    type: object
+    properties:
+      type:
+        const: table
+      content:
+        type: array
+        items:
+          $ref: '#/definitions/Elements'
+    additionalProperties: false
+    required:
+      - type
+      - content
+
+  Usages:
+    type: object
+    properties:
+      type:
+        const: usages
+      content:
+        type: array
+        items:
+          type: object
+          properties:
+            type:
+              const: usage
+            text:
+              $ref: '#/definitions/text'
+            content:
+              $ref: '#/definitions/Elements'
+          required:
+            - type
+            - text
+            - content
+          additionalProperties: false
+    additionalProperties: false
+    required:
+      - type
+      - content
+      
+type: array
+items:
+  $ref: '#/definitions/Element'

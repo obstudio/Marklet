@@ -47,7 +47,7 @@ export interface LexerRegexRule<
   /** whether the rule is to be executed */
   test?: string | boolean | ((this: T, config: LexerConfig) => boolean)
   /** a result token */
-  token?: TokenLike | ((this: T, capture: R, content: TokenLike[]) => TokenLike)
+  token?: TokenLike | ((this: T, capture: R, content: TokenLike[], config: LexerConfig) => TokenLike)
   /** token scope */
   scope?: string
   /** token scope mapped with captures */

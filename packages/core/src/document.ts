@@ -1,7 +1,6 @@
 import {
   Lexer,
   parseRule,
-  getString,
   StringLike,
   TokenLike,
   MacroMap,
@@ -40,10 +39,6 @@ enum ContextOperation {
 interface ContextLog {
   name: string
   operation: ContextOperation
-}
-
-function randomId(): string {
-  return Math.floor(Math.random() * 36 ** 6).toString(36).padStart(6, '0')
 }
 
 export class DocumentLexer extends Lexer<TokenLike[]> {
@@ -149,7 +144,7 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
   pushToken(rule: DocumentLexerRule, capture: RegExpExecArray, content: TokenLike[]) {
     let token = rule.token
     if (typeof token === 'function') {
-      token = token.call(this, capture, content)
+      token = token.call(this, capture, content, this.config)
     } else if (token === undefined) {
       if (rule.push) {
         token = { content }

@@ -44,7 +44,7 @@ export default class MarkletDocumentLexer extends DocumentLexer {
           },
           token(cap, content) {
             const text = this.inline(cap[2])
-            const initialOpen = !cap[3] === !this.config.default_open
+            const initialOpen = !cap[3] === (this.config.section_default === 'open')
             return { level: cap[1].length, text, initialOpen, content }
           }
         },
@@ -72,12 +72,10 @@ export default class MarkletDocumentLexer extends DocumentLexer {
           type: 'codeblock',
           regex: / *(`{3,}) *([\w-]+)? *\n([\s\S]*?)\n? *\1/,
           eol: true,
-          token(cap) {
-            return {
-              lang: cap[2] || this.config.default_language,
-              text: cap[3] || '',
-            }
-          }
+          token: (cap, _, { default_language }) => ({
+            lang: cap[2] || default_language,
+            text: cap[3] || '',
+          })
         },
         {
           type: 'usages',
@@ -133,6 +131,7 @@ export default class MarkletDocumentLexer extends DocumentLexer {
         },
         {
           type: 'table',
+          test: 'marklet_table',
           regex: /{{sign}}({{tab}}{{sign}})*{{eol}}/,
           strict: true,
           push: {
@@ -143,9 +142,18 @@ export default class MarkletDocumentLexer extends DocumentLexer {
               type: 'table-cell',
               regex: /({{cell}})({{eol}}|{{tab}})/,
               pop: (cap) => cap[2].includes('\n'),
-              token: ([_, text]) => ({ text })
+              token: ([_, text]) => text
             },
           },
+          token: ([header], content) => ({
+            content,
+            columns: header.match(/[*=<>]+/g).map((col) => ({
+              bold: col.includes('*'),
+              align: col.includes('<') ? 'left'
+                : col.includes('=') ? 'center'
+                : col.includes('>') ? 'right' : 'center'
+            }))
+          })
         },
         {
           type: 'paragraph',
@@ -157,15 +165,16 @@ export default class MarkletDocumentLexer extends DocumentLexer {
     }, {
       macros: {
         bull: /-|\d+\./,
-        sign: /\*?[=<>]/,
+        sign: /[*=<>]+/,
         tab: /\t+| {4,}/,
-        eol: /[ \t]*(\n|$)/,
+        eol: /[ \t]*(?:\n|$)/,
         cell: /\S(?: {0,3}\S)*/,
       },
       config: {
         header_align: true,
         allow_section: true,
-        default_open: false,
+        marklet_table: true,
+        section_default: 'open',
         default_language: '',
         ...config,
       }

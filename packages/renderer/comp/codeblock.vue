@@ -30,7 +30,6 @@ module.exports = {
 
 </script>
 
-
 <template>
   <div class="codeblock" v-html="html"/>
 </template>

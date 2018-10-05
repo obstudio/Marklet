@@ -48,7 +48,7 @@ export class InlineLexer extends Lexer<string> {
   pushToken(rule: InlineLexerRule, capture: InlineCapture) {
     let token = rule.token
     if (typeof token === 'function') {
-      token = token.call(this, capture)
+      token = token.call(this, capture, null, this.config)
     } else if (token === undefined) {
       token = capture[0]
     }
