@@ -1,6 +1,6 @@
-const sass = require('../../../build/scss')
 const util = require('../../../build/util')
-const sfc2js = require('../../../build/sfc2js')
+const sfc2js = require('./sfc2js')
+const scss = require('./scss')
 
 util.start()
 
@@ -11,7 +11,7 @@ module.exports = sfc2js.transpile({
   enterance: util.isElectron() ? 'app.vue' : '',
 })
 
-module.exports.css += sass.loadAll({
+module.exports.css += scss.loadAll({
   base: 'app',
   src: 'comp/index',
   dest: 'temp/index',
@@ -20,6 +20,11 @@ module.exports.css += sass.loadAll({
   src: 'themes/simple',
   dest: 'dist/simple',
   selector: '.simple',
+}, {
+  base: 'renderer',
+  src: 'themes/dark',
+  dest: 'dist/dark',
+  selector: '.dark',
 }, {
   base: 'monaco',
   src: 'index',

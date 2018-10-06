@@ -105,7 +105,7 @@ module.exports = {
   <div>
     <div class="input" ref="input"/>
     <mkl-scroll class="output" :margin="4" :radius="6">
-      <mkl-nodes ref="nodes" :content="nodes" class="simple"/>
+      <mkl-nodes ref="nodes" :content="nodes" class="dark"/>
     </mkl-scroll>
   </div>
 </template>

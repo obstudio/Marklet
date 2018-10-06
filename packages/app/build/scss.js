@@ -1,4 +1,4 @@
-const util = require('./util')
+const util = require('../../../build/util')
 const sass = require('sass')
 const fs = require('fs')
 
