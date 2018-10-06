@@ -13,13 +13,16 @@ module.exports = sfc2js.transpile({
 
 module.exports.css += sass.loadAll({
   base: 'app',
-  src: 'comp/index.scss',
-  dest: 'temp/index.css',
+  src: 'comp/index',
+  dest: 'temp/index',
 }, {
   base: 'renderer',
-  src: 'themes/simple.scss',
-  dest: 'dist/simple.css',
+  src: 'themes/simple',
+  dest: 'dist/simple',
   selector: '.simple',
+}, {
+  base: 'monaco',
+  src: 'index',
 })
 
 if (util.isElectron()) {
