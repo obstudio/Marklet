@@ -2,8 +2,7 @@ import { DocumentLexer, LexerToken } from '@marklet/core'
 import { LexerConfig } from './index'
 import MarkletInlineLexer from './inline'
 
-interface ListItem {
-  type: 'list-item'
+export interface ListItem extends LexerToken {
   text: string
   order: string
   indent?: number
@@ -140,15 +139,13 @@ export default class MarkletDocumentLexer extends DocumentLexer {
           type: 'inlinelist',
           regex: /(?=\+[ \t]+)/,
           prefix_regex: /\+[ \t]*\n(?!\+)/,
-          push: [
-            {
-              type: 'inlinelist-item',
-              regex: /\+\s*/,
-              prefix_regex: /\n|(?=\+)/,
-              push: 'text',
-              token: (_, [text]) => text.trim()
-            }
-          ],
+          push: {
+            type: 'inlinelist-item',
+            regex: /\+\s*/,
+            prefix_regex: /\n|(?=\+)/,
+            push: 'text',
+            token: (_, [text]) => text.trim()
+          },
         },
         {
           type: 'table',

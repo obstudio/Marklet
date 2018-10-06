@@ -39,6 +39,8 @@ class TaskManager {
         failed |= result
         if (result) {
           console.log(chalk.redBright(`Test '${title}' on ${testUnit.name} failed.`))
+        } else if (result !== false) {
+          console.log(chalk.green(`Test '${title}' on ${testUnit.name} succeeded.`))
         }
       }
       if (!failed) {

@@ -2,6 +2,8 @@ import { LexerConfig, TokenLike } from '@marklet/core'
 import MarkletInlineLexer from './inline'
 import MarkletDocumentLexer from './document'
 
+export { ListItem } from './document'
+
 interface MarkletLexerConfig extends LexerConfig {
   /** enable header to align at center */
   header_align?: boolean

@@ -12,8 +12,9 @@ module.exports = {
       Marklet.parse({ input: content })
     }
     const end2 = performance.now()
-    console.log(name, 'initial:', end1 - start1, 'ms')
-    console.log(name, 'average:', (end2 - start2) / 1000, 'ms')
+    console.log(name, 'initial:', (end1 - start1).toFixed(3), 'ms')
+    console.log(name, 'average:', ((end2 - start2) / 1000).toFixed(3), 'ms')
+    return false
   },
   raw: true
 }
