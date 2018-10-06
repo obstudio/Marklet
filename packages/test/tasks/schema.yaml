@@ -94,7 +94,7 @@ definitions:
         $ref: '#/definitions/text'
       order:
         type: string
-        pattern: '[a-zA-Z\d]+'
+        pattern: '[a-zA-Z\d]*'
       children:
         type: array
         items:

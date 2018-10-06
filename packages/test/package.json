@@ -1,8 +1,12 @@
 {
   "name": "@marklet/test",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "private": true,
+  "main": "index.js",
   "author": "jjyyxx <1449843302@qq.com>",
+  "contributors": [
+    "shigma <1700011071@pku.edu.cn>"
+  ],
   "homepage": "https://github.com/obstudio/Marklet",
   "license": "MIT",
   "repository": {

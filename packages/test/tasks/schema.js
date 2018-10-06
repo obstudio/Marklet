@@ -16,10 +16,13 @@ const validator = new Ajv()
 const schema = yaml.safeLoad(fs.readFileSync(path.resolve(__dirname, 'schema.yaml')))
 const validate = validator.compile(schema)
 
-module.exports = (data) => {
-  const result = validate(data.content)
-  if (!result) {
-    console.log(JSON.stringify(data, null, 2))
+module.exports = {
+  title: 'Shape Correctness',
+  test(data) {
+    const result = !validate(data.content)
+    if (result) {
+      console.log(JSON.stringify(data, null, 2))
+      return true
+    }
   }
-  return result
 }
