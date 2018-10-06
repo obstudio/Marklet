@@ -1,28 +1,22 @@
 language: node_js
-
 node_js:
-  - node
-
+- node
 env:
   global:
-    - secure: ikFQOw+feac3+WhVb1QtCeAqp9OpQprD4oXmG4+q3MVAHFiP2pLcfZbrExr0bu472eEHLpRDjjlxHEGxcnJoSool4LUCkgTnlpN8/iGzug0gnv1/XoLZiwKVbonOQHaksJ8vGBIXFMPbXRYfc1DjSyWQhwxkdhrIGUEyPs0IqrBZ4nzbpCG/hsSbkKG6xMu5sXXwM/4Nmklx8kZRMWCQXB09gMysmt1TmPwxogyxXg1xm8GaSfA5GQHJZyW3oQpvGMKaXyDLymjLw66rlrUhZ9u0TKklkBqtVlhBnGm/eXxNFnDTfz+D8K3v2MSoSRuFb8bsofLHDFDm9suBuVV83nmINhkIcsmxEbS5B+Cv916za0NgCKxKJW/DRuCCoOdjRrXk36oC+7DCvEIVH8Hsraj7oC/WgBWSHCkI12UAXhxoSHrS3OiNxJEVZJXqIUzzzbyJJE5DTHElmBm1T6ZM7WEydzAPfhtzs/d5SsjwP0w6n+8SrnKifuBaFNw7wv40sdwey9TKJEXD84AeBsbTmJQCljJuKZntQryfoCVYB82OasEoEF0ryCnc0to1/lszXLAKJBv7gOTxzQ62tKo3wJo2L6FhGIOYG5n0NVXz7kC+5rKh5ZIwKx42oT9P4OAAwpM3p+LxzS7lkn6WLamFlioCFnzmvItO9yOFR/pIiKY=
-
+    - secure: iQS7C6BZcBlFCfj4a/1scDVO6qOCMCb2lYfZSTVS1QRnMns3wNBaDARXKrjl2LLzVPqz5puhj7+z7grUZ/rAUIAsAQUJtHqpTcpHY6kksQsh5yqNYgfwACAx0VNPicLEv2f/ekjabxaA1+7FhbCR+DFa/ZUuXGC+RpVm/EWhDDEkmGVHvXoJN92dW5lfPy/kJwpus03Mr+tPVbDJwO83sWhulUTxRuf1bEAg2/fUiPf+qZzRy6swEnfS7GlQrpD0/KHYGoa0Dt3TmqJ1oP03CRvdo/g45VZutonjLNAu7oJ/lrSTNLU68JGOnv+WCGL9RwPgfBcjTldxmSer4fwYLh+oj1IJHexNA2G0dStYVwKfkj8jEd7DLJxOrOdTYXovl3tRpyGN7oCDoWepvH1nYPBvZno9Kgt32VW/xwhqZgia5tmzra0ouyxJ/GzOXph2NaHTe9jzuF2/i814q1r3VfC5Wm3kai5R2RoNtv6bk9vS4QyEwum5JhQRJpO9O8/z393fTxMN1ZOC7D307eUQLPiLSjb/MkEfEuWtqvuEieYKs7UelC9SzrM83urJUc94FFhGfLuhqriLTJSd8gdlm5iBPjz6WrhW8n6JCa0t7iI90Cxn4DIr7KB7SROW66KSC8HPi9srPcJKVb1dx/Z8PMSP4y6ZmkTMXpbryTFK9Vo=
 before_install:
-  - node ./build/check.js
-
+- node ./build/check.js
 install:
-  - npm i
-  - npm run bootstrap
-
+- npm i
+- npm run bootstrap
 script:
-  - npm run lint
-  - npm run build:prod
-  - npm run test
-
+- npm run lint
+- npm run build:prod
+- npm run test
 deploy:
-  - skip_cleanup: true
-    provider: script
-    script: node ./build/release.js
-    on:
-      repo: obstudio/Marklet
-      branch: master
+- skip_cleanup: true
+  provider: script
+  script: node ./build/release.js
+  on:
+    repo: obstudio/Marklet
+    branch: master
