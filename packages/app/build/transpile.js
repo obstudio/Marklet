@@ -12,10 +12,6 @@ module.exports = sfc2js.transpile({
 })
 
 module.exports.css += scss.loadAll({
-  base: 'app',
-  src: 'comp/index',
-  dest: 'temp/index',
-}, {
   base: 'renderer',
   src: 'themes/simple',
   dest: 'dist/simple',
