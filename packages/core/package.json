@@ -1,12 +1,12 @@
 {
   "name": "@marklet/core",
-  "version": "2.0.0",
+  "version": "3.2.2",
   "description": "Some core conceptions of marklet.",
   "author": "shigma <1700011071@pku.edu.cn>",
   "contributors": [
     "jjyyxx <1449843302@qq.com>"
   ],
-  "homepage": "https://github.com/obstudio/Marklet",
+  "homepage": "https://github.com/obstudio/Marklet/tree/dev/packages/core",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

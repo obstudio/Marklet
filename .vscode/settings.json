@@ -5,10 +5,12 @@
     "vue"
   ],
   "files.exclude": {
+    "**/node_modules": true,
     "**/package-lock.json": true,
     "package.json.lerna_backup": true,
-    "packages/**/node_modules": true,
-    // "packages/**/tsconfig.json": true
+    "packages/**/tsconfig.json": true,
+    "packages/**/dist": true,
+    "packages/**/temp": true,
   },
   "editor.wordSeparators": "`~!@#%^&*()-=+[{]}\\|;:'\",.<>/?",
 }

@@ -1,7 +1,7 @@
-const { parse, Lexer } = require('@marklet/parser')
+const { parse, DocumentLexer } = require('@marklet/parser')
 const renderer = require('@marklet/renderer')
 
-const lexer = new Lexer()
+const lexer = new DocumentLexer()
 const config = lexer.config
 
 function render(element, source) {
@@ -9,8 +9,8 @@ function render(element, source) {
 }
 
 module.exports = {
+  Lexer: DocumentLexer,
   parse,
-  Lexer,
   config,
   render,
 }

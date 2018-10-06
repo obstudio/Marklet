@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": [
+    "comp"
+  ],
+  "compilerOptions": {
+    "outDir": "temp",
+    "rootDir": "comp"
+  }
+}

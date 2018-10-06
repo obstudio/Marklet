@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Marklet</title>
+    <script src="../../node_modules/vue/dist/vue.runtime.min.js"></script>
+    <!-- TODO: remove in production mode -->
+    <script src="http://localhost:8098"></script>
+  </head>
+  <body>
+    <div id="app"><!-- content will be injected --></div>
+    <script>
+      const result = require('./build/transpile')
+      const style = document.createElement('style')
+      style.innerText = result.css
+      document.head.appendChild(style)
+      Vue.use(result.plugin)
+      new Vue(result.app)
+    </script>
+  </body>
+</html>

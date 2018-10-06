@@ -17,11 +17,15 @@ module.exports = {
 
 <template>
   <component :is="tag">
-    <template v-for="(comp, index) in content">
-      <component
-        :is="'ml-' + comp.type" :class="comp.type" :node="comp" :key="index"/>
-      <slot/>
-    </template>
+    <component v-for="(comp, index) in content"
+      :is="'mkl-' + comp.type" :class="comp.type" :node="comp" :key="index"/>
   </component>
 </template>
 
+<style lang="scss" scoped>
+
+> *:first-child {
+  margin-top: 0;
+}
+
+</style>

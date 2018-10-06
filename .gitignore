@@ -5,3 +5,5 @@ dist
 temp
 !test
 *.tgz
+packages/app/main.js
+packages/app/index.html

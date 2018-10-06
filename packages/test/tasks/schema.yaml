@@ -1,0 +1,238 @@
+$schema: http://json-schema.org/draft-07/schema#
+
+$ref: '#/definitions/nodes'
+
+definitions:
+  text:
+    type: string
+    format: text
+
+  nodes:
+    type: array
+    items:
+      anyOf:
+        - $ref: '#/definitions/codeblock'
+        - $ref: '#/definitions/heading'
+        - $ref: '#/definitions/inlinelist'
+        - $ref: '#/definitions/list'
+        - $ref: '#/definitions/paragraph'
+        - $ref: '#/definitions/quote'
+        - $ref: '#/definitions/section'
+        - $ref: '#/definitions/separator'
+        - $ref: '#/definitions/table'
+        - $ref: '#/definitions/usages'
+
+  codeblock:
+    type: object
+    properties:
+      type:
+        const: codeblock
+      lang:
+        type: string
+      text:
+        type: string
+    additionalProperties: false
+    required:
+      - type
+      - text
+      - lang
+
+  heading:
+    type: object
+    properties:
+      type:
+        const: heading
+      center:
+        type: boolean
+      level:
+        type: integer
+        maximum: 4
+        minimum: 1
+      text:
+        $ref: '#/definitions/text'
+    additionalProperties: false
+    required:
+      - type
+      - level
+      - text
+      - center
+
+  inlinelist:
+    type: object
+    properties:
+      type:
+        const: inlinelist
+      content:
+        type: array
+        items:
+          $ref: '#/definitions/text'
+    additionalProperties: false
+    required:
+      - type
+      - content
+
+  list:
+    type: object
+    properties:
+      type:
+        const: list
+      children:
+        type: array
+        items:
+          $ref: '#/definitions/list-item'
+    additionalProperties: false
+    required:
+      - type
+      - children
+
+  list-item:
+    type: object
+    properties:
+      type:
+        const: list-item
+      text:
+        $ref: '#/definitions/text'
+      order:
+        type: string
+        pattern: '[a-zA-Z\d]*'
+      children:
+        type: array
+        items:
+          $ref: '#/definitions/list-item'
+    additionalProperties: false
+    required:
+      - type
+      - text
+      - order
+
+  paragraph:
+    type: object
+    properties:
+      type:
+        const: paragraph
+      text:
+        $ref: '#/definitions/text'
+    additionalProperties: false
+    required:
+      - type
+      - text
+
+  quote:
+    type: object
+    properties:
+      type:
+        const: quote
+      style:
+        type: string
+      content:
+        $ref: '#/definitions/nodes'
+    additionalProperties: false
+    required:
+      - type
+      - style
+      - content
+
+  section:
+    type: object
+    properties:
+      type:
+        const: section
+      initial:
+        enum:
+          - open
+          - closed
+      level:
+        type: integer
+        maximum: 4
+        minimum: 1
+      text:
+        $ref: '#/definitions/text'
+      content:
+        $ref: '#/definitions/nodes'
+    additionalProperties: false
+    required:
+      - type
+      - level
+      - text
+      - initial
+      - content
+
+  separator:
+    type: object
+    properties:
+      type:
+        const: separator
+      style:
+        enum:
+          - normal
+          - dashed
+          - dotted
+      thick:
+        type: boolean
+    additionalProperties: false
+    required:
+      - type
+      - style
+      - thick
+
+  table:
+    type: object
+    properties:
+      type:
+        const: table
+      columns:
+        type: array
+        items:
+          type: object
+          properties:
+            bold:
+              type: boolean
+            align:
+              enum:
+                - left
+                - center
+                - right
+          additionalProperties: false
+          required:
+            - bold
+            - align
+      data:
+        type: array
+        items:
+          type: array
+          items:
+            $ref: '#/definitions/text'
+    additionalProperties: false
+    required:
+      - type
+      - data
+
+  usage:
+    type: object
+    properties:
+      type:
+        const: usage
+      text:
+        $ref: '#/definitions/text'
+      content:
+        $ref: '#/definitions/nodes'
+    additionalProperties: false
+    required:
+      - type
+      - text
+      - content
+
+  usages:
+    type: object
+    properties:
+      type:
+        const: usages
+      content:
+        type: array
+        items:
+          $ref: '#/definitions/usage'
+    additionalProperties: false
+    required:
+      - type
+      - content
+      

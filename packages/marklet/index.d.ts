@@ -1,5 +1,5 @@
-import { parse, Lexer, LexerConfig } from '@marklet/parser'
+import { parse, DocumentLexer, LexerConfig } from '@marklet/parser'
 
-export { parse, Lexer }
+export { parse, DocumentLexer as Lexer }
 export let config: LexerConfig
 export function render(element: string | HTMLElement, source: string): void

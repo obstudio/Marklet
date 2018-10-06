@@ -1,12 +1,12 @@
 {
   "name": "@marklet/dev-server",
-  "version": "1.0.12",
+  "version": "1.0.22",
   "description": "A develop server for marklet.",
   "author": "jjyyxx <1449843302@qq.com>",
   "contributors": [
     "shigma <1700011071@pku.edu.cn>"
   ],
-  "homepage": "https://github.com/obstudio/Marklet",
+  "homepage": "https://github.com/obstudio/Marklet/tree/dev/packages/dev-server",
   "license": "MIT",
   "main": "dist/server.js",
   "typings": "dist/server.d.ts",
@@ -21,8 +21,8 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/parser": "^1.1.0",
-    "@marklet/renderer": "^1.1.2",
+    "@marklet/parser": "^1.5.1",
+    "@marklet/renderer": "^1.3.1",
     "vue": "^2.5.17",
     "ws": "^6.0.0"
   }

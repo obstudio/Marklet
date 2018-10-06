@@ -1,0 +1,22 @@
+{
+  "name": "@marklet/monaco",
+  "version": "1.2.1",
+  "description": "A monaco plugin for marklet.",
+  "author": "jjyyxx <1449843302@qq.com>",
+  "contributors": [
+    "shigma <1700011071@pku.edu.cn>"
+  ],
+  "homepage": "https://github.com/obstudio/Marklet/tree/dev/packages/monaco",
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/obstudio/Marklet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/obstudio/Marklet/issues"
+  },
+  "dependencies": {
+    "monaco-editor": "^0.14.3"
+  }
+}

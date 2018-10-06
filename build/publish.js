@@ -50,6 +50,7 @@ program
   .option('-1, --major')
   .option('-2, --minor')
   .option('-3, --patch')
+  .option('-o, --only')
   .option('-p, --publish')
   .parse(process.argv)
 
@@ -58,6 +59,7 @@ if (program.all) program.args = packageNames
 
 function bump(name, flag) {
   packages[name].bump(flag || 'patch')
+  if (program.only) return
   const npmName = packages[name].current.name
   packageNames.forEach((next) => {
     if (npmName in (packages[next].current.devDependencies || {})) {

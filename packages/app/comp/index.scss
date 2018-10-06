@@ -1,0 +1,49 @@
+body {
+  overflow: hidden;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Helvetica,
+    Arial,
+    sans-serif,
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol";
+}
+
+.no-transition {
+  transition: none !important;
+}
+
+.monaco-editor {
+  .monaco-scrollable-element {
+    > .scrollbar {
+      transition: opacity 0.3s ease;
+
+      > .slider {
+        opacity: 0.5;
+        cursor: pointer;
+        border-radius: 6px;
+        background-color: #c0c4cc;
+        transition: opacity 0.3s ease;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
+
+      &.vertical {
+        margin: 4px 0;
+      }
+
+      &.horizontal {
+        margin: 0 4px;
+      }
+
+      &.invisible.fade {
+        transition: opacity 0.8s ease;
+      }
+    }
+  }
+}

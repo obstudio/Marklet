@@ -1,13 +1,19 @@
 <template>
-  <ul>
-    <li v-for="(item, index) in node.content" :key="index">{{item}}</li>
+  <ul class="mkl-inlinelist">
+    <li v-for="(item, index) in node.content" :key="index" v-html="item"/>
   </ul>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 
-li {
-  display: inline;
+& {
+  padding: 0;
+  text-align: center;
+
+  li {
+    padding: 8px;
+    display: inline;
+  }
 }
 
 </style>

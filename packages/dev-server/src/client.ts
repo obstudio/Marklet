@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import * as renderer from '@marklet/renderer'
-import { Lexer, LexerConfig } from '@marklet/parser'
+import { DocumentLexer, LexerConfig } from '@marklet/parser'
 
 declare module 'vue/types/vue' {
   interface Vue {
@@ -70,7 +70,7 @@ export const Marklet = {
     edit: require('@/edit.vue'),
   },
   parse(source: string, config: LexerConfig) {
-    return new Lexer(config).parse(source)
+    return new DocumentLexer(config).parse(source)
   },
   start({ el, type }: { el: string | HTMLElement, type: 'watch' | 'edit' }) {
     document.title = 'Marklet - ' + type

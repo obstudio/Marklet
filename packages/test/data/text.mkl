@@ -1,0 +1,20 @@
+# Inline Test
+
+**bo*ld**
+
+`co`de`
+
+*ita*lic*
+
+_under_line_
+
+-strike-out-
+
+new
+line
+
+*esc\*ape*
+
+[marklet-link|#inline-test]
+
+[markdown-link](#inline-test)

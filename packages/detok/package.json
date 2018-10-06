@@ -1,15 +1,16 @@
 {
   "name": "@marklet/detok",
-  "version": "1.0.10",
+  "version": "1.1.3",
   "description": "A detokenizer for marklet.",
   "author": "jjyyxx <1449843302@qq.com>",
   "contributors": [
     "shigma <1700011071@pku.edu.cn>"
   ],
-  "homepage": "https://github.com/obstudio/Marklet",
+  "homepage": "https://github.com/obstudio/Marklet/tree/dev/packages/detok",
   "license": "MIT",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "index.js",
+  "module": "dist/document.js",
+  "typings": "dist/document.d.ts",
   "files": [
     "dist"
   ],
@@ -24,6 +25,7 @@
     "cheerio": "^1.0.0-rc.2"
   },
   "devDependencies": {
-    "@marklet/core": "^2.0.0"
+    "@marklet/core": "^3.2.2",
+    "@marklet/parser": "^1.5.1"
   }
 }
