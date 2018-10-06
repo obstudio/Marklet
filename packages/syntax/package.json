@@ -1,6 +1,6 @@
 {
   "name": "@marklet/syntax",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "A common language lexer for marklet.",
   "author": "shigma <1700011071@pku.edu.cn>",
   "homepage": "https://github.com/obstudio/Marklet/tree/dev/packages/syntax",
@@ -18,7 +18,7 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/core": "^3.2.1",
+    "@marklet/core": "^3.2.2",
     "js-yaml": "^3.12.0"
   }
 }
