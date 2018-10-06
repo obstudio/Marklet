@@ -1,7 +1,9 @@
-const Marklet = require('markletjs')
+const { DocumentLexer } = require('@marklet/parser')
 const chalk = require('chalk')
 const path = require('path')
 const fs = require('fs')
+
+const lexer = new DocumentLexer()
 
 const testFiles = fs.readdirSync(path.join(__dirname, 'data')).map((file) => ({
   name: file.slice(0, -4),
@@ -10,7 +12,7 @@ const testFiles = fs.readdirSync(path.join(__dirname, 'data')).map((file) => ({
 
 const parsedFiles = testFiles.map((file) => ({
   name: file.name,
-  content: Marklet.parse({ input: file.content })
+  content: lexer.parse(file.content)
 }))
 
 class TaskManager {
