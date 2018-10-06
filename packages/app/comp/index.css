@@ -9,6 +9,10 @@ body {
     "微软雅黑",
     Arial,
     sans-serif;
+  transition:
+    color 0.3s ease,
+    background-color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 .no-transition {

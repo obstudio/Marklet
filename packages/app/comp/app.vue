@@ -30,6 +30,11 @@ module.exports = {
         this.layout()
       }
     },
+    theme(value) {
+      if (window.monaco) {
+        window.monaco.editor.setTheme(value)
+      }
+    },
     themeInput(value) {
       if (themes.includes(value)) this.theme = value
     },
@@ -42,6 +47,9 @@ module.exports = {
     this._lexer = new DocumentLexer()
 
     monacoLoader.then((monaco) => {
+      themes.forEach((name) => {
+        monaco.editor.defineTheme(name, window.result.themes[name])
+      })
       const model = monaco.editor.createModel(this.source, 'marklet')
       model.onDidChangeContent(() => this.checkChange())
       const nodes = this.nodes
@@ -56,7 +64,7 @@ module.exports = {
     window.vm = this
     
     monacoLoader.then((monaco) => {
-      monaco.editor.setTheme('vs')
+      monaco.editor.setTheme(this.theme)
       this._editor = monaco.editor.create(this.$refs.input, {
         model: null,
         language: 'marklet',
@@ -103,9 +111,6 @@ module.exports = {
         if (newTime - now < deltaTime) requestAnimationFrame(layout)
       })
     },
-    validateTheme() {
-      return themes.includes(this.themeInput)
-    },
   }
 }
 
@@ -114,7 +119,7 @@ module.exports = {
 <template>
   <div :class="theme">
     <div class="navbar">
-      <mkl-input v-model="themeInput" :validate="validateTheme" placeholder="Input Theme"/>
+      <mkl-input v-model="themeInput" placeholder="input theme"/>
     </div>
     <div class="input" ref="input"/>
     <mkl-scroll class="document" :margin="4" :radius="6">
@@ -131,6 +136,8 @@ module.exports = {
   left: 0;
   right: 0;
   height: 40px;
+  box-sizing: border-box;
+  border-bottom: 2px solid;
 
   .mkl-input {
     font-size: 14px;
@@ -150,7 +157,7 @@ module.exports = {
   width: 50%;
 }
 
-> .mkl-scroll.document {
+> .mkl-scroll {
   left: 50%;
   right: 0;
 

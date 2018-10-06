@@ -1,6 +1,8 @@
 const util = require('../../../build/util')
 const sfc2js = require('./sfc2js')
 const scss = require('./scss')
+const yaml = require('js-yaml')
+const fs = require('fs')
 
 util.start()
 
@@ -13,12 +15,12 @@ module.exports = sfc2js.transpile({
 
 module.exports.css += scss.loadAll({
   base: 'renderer',
-  src: 'themes/simple',
+  src: 'themes/simple/index',
   dest: 'dist/simple',
   selector: '.simple',
 }, {
   base: 'renderer',
-  src: 'themes/dark',
+  src: 'themes/dark/index',
   dest: 'dist/dark',
   selector: '.dark',
 }, {
@@ -37,6 +39,12 @@ if (util.isElectron()) {
       props: ['node'],
     },
   })
+
+  module.exports.themes = {
+    dark: yaml.safeLoad(fs.readFileSync(util.resolve('renderer/themes/dark/monaco.yaml'))),
+    simple: yaml.safeLoad(fs.readFileSync(util.resolve('renderer/themes/simple/monaco.yaml'))),
+  }
+
   module.exports.css += result.css
   module.exports.plugin = result.app
 }
