@@ -118,32 +118,32 @@ export default class MarkletDocumentLexer extends DocumentLexer {
           },
           token(_, content: ListItem[]) {
             const indents: number[] = []
-            const children: ListItem[] = []
+            const root: ListItem[] = []
             content.forEach((item) => {
               let id = indents.length - 1
-              let node = children
+              let currentList = root
               for (; id >= 0; id -= 1) {
                 if (indents[id] < item.indent) break
               }
               indents.splice(id + 1, Infinity, item.indent)
               for (; id >= 0; id -= 1) {
-                node = node[node.length - 1].children
-                     = node[node.length - 1].children || []
+                const lastItem = currentList[currentList.length - 1]
+                currentList = lastItem.children = lastItem.children || []
               }
               delete item.indent
-              node.push(item)
+              currentList.push(item)
             })
-            return { children }
+            return { children: root }
           }
         },
         {
           type: 'inlinelist',
-          regex: /(?=\+[ \t])/,
-          strict: true,
+          regex: /(?=\+[ \t]+)/,
+          prefix_regex: /\+[ \t]*\n(?!\+)/,
           push: [
             {
               type: 'inlinelist-item',
-              regex: /\+([ \t]+|[ \t]*\n(?=\+))/,
+              regex: /\+\s*/,
               prefix_regex: /\n|(?=\+)/,
               push: 'text',
               token: (_, [text]) => text.trim()

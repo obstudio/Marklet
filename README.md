@@ -6,7 +6,7 @@
 
 A markup language designed for API manual pages.
 
-## Versions
+## Packages
 
 - markletjs: 1.1.17
 - @marklet/cli: 1.1.9
@@ -16,18 +16,37 @@ A markup language designed for API manual pages.
 - @marklet/parser: 1.2.0
 - @marklet/renderer: 1.1.6
 
-## Node
+## Usage: CLI
+
+```
+Usage: marklet [filepath|dirpath] [options]
+
+Options:
+
+  -v, --version                      output the version number
+  -m, --mode [mode]                  Choose between parse, watch and edit mode (default: parse)
+  -s, --source [path]                Read text from file
+  -i, --input [text]                 Read text directly from stdin
+  -d, --dest [path]                  Write parsed data to file instead of stdin
+  -p, --port [port]                  Port for the development server
+  -l, --default-language [language]  Default language in code block
+  -H, --no-header-align              Disable header to align at center
+  -S, --no-section                   Disallow section syntax
+  -h, --help                         output usage information
+```
+
+## Usage: Node
 
 ```shell
 npm i markletjs
 ```
 
-```javascript
+```js
 const Marklet = require('marklet')
 Marklet.watch({ source: 'path/to/file' })
 ```
 
-## Web
+## Usage: Web
 
 ```html
 <script src="marklet.dist.js"></script>
