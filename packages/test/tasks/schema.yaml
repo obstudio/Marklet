@@ -196,7 +196,7 @@ definitions:
           required:
             - bold
             - align
-      content:
+      data:
         type: array
         items:
           type: array
@@ -205,6 +205,21 @@ definitions:
     additionalProperties: false
     required:
       - type
+      - data
+
+  usage:
+    type: object
+    properties:
+      type:
+        const: usage
+      text:
+        $ref: '#/definitions/text'
+      content:
+        $ref: '#/definitions/nodes'
+    additionalProperties: false
+    required:
+      - type
+      - text
       - content
 
   usages:
@@ -215,19 +230,7 @@ definitions:
       content:
         type: array
         items:
-          type: object
-          properties:
-            type:
-              const: usage
-            text:
-              $ref: '#/definitions/text'
-            content:
-              $ref: '#/definitions/nodes'
-          additionalProperties: false
-          required:
-            - type
-            - text
-            - content
+          $ref: '#/definitions/usage'
     additionalProperties: false
     required:
       - type

@@ -23,30 +23,35 @@ class TaskManager {
     return this
   }
 
+  runTask({ title, test, raw }) {
+    console.log(chalk.blueBright(`Test Started: ${title}`))
+    const testData = raw ? testFiles : parsedFiles
+    let failed = false
+    for (const testUnit of testData) {
+      let result
+      try {
+        result = test(testUnit)
+      } catch (error) {
+        console.log(error)
+        result = true
+      }
+      failed |= result
+      if (result) {
+        console.log(chalk.redBright(`Test '${title}' on ${testUnit.name} failed.`))
+      } else if (result !== false) {
+        console.log(`Test '${title}' on ${testUnit.name} succeeded.`)
+      }
+    }
+    if (!failed) {
+      console.log(chalk.greenBright(`Test '${title}' succeeded.`))
+    }
+    console.log()
+    return failed
+  }
+
   run() {
-    for (const { title, test, raw } of this.tasks) {
-      console.log(chalk.blueBright(`Test Started: ${title}`))
-      const testData = raw ? testFiles : parsedFiles
-      let failed = false
-      for (const testUnit of testData) {
-        let result
-        try {
-          result = test(testUnit)
-        } catch (error) {
-          console.log(error)
-          result = true
-        }
-        failed |= result
-        if (result) {
-          console.log(chalk.redBright(`Test '${title}' on ${testUnit.name} failed.`))
-        } else if (result !== false) {
-          console.log(chalk.green(`Test '${title}' on ${testUnit.name} succeeded.`))
-        }
-      }
-      if (!failed) {
-        console.log(chalk.greenBright(`Test '${title}' succeeded.`))
-      }
-      console.log()
+    if (this.tasks.some(task => this.runTask(task))) {
+      process.exit(1)
     }
   }
 }

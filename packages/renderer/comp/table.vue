@@ -1,6 +1,6 @@
 <template>
   <table>
-    <tr v-for="(row, rowIndex) in node.content" :key="rowIndex">
+    <tr v-for="(row, rowIndex) in node.data" :key="rowIndex">
       <td v-for="(col, colIndex) in row" :key="colIndex"
         v-html="col" :style="{
           textAlign: node.columns[colIndex].align,

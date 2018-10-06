@@ -1,5 +1,5 @@
 import { TokenLike, LexerToken } from '@marklet/core'
-import { ListItem } from '@marklet/parser'
+import { Tokens } from '@marklet/parser'
 import inline from './inline'
 
 type DocumentDetokenizer = (tok: LexerToken) => string
@@ -9,6 +9,7 @@ const alignMap = {
   center: '=',
   right: '>'
 }
+
 let listLevel = 0
 
 function toCamel(string: string) {
@@ -16,24 +17,24 @@ function toCamel(string: string) {
 }
 
 const detokenizers: Record<string, DocumentDetokenizer> = {
-  heading: (token: LexerToken) =>
+  heading: (token: Tokens.Heading) =>
     '#'.repeat(token.level)
     + ' '
     + inline(token.text)
     + (token.center ? ' #' : ''),
-  section: (token: LexerToken) =>
+  section: (token: Tokens.Section) =>
     '^'.repeat(token.level)
     + ' '
     + inline(token.text)
     + (token.initial === 'closed' ? ' ^' : '') // FIXME: currently not taking `section_default` into consideration
     + '\n'
     + detokenize(token.content),
-  quote: (token: LexerToken) =>
+  quote: (token: Tokens.Quote) =>
     '>'
     + token.style
     + ' '
     + detokenize(token.content),
-  separator(token: LexerToken) {
+  separator(token: Tokens.Separator) {
     const sep = token.thick ? '=' : '-'
     switch (token.style) {
       case 'normal': return sep.repeat(3)
@@ -41,36 +42,36 @@ const detokenizers: Record<string, DocumentDetokenizer> = {
       case 'dotted': return sep + ('.' + sep).repeat(2)
     }
   },
-  codeblock: (token: LexerToken) =>
+  codeblock: (token: Tokens.CodeBlock) =>
     '```'
     + token.lang
     + '\n'
     + token.text
     + '\n```',
-  usage: (token: LexerToken) =>
+  usage: (token: Tokens.Usage) =>
     '? '
     + inline(token.text)
     + '\n'
     + detokenize(token.content),
-  usages: (token: LexerToken) =>
-    detokenize(token.content),
-  list: (token: LexerToken) => token.children.map(detokenize).join(''),
-  listItem: (token: ListItem) => {
-    let result = ' '.repeat(listLevel * 2) + (token.order ? token.order + '. ' : '- ') + detokenize(token.text)
-    ++listLevel
+  usages: (token: Tokens.Usages) => detokenize(token.content),
+  list: (token: Tokens.List) => token.children.map(detokenize).join(''),
+  listItem(token: Tokens.ListItem) {
+    let result = ' '.repeat(listLevel * 2)
+      + (token.order ? token.order + '. ' : '- ')
+      + detokenize(token.text)
+    listLevel += 1
     result += (token.children || []).map(detokenize).join('')
-    --listLevel
+    listLevel -= 1
     return result
   },
-  inlinelist: (token: LexerToken) =>
+  inlinelist: (token: Tokens.InlineList) =>
     '+ '
-    + token.content.map((item: string) => inline(item)).join(' + '),
-  table: (token: LexerToken) =>
-    token.columns.map((col: any) => (col.bold ? '*' : '') + alignMap[<keyof typeof alignMap>col.align]).join('\t')
+    + token.content.map(inline).join(' + '),
+  table: (token: Tokens.Table) =>
+    token.columns.map(col => (col.bold ? '*' : '') + alignMap[col.align]).join('\t')
     + '\n'
-    + token.content.map((row) => (<string[]>row).map(detokenize).join('\t')).join('\n'),
-  paragraph: (token: LexerToken) =>
-    detokenize(token.text),
+    + token.data.map(row => row.map(inline).join('\t')).join('\n'),
+  paragraph: (token: Tokens.Paragraph) => inline(token.text),
 }
 
 export default function detokenize(input: TokenLike[] | TokenLike): string {

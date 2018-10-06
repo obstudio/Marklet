@@ -1,13 +1,6 @@
 import { DocumentLexer, LexerToken } from '@marklet/core'
-import { LexerConfig } from './index'
+import { LexerConfig, Tokens } from './index'
 import MarkletInlineLexer from './inline'
-
-export interface ListItem extends LexerToken {
-  text: string
-  order: string
-  indent?: number
-  children?: ListItem[]
-}
 
 export default class MarkletDocumentLexer extends DocumentLexer {
   constructor(config: LexerConfig = {}) {
@@ -45,9 +38,9 @@ export default class MarkletDocumentLexer extends DocumentLexer {
             const level = cap[1].length
             return `(?=[#^]{1,${level}} +[^\\n])`
           },
-          token(cap, content, { section_default }) {
+          token(cap, content, config) {
             const text = this.inline(cap[2])
-            const initial = !cap[3] === (section_default === 'open') ? 'open' : 'closed'
+            const initial = !cap[3] === (config.section_default === 'open') ? 'open' : 'closed'
             return { level: cap[1].length, text, initial, content }
           }
         },
@@ -75,8 +68,8 @@ export default class MarkletDocumentLexer extends DocumentLexer {
           type: 'codeblock',
           regex: / *(`{3,}) *([\w-]+)? *\n([\s\S]*?)\n? *\1/,
           eol: true,
-          token: (cap, _, { default_language }) => ({
-            lang: cap[2] || default_language,
+          token: (cap, _, config) => ({
+            lang: cap[2] || config.default_language,
             text: cap[3] || '',
           })
         },
@@ -107,17 +100,17 @@ export default class MarkletDocumentLexer extends DocumentLexer {
             regex: /([ \t]*)({{bull}})[ \t]+/,
             prefix_regex: /(?=[ \t]*{{bull}}[ \t]+)/,
             push: 'text',
-            token([_, indent, bullet], [text], { tab_indent }) {
+            token([_, indent, bullet], [text], config) {
               return {
                 text,
                 order: bullet.slice(0, -1),
-                indent: indent.replace(/\t/g, ' '.repeat(tab_indent)).length,
+                indent: indent.replace(/\t/g, ' '.repeat(config.tab_indent)).length,
               }
             }
           },
-          token(_, content: ListItem[]) {
+          token(_, content: Tokens.ListItem[]) {
             const indents: number[] = []
-            const root: ListItem[] = []
+            const root: Tokens.ListItem[] = []
             content.forEach((item) => {
               let id = indents.length - 1
               let currentList = root
@@ -138,11 +131,11 @@ export default class MarkletDocumentLexer extends DocumentLexer {
         {
           type: 'inlinelist',
           regex: /(?=\+[ \t]+)/,
-          prefix_regex: /\+[ \t]*\n(?!\+)/,
+          prefix_regex: /[ \t]*\n(?!\+)/,
           push: {
             type: 'inlinelist-item',
-            regex: /\+\s*/,
-            prefix_regex: /\n|(?=\+)/,
+            regex: /\+[ \t]+/,
+            prefix_regex: /\n|[ \t]+(?=\+)/,
             push: 'text',
             token: (_, [text]) => text.trim()
           },
@@ -165,15 +158,15 @@ export default class MarkletDocumentLexer extends DocumentLexer {
               }
             },
           },
-          token([header], content) {
+          token([header], content: LexerToken[]) {
             const columns = header.match(/[*=<>]+/g).map((col) => ({
               bold: col.includes('*'),
               align: col.includes('<') ? 'left'
                 : col.includes('=') ? 'center'
                 : col.includes('>') ? 'right' : 'center'
             }))
-            content = content.map((row: LexerToken) => row.content.slice(0, columns.length))
-            return { content, columns }
+            const data = content.map(row => row.content.slice(0, columns.length))
+            return { data, columns }
           }
         },
         {

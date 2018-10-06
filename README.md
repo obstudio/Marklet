@@ -8,13 +8,13 @@ A markup language designed for API manual pages.
 
 ## Packages
 
-- markletjs: 1.1.17
-- @marklet/cli: 1.1.9
-- @marklet/core: 3.0.0
-- @marklet/dev-server: 1.0.16
-- @marklet/monaco: 1.2.0
-- @marklet/parser: 1.2.0
-- @marklet/renderer: 1.1.6
+- [markletjs](https://www.npmjs.com/package/markletjs): 1.2.0
+- [@marklet/cli](https://www.npmjs.com/package/@marklet/cli): 1.1.14
+- [@marklet/core](https://www.npmjs.com/package/@marklet/core): 3.2.1
+- [@marklet/dev-server](https://www.npmjs.com/package/@marklet/dev-server): 1.0.21
+- [@marklet/monaco](https://www.npmjs.com/package/@marklet/monaco): 1.2.0
+- [@marklet/parser](https://www.npmjs.com/package/@marklet/parser): 1.5.0
+- [@marklet/renderer](https://www.npmjs.com/package/@marklet/renderer): 1.3.0
 
 ## Usage: CLI
 
