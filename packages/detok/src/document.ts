@@ -4,26 +4,35 @@ import inline from './inline'
 
 type DocumentDetokenizer = (tok: LexerToken) => string
 
+const alignMap = {
+  left: '<',
+  center: '=',
+  right: '>'
+}
+let listLevel = 0
+
 function toCamel(string: string) {
   return string.replace(/-[a-z]/g, match => match.slice(1).toUpperCase())
 }
 
 const detokenizers: Record<string, DocumentDetokenizer> = {
-  heading: (token: LexerToken) => 
+  heading: (token: LexerToken) =>
     '#'.repeat(token.level)
-      + ' '
-      + inline(token.text)
-      + (token.center ? ' #' : ''),
-  section: (token: LexerToken) => 
+    + ' '
+    + inline(token.text)
+    + (token.center ? ' #' : ''),
+  section: (token: LexerToken) =>
     '^'.repeat(token.level)
-      + ' '
-      + inline(token.text)
-      + (token.initial ? ' ^' : ''),
-  quote: (token: LexerToken) => 
+    + ' '
+    + inline(token.text)
+    + (token.initial === 'closed' ? ' ^' : '') // FIXME: currently not taking `section_default` into consideration
+    + '\n'
+    + detokenize(token.content),
+  quote: (token: LexerToken) =>
     '>'
-      + token.style
-      + ' '
-      + detokenize(token.content),
+    + token.style
+    + ' '
+    + detokenize(token.content),
   separator(token: LexerToken) {
     const sep = token.thick ? '=' : '-'
     switch (token.style) {
@@ -32,32 +41,35 @@ const detokenizers: Record<string, DocumentDetokenizer> = {
       case 'dotted': return sep + ('.' + sep).repeat(2)
     }
   },
-  codeblock: (token: LexerToken) => 
+  codeblock: (token: LexerToken) =>
     '```'
-      + token.lang
-      + '\n'
-      + token.text
-      + '\n```',
-  usage: (token: LexerToken) => 
+    + token.lang
+    + '\n'
+    + token.text
+    + '\n```',
+  usage: (token: LexerToken) =>
     '? '
-      + inline(token.text)
-      + '\n'
-      + detokenize(token.content),
-  usages: (token: LexerToken) => 
+    + inline(token.text)
+    + '\n'
+    + detokenize(token.content),
+  usages: (token: LexerToken) =>
     detokenize(token.content),
-  list: (token: LexerToken) => 
-    token.children.map(detokenize).join(''),
-  listItem: (token: ListItem) =>
-    ' '.repeat(token.indent)
-      + token.order ? token.order + '. ' : '- '
-      + '\n'
-      + (token.children || []).map(detokenize).join(''),
-  inlinelist: (token: LexerToken) => 
+  list: (token: LexerToken) => token.children.map(detokenize).join(''),
+  listItem: (token: ListItem) => {
+    let result = ' '.repeat(listLevel * 2) + (token.order ? token.order + '. ' : '- ') + detokenize(token.text)
+    ++listLevel
+    result += (token.children || []).map(detokenize).join('')
+    --listLevel
+    return result
+  },
+  inlinelist: (token: LexerToken) =>
     '+ '
-      + token.content.map((item: string) => inline(item)).join(' + '),
-  table: (token: LexerToken) => 
-    '',
-  paragraph: (token: LexerToken) => 
+    + token.content.map((item: string) => inline(item)).join(' + '),
+  table: (token: LexerToken) =>
+    token.columns.map((col: any) => (col.bold ? '*' : '') + alignMap[<keyof typeof alignMap>col.align]).join('\t')
+    + '\n'
+    + token.content.map((row) => (<string[]>row).map(detokenize).join('\t')).join('\n'),
+  paragraph: (token: LexerToken) =>
     detokenize(token.text),
 }
 

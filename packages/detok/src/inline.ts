@@ -36,6 +36,8 @@ const detokenizers: Record<string, InlineDetokenizer> = {
     const content = iterate(el)
     return el.attribs.class === 'comment' ? '((' + content + '))' : '_' + content + '_'
   },
+  a: (el) => `[${el.firstChild.nodeValue}|${el.attribs['data-raw-url']}]`,
+  img: (el) => `[${el.firstChild.nodeValue}|!${el.attribs.src}]`
 }
 
 export default function detokenize(token: string) {
