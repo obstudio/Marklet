@@ -1,0 +1,50 @@
+& {
+  color: #24292e;
+  background-color: #f0f1f2;
+
+  blockquote {
+    color: #606060;
+    border-left-color: #c0c0c0;
+    background-color: #e6e6e6;
+    &.r { border-left-color: #F92672; background-color: #eae3e3 }
+    &.g { border-left-color: #96E22E; background-color: #e3eae3 }
+    &.b { border-left-color: #66D9EF; background-color: #e3e3ea }
+  }
+
+  .usage blockquote {
+    border-color: #f6f6f6 !important;
+    background-color: #e0e0e0;
+    &:not(:last-child) { border-bottom-color: #e0e0e0 }
+    &:not(:first-child) { border-top-color: #e0e0e0 }
+
+    > span:first-child {
+      color: #24292e;
+      em { color: #808080 }
+    }
+  }
+
+  h1 { border-bottom: 4px solid #bababa }
+  h2 { border-bottom: 2px solid #bababa }
+  hr { border-bottom: 1px solid #d0d0d0; background-color: #c8c8c8 }
+  
+  table {
+    th, td { border: 1px solid #636363 }
+    tr { background-color: #e0e0e0; border-top: 1px solid #636363 }
+    tr :nth-child(2n) { background-color: #e8e8e8 }
+  }
+
+  a { color: #409eff }
+  img { background-color: transparent }
+  code { background-color: #e0e0e0 }
+  span.comment { color: #454749 }
+
+  .codeblock {
+    background-color: #e0e0e0;
+    &::-webkit-scrollbar-thumb {
+      background-color: #c0c0c0;
+      box-shadow: inset 0 0 4px rgba(255,255,255,0.5);
+      &:hover { background-color: #a8a8a8 }
+      &:window-inactive { background-color: #d0d0d0; box-shadow: none }
+    }
+  }
+}

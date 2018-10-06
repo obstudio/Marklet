@@ -9,13 +9,14 @@ A markup language designed for API manual pages.
 
 ## Packages
 
-- [markletjs](https://github.com/obstudio/Marklet/tree/master/packages/marklet): [![npm](https://img.shields.io/npm/v/markletjs.svg)](https://www.npmjs.com/package/markletjs)
-- [@marklet/cli](https://github.com/obstudio/Marklet/tree/master/packages/cli): [![npm](https://img.shields.io/npm/v/@marklet/cli.svg)](https://www.npmjs.com/package/@marklet/cli)
-- [@marklet/core](https://github.com/obstudio/Marklet/tree/master/packages/core): [![npm](https://img.shields.io/npm/v/@marklet/core.svg)](https://www.npmjs.com/package/@marklet/core)
-- [@marklet/dev-server](https://github.com/obstudio/Marklet/tree/master/packages/dev-server): [![npm](https://img.shields.io/npm/v/@marklet/dev-server.svg)](https://www.npmjs.com/package/@marklet/dev-server)
-- [@marklet/monaco](https://github.com/obstudio/Marklet/tree/master/packages/monaco): [![npm](https://img.shields.io/npm/v/@marklet/monaco.svg)](https://www.npmjs.com/package/@marklet/monaco)
-- [@marklet/parser](https://github.com/obstudio/Marklet/tree/master/packages/parser): [![npm](https://img.shields.io/npm/v/@marklet/parser.svg)](https://www.npmjs.com/package/@marklet/parser)
-- [@marklet/renderer](https://github.com/obstudio/Marklet/tree/master/packages/renderer): [![npm](https://img.shields.io/npm/v/@marklet/renderer.svg)](https://www.npmjs.com/package/@marklet/renderer)
+| package | version |
+|:-------:|:-------:|
+|[@marklet/cli](https://github.com/obstudio/Marklet/tree/master/packages/cli)|[![npm](https://img.shields.io/npm/v/@marklet/cli.svg)](https://www.npmjs.com/package/@marklet/cli)|
+|[@marklet/core](https://github.com/obstudio/Marklet/tree/master/packages/core)|[![npm](https://img.shields.io/npm/v/@marklet/core.svg)](https://www.npmjs.com/package/@marklet/core)|
+|[@marklet/dev-server](https://github.com/obstudio/Marklet/tree/master/packages/dev-server)|[![npm](https://img.shields.io/npm/v/@marklet/dev-server.svg)](https://www.npmjs.com/package/@marklet/dev-server)|
+|[@marklet/monaco](https://github.com/obstudio/Marklet/tree/master/packages/monaco)|[![npm](https://img.shields.io/npm/v/@marklet/monaco.svg)](https://www.npmjs.com/package/@marklet/monaco)|
+|[@marklet/parser](https://github.com/obstudio/Marklet/tree/master/packages/parser)|[![npm](https://img.shields.io/npm/v/@marklet/parser.svg)](https://www.npmjs.com/package/@marklet/parser)|
+|[@marklet/renderer](https://github.com/obstudio/Marklet/tree/master/packages/renderer)|[![npm](https://img.shields.io/npm/v/@marklet/renderer.svg)](https://www.npmjs.com/package/@marklet/renderer)|
 
 ## Usage: CLI
 
