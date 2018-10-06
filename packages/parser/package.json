@@ -6,7 +6,7 @@
   "contributors": [
     "jjyyxx <1449843302@qq.com>"
   ],
-  "homepage": "https://github.com/obstudio/Marklet",
+  "homepage": "https://github.com/obstudio/Marklet/tree/dev/packages/parser",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",

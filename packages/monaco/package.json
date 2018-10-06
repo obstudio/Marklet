@@ -6,7 +6,7 @@
   "contributors": [
     "shigma <1700011071@pku.edu.cn>"
   ],
-  "homepage": "https://github.com/obstudio/Marklet",
+  "homepage": "https://github.com/obstudio/Marklet/tree/dev/packages/monaco",
   "license": "MIT",
   "main": "index.js",
   "repository": {
