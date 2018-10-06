@@ -11,29 +11,29 @@
     "lint": "tslint packages/**/src/*.ts && eslint ."
   },
   "devDependencies": {
-    "@octokit/rest": "^15.12.0",
+    "@octokit/rest": "^15.13.0",
     "@sfc2js/clean-css": "^1.1.1",
     "@sfc2js/sass": "^1.0.1",
     "@types/cheerio": "^0.22.9",
     "@types/js-yaml": "^3.11.2",
-    "@types/node": "^10.10.1",
+    "@types/node": "^10.11.4",
     "@types/ws": "^6.0.1",
-    "ajv": "^6.5.3",
+    "ajv": "^6.5.4",
     "chalk": "^2.4.1",
     "cheerio": "^1.0.0-rc.2",
     "commander": "^2.18.0",
     "electron": "^3.0.2",
-    "eslint": "^5.6.0",
+    "eslint": "^5.6.1",
     "eslint-plugin-vue": "^5.0.0-beta.3",
     "fast-deep-equal": "^2.0.1",
     "html-minifier": "^3.5.20",
-    "lerna": "^3.4.0",
+    "lerna": "^3.4.1",
     "node-sass": "^4.9.3",
     "sass": "^1.14.1",
     "semver": "^5.5.1",
-    "sfc2js": "^3.3.0",
+    "sfc2js": "^3.3.2",
     "tslint": "^5.11.0",
-    "typescript": "^3.0.3",
-    "webpack": "^4.19.1"
+    "typescript": "^3.1.1",
+    "webpack": "^4.20.2"
   }
 }
