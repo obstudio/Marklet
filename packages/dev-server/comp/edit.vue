@@ -1,8 +1,7 @@
 <script>
 
 const { DocumentLexer } = require('@marklet/parser')
-
-const themes = ['simple', 'dark']
+const { themes } = require('@marklet/renderer')
 
 module.exports = {
   el: '#app',
@@ -33,7 +32,7 @@ module.exports = {
       }
     },
     themeInput(value) {
-      if (themes.includes(value)) this.theme = value
+      if (themes.find(({ key }) => key === value)) this.theme = value
     },
   },
 
@@ -44,9 +43,6 @@ module.exports = {
     this._lexer = new DocumentLexer()
 
     this.$eventBus.$on('monaco.loaded', (monaco) => {
-      themes.forEach((name) => {
-        monaco.editor.defineTheme(name, 'simple')
-      })
       const model = monaco.editor.createModel(this.source, 'marklet')
       model.onDidChangeContent(() => this.checkChange())
       const nodes = this.nodes
@@ -114,7 +110,7 @@ module.exports = {
 </script>
 
 <template>
-  <div :class="theme">
+  <div :class="theme" class="marklet">
     <div class="navbar">
       <mkl-input v-model="themeInput" placeholder="input theme"/>
     </div>

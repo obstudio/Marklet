@@ -1,4 +1,5 @@
 import VueConstructor from 'vue'
+import Monaco from 'monaco-editor'
 import * as renderer from '@marklet/renderer'
 import { DocumentLexer, LexerConfig } from '@marklet/parser'
 
@@ -6,9 +7,15 @@ declare global {
   export const Vue: typeof VueConstructor
 }
 
+Vue.use(renderer)
 const eventBus = new Vue()
 Vue.prototype.$eventBus = eventBus
-Vue.use(renderer)
+
+eventBus.$on('monaco.loaded', (monaco: typeof Monaco) => {
+  renderer.themes.forEach(({ key }) => {
+    monaco.editor.defineTheme(key, require('../themes/' + key))
+  })
+})
 
 const client = new class WatchClient {
   private url: string

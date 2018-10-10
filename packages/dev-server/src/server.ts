@@ -39,6 +39,7 @@ function createServer(type: 'edit' | 'watch') {
       return
     }
     fs.readFile(path.join(__dirname, pathname), (error, data) => {
+      if (pathname.endsWith('edit.vue.js')) console.log(data)
       if (error) {
         console.log(error)
         response.writeHead(404, { 'Content-Type': 'text/html' })
