@@ -9,3 +9,4 @@ temp
 packages/app/main.js
 packages/app/index.html
 packages/monaco/index.css
+packages/dev-server/themes/*.json

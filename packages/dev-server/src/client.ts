@@ -1,11 +1,9 @@
-import Vue from 'vue'
+import VueConstructor from 'vue'
 import * as renderer from '@marklet/renderer'
 import { DocumentLexer, LexerConfig } from '@marklet/parser'
 
-declare module 'vue/types/vue' {
-  interface Vue {
-    $eventBus: Vue
-  }
+declare global {
+  export const Vue: typeof VueConstructor
 }
 
 const eventBus = new Vue()
@@ -26,7 +24,6 @@ const client = new class WatchClient {
     this.url = url
     this.retry = retry
     this.timeout = timeout
-
     this.createWebSocket()
   }
 

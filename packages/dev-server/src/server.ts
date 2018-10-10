@@ -30,8 +30,8 @@ function createServer(type: 'edit' | 'watch') {
     let pathname = url.parse(request.url).pathname.slice(1)
     if (!pathname) {
       pathname = 'index.html'
-    } else if (pathname.startsWith('@marklet')) {
-      pathname = '../node_modules/' + pathname
+    } else if (pathname.startsWith('~/')) {
+      pathname = '../node_modules/' + pathname.slice(1)
     } else if (pathname === 'start') {
       response.writeHead(200, { 'Content-Type': 'text/javascript' })
       response.write(`Marklet.start({ el: '#app', type: '${type}' })`)

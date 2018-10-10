@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "npm run build && node packages/cli -m edit",
-    "bootstrap": "lerna bootstrap --hoist --no-ci",
+    "bootstrap": "lerna bootstrap --no-ci",
     "build": "tsc -b && node build/build -sr",
     "build:prod": "tsc -b && node build/build -psr",
     "build:renderer": "node build/build -r",

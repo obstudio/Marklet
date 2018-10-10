@@ -1,15 +1,18 @@
-const util = require('./util')
+const themes = require('../packages/renderer/themes')
+const { exec, resolve } = require('./util')
 const { minify } = require('html-minifier')
 const program = require('commander')
 const webpack = require('webpack')
 const sfc2js = require('sfc2js')
+const sass = require('node-sass')
+const yaml = require('js-yaml')
 const fs = require('fs')
 
 sfc2js.install(require('@sfc2js/sass'))
 sfc2js.install(require('@sfc2js/clean-css'))
 
 function mkdirIfNotExists(name) {
-  fs.existsSync(util.resolve(name)) || fs.mkdirSync(util.resolve(name))
+  fs.existsSync(resolve(name)) || fs.mkdirSync(resolve(name))
 }
 
 program
@@ -31,14 +34,14 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
   const compiler = webpack({
     target: 'web',
     mode: env,
-    entry: util.resolve(name, options.entry),
+    entry: resolve(name, options.entry),
     resolve: {
       alias: {
-        '@': util.resolve(name, 'temp')
+        '@': resolve(name, 'temp')
       }
     },
     output: {
-      path: util.resolve(name, 'dist'),
+      path: resolve(name, 'dist'),
       filename: options.output,
       library: 'Marklet',
       libraryTarget: 'umd',
@@ -69,16 +72,33 @@ Promise.resolve().then(() => {
 
     sfc2js.transpile({
       ...sfc2jsOptions,
-      baseDir: util.resolve('renderer'),
+      baseDir: resolve('renderer'),
       outCSSFile: '../dist/marklet.min.css',
       defaultScript: {
         props: ['node'],
       },
     })
 
-    return bundle('renderer', {
-      entry: 'src/index.js',
-      output: 'renderer.min.js',
+    let css = ''
+    return Promise.all(themes.map(({ key }) => new Promise((resolve, reject) => {
+      const filepath = resolve('renderer/themes', key + '.scss')
+      sass.render({
+        data: `.${key}.marklet{${fs.readFileSync(filepath).toString()}}`,
+        outputStyle: 'compressed',
+      }, (error, result) => {
+        if (error) {
+          reject(error)
+        } else {
+          css += result.css.toString()
+          resolve()
+        }
+      })
+    }))).then(() => {
+      fs.writeFileSync(resolve('renderer/dist/themes.min.css'), css)
+      return bundle('renderer', {
+        entry: 'src/index.js',
+        output: 'renderer.min.js',
+      })
     })
   }
 }).then(() => {
@@ -86,28 +106,33 @@ Promise.resolve().then(() => {
     mkdirIfNotExists('dev-server/dist')
   
     if (program.tsc) {
-      util.exec('tsc -p packages/dev-server')
+      exec('tsc -p packages/dev-server')
     }
 
     if (program.prod) {
       fs.writeFileSync(
-        util.resolve('dev-server/dist/index.html'),
-        minify(fs.readFileSync(util.resolve('dev-server/src/index.html')).toString(), {
+        resolve('dev-server/dist/index.html'),
+        minify(fs.readFileSync(resolve('dev-server/src/index.html')).toString(), {
           collapseWhitespace: true,
           removeAttributeQuotes: true,
         })
       )
     } else {
       fs.copyFileSync(
-        util.resolve('dev-server/src/index.html'),
-        util.resolve('dev-server/dist/index.html')
+        resolve('dev-server/src/index.html'),
+        resolve('dev-server/dist/index.html')
       )
     }
   
     sfc2js.transpile({
       ...sfc2jsOptions,
-      baseDir: util.resolve('dev-server'),
+      baseDir: resolve('dev-server'),
       outCSSFile: '../dist/client.min.css',
+    })
+
+    themes.forEach(({ key }) => {
+      const options = yaml.safeLoad(fs.readFileSync(resolve(`dev-server/themes/${key}.yaml`)))
+      fs.writeFileSync(resolve(`dev-server/themes/${key}.json`), JSON.stringify(options))
     })
 
     return bundle('dev-server', {

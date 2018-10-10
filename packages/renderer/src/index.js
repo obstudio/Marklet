@@ -1,6 +1,7 @@
 let _Vue = null, ASTNodes = null
 
 const Renderer = {
+  themes: require('../themes'),
   install(Vue) {
     _Vue = Vue
     Vue.component('collapse-transition', require('../temp/transitions/collapse-transition.vue'))
