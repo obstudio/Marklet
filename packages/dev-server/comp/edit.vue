@@ -23,7 +23,7 @@ module.exports = {
     loading(value) {
       if (!value) {
         this._editor.setModel(this._model)
-        this.layout()
+        this.$nextTick(() => this.layout())
       }
     },
     theme(value) {
@@ -57,6 +57,7 @@ module.exports = {
     window.vm = this
     
     this.$eventBus.$on('monaco.loaded', (monaco) => {
+      if (this._editor) return
       monaco.editor.setTheme(this.theme)
       this._editor = monaco.editor.create(this.$refs.input, {
         model: null,
@@ -122,6 +123,15 @@ module.exports = {
 </template>
 
 <style lang="scss" scoped>
+
+& {
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  position: absolute;
+}
 
 > .navbar {
   position: absolute;
