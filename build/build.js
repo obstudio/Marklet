@@ -8,7 +8,7 @@ const sass = require('node-sass')
 const yaml = require('js-yaml')
 const fs = require('fs')
 
-sfc2js.install(require('@sfc2js/sass'))
+sfc2js.install(require('@sfc2js/node-sass'))
 sfc2js.install(require('@sfc2js/clean-css'))
 
 function mkdirIfNotExists(name) {
@@ -71,30 +71,33 @@ Promise.resolve().then(() => {
   
   mkdirIfNotExists('renderer/dist')
 
-  sfc2js.transpile({
+  let css = ''
+  return sfc2js.transpile({
     ...sfc2jsOptions,
     baseDir: util.resolve('renderer'),
     outCSSFile: '../dist/marklet.min.css',
     defaultScript: {
       props: ['node'],
     },
-  })
-
-  let css = ''
-  return Promise.all(themes.map(({ key }) => new Promise((resolve, reject) => {
-    const filepath = util.resolve('renderer/themes', key + '.scss')
-    sass.render({
-      data: `.${key}.marklet{${fs.readFileSync(filepath).toString()}}`,
-      outputStyle: 'compressed',
-    }, (error, result) => {
-      if (error) {
-        reject(error)
-      } else {
-        css += result.css.toString()
-        resolve()
-      }
-    })
-  }))).then(() => {
+  }).then((result) => {
+    if (result.errors.length) {
+      throw result.errors.join('\n')
+    }
+    return Promise.all(themes.map(({ key }) => new Promise((resolve, reject) => {
+      const filepath = util.resolve('renderer/themes', key + '.scss')
+      sass.render({
+        data: `.${key}.marklet{${fs.readFileSync(filepath).toString()}}`,
+        outputStyle: 'compressed',
+      }, (error, result) => {
+        if (error) {
+          reject(error)
+        } else {
+          css += result.css.toString()
+          resolve()
+        }
+      })
+    })))
+  }).then(() => {
     fs.writeFileSync(util.resolve('renderer/dist/themes.min.css'), css)
     return bundle('renderer', {
       entry: 'src/index.js',
@@ -125,25 +128,29 @@ Promise.resolve().then(() => {
     )
   }
 
-  sfc2js.transpile({
-    ...sfc2jsOptions,
-    baseDir: util.resolve('dev-server'),
-    outCSSFile: '../dist/client.min.css',
-  })
-
   themes.forEach(({ key }) => {
     const options = yaml.safeLoad(fs.readFileSync(util.resolve(`dev-server/themes/${key}.yaml`)))
     fs.writeFileSync(util.resolve(`dev-server/themes/${key}.json`), JSON.stringify(options))
   })
-
-  return new Promise((resolve, reject) => {
-    sass.render({
-      data: fs.readFileSync(util.resolve('dev-server/src/monaco.scss')).toString(),
-      outputStyle: 'compressed',
-    }, (error, result) => {
-      if (error) reject(error)
-      fs.writeFileSync(util.resolve('dev-server/dist/monaco.min.css'), result.css.toString())
-      resolve()
+  
+  return sfc2js.transpile({
+    ...sfc2jsOptions,
+    useCache: false,
+    baseDir: util.resolve('dev-server'),
+    outCSSFile: '../dist/client.min.css',
+  }).then((result) => {
+    if (result.errors.length) {
+      throw result.errors.join('\n')
+    }
+    return new Promise((resolve, reject) => {
+      sass.render({
+        data: fs.readFileSync(util.resolve('dev-server/src/monaco.scss')).toString(),
+        outputStyle: 'compressed',
+      }, (error, result) => {
+        if (error) reject(error)
+        fs.writeFileSync(util.resolve('dev-server/dist/monaco.min.css'), result.css.toString())
+        resolve()
+      })
     })
   }).then(() => bundle('dev-server', {
     entry: 'dist/client.js',
