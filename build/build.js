@@ -1,11 +1,11 @@
 const themes = require('../packages/renderer/themes')
-const util = require('./util')
 const { minify } = require('html-minifier')
 const program = require('commander')
 const webpack = require('webpack')
 const sfc2js = require('sfc2js')
 const sass = require('node-sass')
 const yaml = require('js-yaml')
+const util = require('./util')
 const fs = require('fs')
 
 sfc2js.install(require('@sfc2js/node-sass'))
@@ -68,7 +68,6 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
 
 Promise.resolve().then(() => {
   if (!program.renderer) return
-  
   mkdirIfNotExists('renderer/dist')
 
   let css = ''
@@ -80,9 +79,7 @@ Promise.resolve().then(() => {
       props: ['node'],
     },
   }).then((result) => {
-    if (result.errors.length) {
-      throw result.errors.join('\n')
-    }
+    if (result.errors.length) throw result.errors.join('\n')
     return Promise.all(themes.map(({ key }) => new Promise((resolve, reject) => {
       const filepath = util.resolve('renderer/themes', key + '.scss')
       sass.render({
@@ -106,7 +103,6 @@ Promise.resolve().then(() => {
   })
 }).then(() => {
   if (!program.server) return
-
   mkdirIfNotExists('dev-server/dist')
 
   if (program.tsc) {
@@ -128,6 +124,7 @@ Promise.resolve().then(() => {
     )
   }
 
+  let css = ''
   themes.forEach(({ key }) => {
     const options = yaml.safeLoad(fs.readFileSync(util.resolve(`dev-server/themes/${key}.yaml`)))
     fs.writeFileSync(util.resolve(`dev-server/themes/${key}.json`), JSON.stringify(options))
@@ -139,16 +136,37 @@ Promise.resolve().then(() => {
     baseDir: util.resolve('dev-server'),
     outCSSFile: '../dist/client.min.css',
   }).then((result) => {
-    if (result.errors.length) {
-      throw result.errors.join('\n')
-    }
+    if (result.errors.length) throw result.errors.join('\n')
+    return Promise.all(themes.map(({ key }) => new Promise((resolve, reject) => {
+      const filepath = util.resolve('dev-server/themes/' + key)
+
+      try {
+        const options = yaml.safeLoad(fs.readFileSync(filepath + '.yaml'))
+        fs.writeFileSync(filepath + '.json', JSON.stringify(options))
+      } catch (error) {
+        reject(error)
+      }
+
+      sass.render({
+        data: `.${key}.marklet{${fs.readFileSync(filepath + '.scss')}}`,
+        outputStyle: 'compressed',
+      }, (error, result) => {
+        if (error) {
+          reject(error)
+        } else {
+          css += result.css
+          resolve()
+        }
+      })
+    })))
+  }).then(() => {
     return new Promise((resolve, reject) => {
       sass.render({
         data: fs.readFileSync(util.resolve('dev-server/src/monaco.scss')).toString(),
         outputStyle: 'compressed',
       }, (error, result) => {
         if (error) reject(error)
-        fs.writeFileSync(util.resolve('dev-server/dist/monaco.min.css'), result.css.toString())
+        fs.writeFileSync(util.resolve('dev-server/dist/monaco.min.css'), css + result.css)
         resolve()
       })
     })

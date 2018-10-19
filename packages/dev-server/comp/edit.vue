@@ -41,6 +41,17 @@ module.exports = {
     if (typeof source === 'string') this.source = source
     
     this._lexer = new DocumentLexer()
+    this.$menu.register([
+      {
+        name: '文件',
+        bind: 'F',
+        content: [
+          {
+            name: '保存'
+          }
+        ]
+      }
+    ])
 
     this.$eventBus.$on('monaco.loaded', (monaco) => {
       const model = monaco.editor.createModel(this.source, 'marklet')
@@ -112,9 +123,7 @@ module.exports = {
 
 <template>
   <div :class="theme" class="marklet">
-    <div class="navbar">
-      <mkl-input v-model="themeInput" placeholder="input theme"/>
-    </div>
+    <mkl-menubar class="menubar" :content="[{ name: '文件', bind: 'F' }]"/>
     <div class="input" ref="input"/>
     <mkl-scroll class="document" :margin="4" :radius="6">
       <mkl-nodes ref="nodes" :content="nodes"/>
@@ -133,25 +142,9 @@ module.exports = {
   position: absolute;
 }
 
-> .navbar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  box-sizing: border-box;
-  border-bottom: 2px solid;
-
-  .mkl-input {
-    font-size: 14px;
-    padding: 6px 16px;
-    max-width: 200px;
-  }
-}
-
 > .input, > .document {
   position: absolute;
-  top: 40px;
+  top: 32px;
   bottom: 0;
 }
 
