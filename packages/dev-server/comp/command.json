@@ -1,0 +1,85 @@
+[
+  {
+    "method": "openFile",
+    "bind": "ctrl+o",
+    "name": "打开 ..."
+  },
+  {
+    "method": "save",
+    "bind": "ctrl+s",
+    "name": "保存"
+  },
+  {
+    "method": "saveAs",
+    "bind": "ctrl+shift+s",
+    "name": "另存为 ..."
+  },
+  {
+    "method": "saveAll",
+    "bind": "ctrl+a",
+    "name": "全部保存"
+  },
+  {
+    "method": "executeTrigger",
+    "arguments": "undo",
+    "key": "undo",
+    "bind": "!ctrl+z",
+    "name": "撤销"
+  },
+  {
+    "method": "executeTrigger",
+    "arguments": "redo",
+    "key": "redo",
+    "bind": "!ctrl+y",
+    "name": "恢复"
+  },
+  {
+    "method": "executeAction",
+    "arguments": "editor.action.clipboardCutAction",
+    "key": "cut",
+    "bind": "!ctrl+x",
+    "name": "剪切"
+  },
+  {
+    "method": "executeAction",
+    "arguments": "editor.action.clipboardCopyAction",
+    "key": "copy",
+    "bind": "!ctrl+c",
+    "name": "复制"
+  },
+  {
+    "method": "executeAction",
+    "arguments": "editor.action.clipboardPasteAction",
+    "key": "paste",
+    "bind": "!ctrl+v",
+    "name": "粘贴"
+  },
+  {
+    "method": "executeAction",
+    "arguments": "editor.action.quickCommand",
+    "key": "command-palette",
+    "bind": "!f1",
+    "name": "命令面板"
+  },
+  {
+    "method": "executeAction",
+    "arguments": "actions.find",
+    "key": "find",
+    "bind": "!ctrl+f",
+    "name": "查找"
+  },
+  {
+    "method": "executeAction",
+    "arguments": "editor.action.nextMatchFindAction",
+    "key": "find-next",
+    "bind": "!f3",
+    "name": "查找下一个"
+  },
+  {
+    "method": "executeAction",
+    "arguments": "editor.action.previoustMatchFindAction",
+    "key": "find-previous",
+    "bind": "!shift+f3",
+    "name": "查找上一个"
+  }
+]

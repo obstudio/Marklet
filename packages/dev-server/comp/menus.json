@@ -1,0 +1,33 @@
+{
+  "menubar": [
+    {
+      "key": "file",
+      "name": "文件",
+      "bind": "F",
+      "content": [
+        "open-file",
+        "@separator",
+        "save",
+        "save-as",
+        "save-all"
+      ]
+    },
+    {
+      "key": "edit",
+      "name": "编辑",
+      "bind": "E",
+      "content": [
+        "undo",
+        "redo",
+        "@separator",
+        "cut",
+        "copy",
+        "paste",
+        "@separator",
+        "find",
+        "find-next",
+        "find-previous"
+      ]
+    }
+  ]
+}

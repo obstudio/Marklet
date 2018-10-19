@@ -166,7 +166,7 @@ Promise.resolve().then(() => {
         outputStyle: 'compressed',
       }, (error, result) => {
         if (error) reject(error)
-        fs.writeFileSync(util.resolve('dev-server/dist/monaco.min.css'), css + result.css)
+        fs.writeFileSync(util.resolve('dev-server/dist/editor.min.css'), css + result.css)
         resolve()
       })
     })

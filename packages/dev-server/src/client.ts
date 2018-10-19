@@ -8,7 +8,6 @@ declare global {
 }
 
 Vue.use(renderer)
-Vue.use(require('@/menu'))
 const eventBus = new Vue()
 Vue.prototype.$eventBus = eventBus
 

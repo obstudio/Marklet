@@ -16,6 +16,8 @@ module.exports = {
     changed: false,
   }),
 
+  extends: require('./menu.vue'),
+
   watch: {
     source(value) {
       this.nodes = this._lexer.parse(value)
@@ -41,17 +43,6 @@ module.exports = {
     if (typeof source === 'string') this.source = source
     
     this._lexer = new DocumentLexer()
-    this.$menu.register([
-      {
-        name: '文件',
-        bind: 'F',
-        content: [
-          {
-            name: '保存'
-          }
-        ]
-      }
-    ])
 
     this.$eventBus.$on('monaco.loaded', (monaco) => {
       const model = monaco.editor.createModel(this.source, 'marklet')
@@ -122,12 +113,20 @@ module.exports = {
 </script>
 
 <template>
-  <div :class="theme" class="marklet">
-    <mkl-menubar class="menubar" :content="[{ name: '文件', bind: 'F' }]"/>
+  <div :class="theme" class="marklet"
+    @click="hideContextMenus" @contextmenu="hideContextMenus">
+    <div class="menubar">
+      <div v-for="(menu, index) in menuData.menubar.content" :key="index" class="item"
+        @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
+        :class="{ active: menuData.menubar.embed[index] }" @contextmenu.stop>
+        {{ menu.name }} (<span>{{ menu.bind }}</span>)
+      </div>
+    </div>
     <div class="input" ref="input"/>
     <mkl-scroll class="document" :margin="4" :radius="6">
       <mkl-nodes ref="nodes" :content="nodes"/>
     </mkl-scroll>
+    <mkl-menus ref="menus" :keys="menuKeys" :data="menuData"/>
   </div>
 </template>
 
@@ -140,6 +139,24 @@ module.exports = {
   bottom: 0;
   overflow: hidden;
   position: absolute;
+}
+
+> .menubar {
+  overflow: hidden;
+  font-size: 14px;
+  left: 0;
+  height: 32px;
+  width: 100%;
+  float: left;
+  user-select: none;
+  position: relative;
+
+  > div {
+    line-height: 24px;
+    padding: 4px;
+    transition: 0.3s;
+    display: inline-block;
+  }
 }
 
 > .input, > .document {
