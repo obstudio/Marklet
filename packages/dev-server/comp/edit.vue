@@ -4,10 +4,9 @@ const { DocumentLexer } = require('@marklet/parser')
 const { themes } = require('@marklet/renderer')
 
 module.exports = {
-  el: '#app',
+  extends: require('./menu.vue'),
 
   data: () => ({
-    themeInput: '',
     theme: 'dark',
     origin: '',
     source: '',
@@ -16,7 +15,16 @@ module.exports = {
     changed: false,
   }),
 
-  extends: require('./menu.vue'),
+  computed: {
+    lists() {
+      return [{
+        key: 'themes',
+        data: themes,
+        current: this.theme,
+        switch: 'setTheme',
+      }]
+    }
+  },
 
   watch: {
     source(value) {
@@ -27,14 +35,6 @@ module.exports = {
         this._editor.setModel(this._model)
         this.$nextTick(() => this.layout())
       }
-    },
-    theme(value) {
-      if (window.monaco) {
-        window.monaco.editor.setTheme(value)
-      }
-    },
-    themeInput(value) {
-      if (themes.find(({ key }) => key === value)) this.theme = value
     },
   },
 
@@ -91,6 +91,16 @@ module.exports = {
   },
 
   methods: {
+    openFile() {},
+    save() {},
+    saveAs() {},
+    saveAll() {},
+    setTheme(theme) {
+      this.theme = theme
+      if (window.monaco) {
+        window.monaco.editor.setTheme(theme)
+      }
+    },
     checkChange(data) {
       if (data !== undefined) this.origin = data
       this.source = this._model.getValue()
@@ -107,6 +117,15 @@ module.exports = {
         if (newTime - now < deltaTime) requestAnimationFrame(layout)
       })
     },
+    executeAction(id) {
+      if (!this._editor) return
+      const action = this._editor.getAction(id)
+      if (action) action.run(this._editor)
+    },
+    executeTrigger(id) {
+      if (!this._editor) return
+      this._editor.trigger(id, id)
+    },
   }
 }
 
@@ -119,14 +138,14 @@ module.exports = {
       <div v-for="(menu, index) in menuData.menubar.content" :key="index" class="item"
         @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
         :class="{ active: menuData.menubar.embed[index] }" @contextmenu.stop>
-        {{ menu.name }} (<span>{{ menu.bind }}</span>)
+        {{ menu.name }} (<span>{{ menu.bind }}</span>)&nbsp;
       </div>
     </div>
     <div class="input" ref="input"/>
     <mkl-scroll class="document" :margin="4" :radius="6">
       <mkl-nodes ref="nodes" :content="nodes"/>
     </mkl-scroll>
-    <mkl-menus ref="menus" :keys="menuKeys" :data="menuData"/>
+    <mkl-menus ref="menus" :keys="menuKeys" :data="menuData" :lists="lists"/>
   </div>
 </template>
 
@@ -151,10 +170,12 @@ module.exports = {
   user-select: none;
   position: relative;
 
-  > div {
+  .item {
     line-height: 24px;
     padding: 4px;
-    transition: 0.3s;
+    transition:
+      color 0.3s ease,
+      background-color 0.3s ease;
     display: inline-block;
   }
 }
@@ -163,6 +184,7 @@ module.exports = {
   position: absolute;
   top: 32px;
   bottom: 0;
+  height: auto;
 }
 
 > .input {

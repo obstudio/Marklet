@@ -28,6 +28,15 @@
         "find-next",
         "find-previous"
       ]
+    },
+    {
+      "key": "view",
+      "name": "视图",
+      "bind": "V",
+      "content": [
+        "#主题",
+        "@themes"
+      ]
     }
   ]
 }

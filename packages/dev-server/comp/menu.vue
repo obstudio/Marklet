@@ -10,18 +10,13 @@ function toKebab(camel) {
   return camel.replace(/[A-Z]/g, char => '-' + char.toLowerCase())
 }
 
-const commandData = require('./command.json')
-const menus = require('./menus.json')
-
 const commands = {}
-for (const command of commandData) {
+for (const command of require('./command.json')) {
   const key = command.key ? command.key : toKebab(command.method)
-  if (command.caption && !(command.caption instanceof Array)) {
-    command.caption = [command.caption]
-  }
   commands[key] = command
 }
 
+const menus = require('./menus.json')
 const menuData = {}
 const menuKeys = Object.keys(menus)
 for (const key of menuKeys) {
@@ -164,6 +159,10 @@ module.exports = {
           type: Object,
           required: true
         },
+        lists: {
+          type: Array,
+          default: () => []
+        },
       },
       components: {
         mklMenu: {
@@ -178,6 +177,22 @@ module.exports = {
               type: Array,
               default: () => []
             },
+            lists: {
+              type: Array,
+              default: () => []
+            },
+          },
+          components: {
+            mklMenuList: {
+              name: 'TmMenuList',
+              inject: ['execute'],
+              props: {
+                list: {
+                  type: Object,
+                  required: true
+                }
+              },
+            }
           },
           methods: {
             getBinding(key) {
@@ -189,9 +204,10 @@ module.exports = {
               }).replace(/ /g, ', ')
             },
             getCaption(key) {
-              return commands[key].name || commands[key].key
+              return commands[key].name
             },
             getContext(key) {
+              if (!commands[key]) console.log(key)
               if (commands[key].enabled) {
                 return !this.getValue(commands[key].enabled)
               } else {
@@ -201,6 +217,10 @@ module.exports = {
             getValue(data) {
               // FIXME: optimize value pattern
               return this.$parent[data.slice(1)]
+            },
+            getList(key) {
+              if (!key.startsWith('@')) return false
+              return this.lists.find(item => item.key === key.slice(1))
             },
           },
         }
@@ -213,23 +233,27 @@ module.exports = {
 
 <template name="mkl-menus">
   <div class="marklet-menus">
-    <transition name="el-zoom-in-top" v-for="key in keys" :key="key">
-      <ul v-show="data[key].show" class="marklet-menu">
-        <mkl-menu :data="data[key].content" :embed="data[key].embed"/>
+    <transition name="marklet-menus" v-for="key in keys" :key="key">
+      <ul v-show="data[key].show">
+        <mkl-menu :data="data[key].content" :embed="data[key].embed" :lists="lists"/>
       </ul>
     </transition>
   </div>
 </template>
 
 <template name="mkl-menus.mkl-menu">
-  <div class="content marklet-menu">
+  <div class="marklet-menu">
     <li v-for="(item, index) in data" :key="index">
       <div v-if="(item instanceof Object)">
-        <mkl-menu v-show="embed[index]" :data="item.content"/>
+        <mkl-menu v-show="embed[index]" :data="item.content" :lists="lists"/>
       </div>
       <div v-else-if="item === '@separator'" class="menu-item disabled" @click.stop>
         <a class="separator"/>
       </div>
+      <div v-else-if="item.startsWith('#')" class="menu-item disabled" @click.stop>
+        <a class="caption">{{ item.slice(1) }}</a>
+      </div>
+      <mkl-menu-list v-else-if="getList(item)" :list="getList(item)"/>
       <div v-else-if="getContext(item)" class="menu-item disabled" @click.stop>
         <a class="label">{{ getCaption(item) }}</a>
         <span class="binding">{{ getBinding(item) }}</span>
@@ -242,7 +266,33 @@ module.exports = {
   </div>
 </template>
 
+<template name="mkl-menus.mkl-menu.mkl-menu-list">
+  <transition-group name="marklet-menu-list">
+    <li v-for="(item, index) in list.data" :key="index">
+      <div class="menu-item" @click="execute(list.switch, item.key)">
+        <a class="label" :class="{ active: item.key === list.current }">{{ item.name }}</a>
+      </div>
+    </li>
+  </transition-group>
+</template>
+
 <style lang="scss">
+
+.marklet-menus-enter-active,
+.marklet-menus-leave-active {
+  opacity: 1;
+  transform: scaleY(1);
+  transform-origin: center top;
+  transition:
+    transform 300ms cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.marklet-menus-enter,
+.marklet-menus-leave-to {
+  opacity: 0;
+  transform: scaleY(0);
+}
 
 .marklet-menus {
   width: 0;
@@ -262,71 +312,53 @@ module.exports = {
   }
 }
 
-.marklet-menu-enter-active, .marklet-menu-leave-active { 
-  transition: 0.3s ease;
-  position: absolute;
-}
+.marklet-menu {
+  min-width: 200px;
 
-.marklet-menu .content { min-width: 200px }
+  .menu-item {
+    padding: 0;
+    user-select: none;
+    display: flex;
+    cursor: pointer;
+    font-size: 12px;
 
-.marklet-menu .menu-item {
-  padding: 0;
-  -webkit-user-select: none;
-  display: -webkit-flex;
-  cursor: pointer;
-}
+    .label {
+      flex: 1 1 auto;
+      text-decoration: none;
+      padding: 0.8em 1em;
+      line-height: 1.1em;
+      background: none;
+      display: inline-block;
+      box-sizing:	border-box;
+      margin: 0;
 
-.marklet-menu .menu-item.disabled { cursor: default }
+      &.active { font-weight: bold }
+    }
 
-.marklet-menu .menu-item .label {
-	flex: 1 1 auto;
-	text-decoration: none;
-	padding: 0.8em 1em;
-	line-height: 1.1em;
-  background: none;
-  font-size: 12px;
-	display: inline-block;
-	box-sizing:	border-box;
-	margin: 0;
-}
+    .binding {
+      display: inline-block;
+      flex: 2 1 auto;
+      padding: 0.8em 1em;
+      line-height: 1.1em;
+      text-align: right;
+    }
 
-.marklet-menu .menu-item .label.active { font-weight: bold }
+    .separator {
+      display: block;
+      margin: 0.3em 0.5em;
+      padding: 1px 0 0 0;
+      border-bottom: 1px solid;
+      width: 100%;
+    }
 
-.marklet-menu .menu-item .binding {
-  display: inline-block;
-	flex: 2 1 auto;
-	padding: 0.8em 1em;
-	line-height: 1.1em;
-	font-size: 12px;
-	text-align: right;
-}
+    .caption {
+      display: block;
+      font-size: 12px;
+      margin: 0.5em auto 0;
+    }
 
-.marklet-menu .menu-item .binding i {
-  font-size: 9px;
-  vertical-align: 1px;
-}
-
-.marklet-menu .menu-item .separator {
-	flex: 1 1 auto;
-  display: block;
-  margin: 0.3em 0.5em;
-	padding: 1px 0 0 0;
-	border-bottom: 1px solid;
-	width: 100%;
-}
-
-.marklet-menu-list-enter-active, .marklet-menu-list-leave-active {
-  transition: 0.3s ease;
-}
-
-.marklet-menu-list-enter-active .menu-item, .marklet-menu-list-leave-active .menu-item {
-  color: inherit !important;
-  background-color: inherit !important;
-}
-
-.marklet-menu-list-enter, .marklet-menu-list-leave-to {
-  opacity: 0;
-  transform: translateX(200px);
+    &.disabled { cursor: default }
+  }
 }
 
 </style>
