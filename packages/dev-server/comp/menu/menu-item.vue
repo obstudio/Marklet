@@ -1,13 +1,13 @@
 <script>
 
 module.exports = {
-  inject: ['parse', 'execute'],
+  inject: ['$menu'],
   props: ['command'],
 
   computed: {
     disabled() {
       if (!this.command.enabled) return
-      return !this.parse(this.command.enabled)
+      return !this.$menu.parseArgument(this.command.enabled)
     },
     binding() {
       let binding = this.command.bind
@@ -22,7 +22,7 @@ module.exports = {
   methods: {
     handleClick() {
       if (this.disabled) return
-      this.execute('executeCommand', this.command)
+      this.$menu.executeCommand(this.command)
     }
   },
 }
@@ -30,10 +30,10 @@ module.exports = {
 </script>
 
 <template>
-  <div class="menu-item" :class="{ disabled }" @click="handleClick">
+  <div :class="['menu-item', { disabled }]" @click="handleClick">
     <span class="label">
       <mkl-checkbox v-if="command.checked !== undefined"
-        :value="parse(command.checked)" @change="handleClick"/>
+        :value="$menu.parseArgument(command.checked)" @change="handleClick"/>
       {{ command.name }}
     </span>
     <span class="binding">{{ binding }}</span>
@@ -43,27 +43,11 @@ module.exports = {
 <style lang="scss" scoped>
 
 > .label {
-  flex: 1 1 auto;
-  text-decoration: none;
-  padding: 0.8em 1em;
-  line-height: 1.1em;
-  background: none;
-  display: inline-block;
-  margin: 0;
-
   .marklet-checkbox {
     font-size: 12px;
     margin-right: 4px;
     vertical-align: 1px;
   }
-}
-
-> .binding {
-  display: inline-block;
-  flex: 2 1 auto;
-  padding: 0.8em 1em;
-  line-height: 1.1em;
-  text-align: right;
 }
 
 </style>

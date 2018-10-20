@@ -1,7 +1,7 @@
 <script>
 
 module.exports = {
-  inject: ['execute'],
+  inject: ['$menu'],
   props: ['list'],
 }
 
@@ -9,10 +9,10 @@ module.exports = {
 
 <template>
   <transition-group name="marklet-menu-list">
-    <div v-for="(item, index) in list.data" class="menu-item"
-      @click="execute(list.switch, item.key)" :key="index">
+    <div v-for="(item, index) in list.data" :key="index" class="menu-item"
+      @click="$menu.executeMethod(list.switch, item.key)">
       <span class="label" :class="{ active: item.key === list.current }">
-        {{ item.name }}
+        {{ list.prefix }}{{ item.name }}{{ list.postfix }}
       </span>
     </div>
   </transition-group>
@@ -21,12 +21,6 @@ module.exports = {
 <style lang="scss" scoped>
 
 .label {
-  padding: 0.8em 1em;
-  line-height: 1.1em;
-  background: none;
-  display: inline-block;
-  margin: 0;
-
   &.active { font-weight: bold }
 }
 

@@ -34,9 +34,10 @@
       "name": "视图",
       "bind": "V",
       "content": [
+        "trigger-explorer",
         "trigger-editor",
+        "trigger-document",
         "@separator",
-        "#主题",
         "@themes"
       ]
     }

@@ -1,5 +1,3 @@
-<script>
-
 const Mousetrap = require('mousetrap')
 
 // TODO: improve this pattern maybe. 
@@ -28,6 +26,10 @@ for (const key of menuKeys) {
 }
 
 module.exports = {
+  components: {
+    mklMenuManager: require('./menu-manager.vue'),
+  },
+
   data() {
     return {
       menuData,
@@ -39,15 +41,9 @@ module.exports = {
   },
 
   provide() {
-    const self = this
     return {
-      parse(arg) {
-        return self.parseArgument(arg)
-      },
-      execute(key, ...args) {
-        const method = self[key]
-        if (method instanceof Function) method(...args)
-      },
+      commands,
+      $menu: this,
     }
   },
 
@@ -67,6 +63,10 @@ module.exports = {
   },
 
   methods: {
+    executeMethod(key, ...args) {
+      const method = this[key]
+      if (method instanceof Function) method(...args)
+    },
     executeCommand(command) {
       const method = this[command.method]
       if (!(method instanceof Function)) {
@@ -154,152 +154,4 @@ module.exports = {
       style.top = rect.top + rect.height + 'px'
     },
   },
-
-  components: {
-    mklMenus: {
-      props: {
-        keys: {
-          type: Array,
-          required: true
-        },
-        data: {
-          type: Object,
-          required: true
-        },
-        lists: {
-          type: Array,
-          default: () => []
-        },
-      },
-      components: {
-        mklMenu: {
-          name: 'mkl-menu',
-          inject: ['execute', 'parse'],
-          props: {
-            data: {
-              type: Array,
-              required: true
-            },
-            embed: {
-              type: Array,
-              default: () => []
-            },
-            lists: {
-              type: Array,
-              default: () => []
-            },
-          },
-          components: {
-            mklMenuList: require('./menu-list.vue'),
-            mklMenuItem: require('./menu-item.vue'),
-          },
-          methods: {
-            getCommand(key) {
-              const command = commands[key]
-              if (!command) {
-                console.error(`key ${key} not found`)
-                return {}
-              } else {
-                return command
-              }
-            },
-          },
-        }
-      },
-    }
-  }
 }
-
-</script>
-
-<template name="mkl-menus">
-  <div class="marklet-menus">
-    <transition name="marklet-menus" v-for="key in keys" :key="key">
-      <ul v-show="data[key].show">
-        <mkl-menu :data="data[key].content" :embed="data[key].embed" :lists="lists"/>
-      </ul>
-    </transition>
-  </div>
-</template>
-
-<template name="mkl-menus.mkl-menu">
-  <div class="marklet-menu">
-    <template v-for="(item, index) in data" :key="index">
-      <template v-if="(item instanceof Object)">
-        <mkl-menu v-show="embed[index]" :data="item.content" :lists="lists"/>
-      </template>
-      <div v-else-if="item === '@separator'" class="menu-item disabled" @click.stop>
-        <div class="separator"/>
-      </div>
-      <div v-else-if="item.startsWith('#')" class="menu-item disabled" @click.stop>
-        <div class="caption">{{ item.slice(1) }}</div>
-      </div>
-      <mkl-menu-list v-else-if="item.startsWith('@')" :list="lists[item.slice(1)]"/>
-      <mkl-menu-item v-else :command="getCommand(item)"/>
-    </template>
-  </div>
-</template>
-
-<style lang="scss">
-
-.marklet-menus-enter-active,
-.marklet-menus-leave-active {
-  opacity: 1;
-  transform: scaleY(1);
-  transform-origin: center top;
-  transition:
-    transform 300ms cubic-bezier(0.23, 1, 0.32, 1),
-    opacity 300ms cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.marklet-menus-enter,
-.marklet-menus-leave-to {
-  opacity: 0;
-  transform: scaleY(0);
-}
-
-.marklet-menus {
-  width: 0;
-  height: 0;
-  top: 0;
-  left: 0;
-
-  ul {
-    z-index: 10;
-    padding: 0;
-    margin: 0;
-    outline: 0;
-    border: none;
-    transition: 0.3s ease;
-    position: absolute;
-    list-style-type: none;
-  }
-}
-
-.marklet-menu {
-  min-width: 200px;
-  user-select: none;
-
-  .menu-item {
-    padding: 0;
-    display: flex;
-    cursor: pointer;
-    font-size: 12px;
-
-    .separator {
-      margin: 0.3em 0.5em;
-      padding: 1px 0 0 0;
-      border-bottom: 1px solid;
-      width: 100%;
-    }
-
-    .caption {
-      font-size: 12px;
-      margin: 0.4em auto 0.2em;
-    }
-
-    &.disabled { cursor: default }
-  }
-}
-
-</style>

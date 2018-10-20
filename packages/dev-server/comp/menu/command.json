@@ -21,10 +21,24 @@
   },
   {
     "method": "triggerArea",
+    "arguments": "explorer",
+    "key": "trigger-explorer",
+    "name": "资源管理器",
+    "checked": "$display.explorer.show"
+  },
+  {
+    "method": "triggerArea",
     "arguments": "editor",
     "key": "trigger-editor",
-    "name": "编辑器",
+    "name": "编辑器视图",
     "checked": "$display.editor.show"
+  },
+  {
+    "method": "triggerArea",
+    "arguments": "document",
+    "key": "trigger-document",
+    "name": "预览视图",
+    "checked": "$display.document.show"
   },
   {
     "method": "executeTrigger",

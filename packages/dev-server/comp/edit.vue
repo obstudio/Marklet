@@ -4,7 +4,7 @@ const { DocumentLexer } = require('@marklet/parser')
 const { themes } = require('@marklet/renderer')
 
 module.exports = {
-  extends: require('./menu.vue'),
+  extends: require('./menu'),
 
   data: () => ({
     theme: 'dark',
@@ -37,6 +37,7 @@ module.exports = {
           data: themes,
           current: this.theme,
           switch: 'setTheme',
+          prefix: '主题：',
         },
       }
     },
@@ -115,7 +116,7 @@ module.exports = {
     this.$eventBus.$on('monaco.loaded', (monaco) => {
       if (this._editor) return
       monaco.editor.setTheme(this.theme)
-      this._editor = monaco.editor.create(this.$refs.monaco, {
+      this._editor = monaco.editor.create(this.$refs.editor, {
         model: null,
         language: 'marklet',
         lineDecorationsWidth: 4,
@@ -134,9 +135,9 @@ module.exports = {
     })
 
     addEventListener('resize', () => {
-      this.$refs.input.classList.add('no-transition')
+      this.$refs.editor.classList.add('no-transition')
       this.layout()
-      this.$refs.input.classList.remove('no-transition')
+      this.$refs.editor.classList.remove('no-transition')
     }, { passive: true })
 
     addEventListener('mouseup', (event) => {
@@ -180,6 +181,9 @@ module.exports = {
     },
     triggerArea(area) {
       this.display[area].show = !this.display[area].show
+      if (!this.display.editor.show && !this.display.document.show) {
+        this.display.document.show = true
+      }
       this.$nextTick(() => this.layout(300))
     },
     setTheme(theme) {
@@ -236,12 +240,12 @@ module.exports = {
         {{ menu.name }} (<span>{{ menu.bind }}</span>)&nbsp;
       </div>
     </div>
-    <div class="editor" ref="monaco" :style="editorStyle"/>
+    <div class="editor" ref="editor" :style="editorStyle"/>
     <div class="border" @mousedown.stop="startDrag"/>
     <mkl-scroll class="document" :margin="4" :radius="6" :style="documentStyle">
       <mkl-nodes ref="nodes" :content="nodes"/>
     </mkl-scroll>
-    <mkl-menus ref="menus" :keys="menuKeys" :data="menuData" :lists="lists"/>
+    <mkl-menu-manager ref="menus" :keys="menuKeys" :data="menuData"/>
   </div>
 </template>
 
