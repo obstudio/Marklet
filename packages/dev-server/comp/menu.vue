@@ -39,16 +39,24 @@ module.exports = {
   },
 
   provide() {
+    const self = this
     return {
-      execute: this.executeMethod,
+      parse(arg) {
+        return self.parseArgument(arg)
+      },
+      execute(key, ...args) {
+        const method = self[key]
+        if (method instanceof Function) method(...args)
+      },
     }
   },
 
   mounted() {
     for (const key in commands) {
-      if (!commands[key].bind || commands[key].bind.startsWith('!')) continue
-      Mousetrap.bind(commands[key].bind, () => {
-        this.executeCommand(key)
+      const command = commands[key]
+      if (!command.bind || command.bind.startsWith('!')) continue
+      Mousetrap.bind(command.bind, () => {
+        this.executeCommand(command)
         return false
       })
     }
@@ -59,23 +67,22 @@ module.exports = {
   },
 
   methods: {
-    executeMethod(method, ...args) {
-      if (method in this) this[method](...args)
+    executeCommand(command) {
+      const method = this[command.method]
+      if (!(method instanceof Function)) {
+        console.error(`No method ${command.method} was found!`)
+        return
+      }
+      let args = command.arguments
+      if (args === undefined) args = []
+      if (!(args instanceof Array)) args = [args]
+      method(...args.map(arg => this.parseArgument(arg)))
     },
-    executeCommand(key) {
-      if (commands[key].method in this) {
-        let args = commands[key].arguments
-        if (args === undefined) args = []
-        if (!(args instanceof Array)) args = [args]
-        this[commands[key].method](...args.map(arg => {
-          if (typeof arg === 'string' && arg.startsWith('$')) {
-            return this[arg.slice(1)]
-          } else {
-            return arg
-          }
-        }))
+    parseArgument(arg) {
+      if (typeof arg === 'string' && arg.startsWith('$')) {
+        return arg.slice(1).split('.').reduce((prev, curr) => prev[curr], this)
       } else {
-        this.$message.error(`No command ${key} was found!`)
+        return arg
       }
     },
     hideContextMenus() {
@@ -167,7 +174,7 @@ module.exports = {
       components: {
         mklMenu: {
           name: 'mkl-menu',
-          inject: ['execute'],
+          inject: ['execute', 'parse'],
           props: {
             data: {
               type: Array,
@@ -183,44 +190,18 @@ module.exports = {
             },
           },
           components: {
-            mklMenuList: {
-              name: 'TmMenuList',
-              inject: ['execute'],
-              props: {
-                list: {
-                  type: Object,
-                  required: true
-                }
-              },
-            }
+            mklMenuList: require('./menu-list.vue'),
+            mklMenuItem: require('./menu-item.vue'),
           },
           methods: {
-            getBinding(key) {
-              let binding = commands[key].bind
-              if (!binding) return ''
-              if (binding.charAt(0) === '!') binding = binding.slice(1)
-              return binding.replace(/[a-z]+/g, word => {
-                return word.charAt(0).toUpperCase() + word.slice(1)
-              }).replace(/ /g, ', ')
-            },
-            getCaption(key) {
-              return commands[key].name
-            },
-            getContext(key) {
-              if (!commands[key]) console.log(key)
-              if (commands[key].enabled) {
-                return !this.getValue(commands[key].enabled)
+            getCommand(key) {
+              const command = commands[key]
+              if (!command) {
+                console.error(`key ${key} not found`)
+                return {}
               } else {
-                return false
+                return command
               }
-            },
-            getValue(data) {
-              // FIXME: optimize value pattern
-              return this.$parent[data.slice(1)]
-            },
-            getList(key) {
-              if (!key.startsWith('@')) return false
-              return this.lists.find(item => item.key === key.slice(1))
             },
           },
         }
@@ -243,37 +224,20 @@ module.exports = {
 
 <template name="mkl-menus.mkl-menu">
   <div class="marklet-menu">
-    <li v-for="(item, index) in data" :key="index">
-      <div v-if="(item instanceof Object)">
+    <template v-for="(item, index) in data" :key="index">
+      <template v-if="(item instanceof Object)">
         <mkl-menu v-show="embed[index]" :data="item.content" :lists="lists"/>
-      </div>
+      </template>
       <div v-else-if="item === '@separator'" class="menu-item disabled" @click.stop>
-        <a class="separator"/>
+        <div class="separator"/>
       </div>
       <div v-else-if="item.startsWith('#')" class="menu-item disabled" @click.stop>
-        <a class="caption">{{ item.slice(1) }}</a>
+        <div class="caption">{{ item.slice(1) }}</div>
       </div>
-      <mkl-menu-list v-else-if="getList(item)" :list="getList(item)"/>
-      <div v-else-if="getContext(item)" class="menu-item disabled" @click.stop>
-        <a class="label">{{ getCaption(item) }}</a>
-        <span class="binding">{{ getBinding(item) }}</span>
-      </div>
-      <div v-else class="menu-item" @click="execute('executeCommand', item)">
-        <a class="label">{{ getCaption(item) }}</a>
-        <span class="binding">{{ getBinding(item) }}</span>
-      </div>
-    </li>
+      <mkl-menu-list v-else-if="item.startsWith('@')" :list="lists[item.slice(1)]"/>
+      <mkl-menu-item v-else :command="getCommand(item)"/>
+    </template>
   </div>
-</template>
-
-<template name="mkl-menus.mkl-menu.mkl-menu-list">
-  <transition-group name="marklet-menu-list">
-    <li v-for="(item, index) in list.data" :key="index">
-      <div class="menu-item" @click="execute(list.switch, item.key)">
-        <a class="label" :class="{ active: item.key === list.current }">{{ item.name }}</a>
-      </div>
-    </li>
-  </transition-group>
 </template>
 
 <style lang="scss">
@@ -314,37 +278,15 @@ module.exports = {
 
 .marklet-menu {
   min-width: 200px;
+  user-select: none;
 
   .menu-item {
     padding: 0;
-    user-select: none;
     display: flex;
     cursor: pointer;
     font-size: 12px;
 
-    .label {
-      flex: 1 1 auto;
-      text-decoration: none;
-      padding: 0.8em 1em;
-      line-height: 1.1em;
-      background: none;
-      display: inline-block;
-      box-sizing:	border-box;
-      margin: 0;
-
-      &.active { font-weight: bold }
-    }
-
-    .binding {
-      display: inline-block;
-      flex: 2 1 auto;
-      padding: 0.8em 1em;
-      line-height: 1.1em;
-      text-align: right;
-    }
-
     .separator {
-      display: block;
       margin: 0.3em 0.5em;
       padding: 1px 0 0 0;
       border-bottom: 1px solid;
@@ -352,9 +294,8 @@ module.exports = {
     }
 
     .caption {
-      display: block;
       font-size: 12px;
-      margin: 0.5em auto 0;
+      margin: 0.4em auto 0.2em;
     }
 
     &.disabled { cursor: default }

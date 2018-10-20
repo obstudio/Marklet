@@ -34,6 +34,8 @@
       "name": "视图",
       "bind": "V",
       "content": [
+        "trigger-editor",
+        "@separator",
         "#主题",
         "@themes"
       ]
