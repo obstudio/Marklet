@@ -45,8 +45,6 @@ module.exports = {
 > .binding {
   .marklet-checkbox {
     font-size: 12px;
-    margin-right: 4px;
-    vertical-align: 1px;
   }
 }
 

@@ -14,9 +14,8 @@ const eventBus = new Vue()
 Vue.prototype.$eventBus = eventBus
 
 eventBus.$on('monaco.loaded', (monaco: typeof Monaco) => {
-  renderer.themes.forEach(({ key }) => {
-    monaco.editor.defineTheme(key, require('../themes/' + key))
-  })
+  monaco.editor.defineTheme('dark', require('../themes/dark'))
+  monaco.editor.defineTheme('simple', require('../themes/simple'))
 })
 
 const client = new class WatchClient {

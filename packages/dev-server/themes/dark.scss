@@ -1,5 +1,6 @@
 $menu-bgcolor: #2d2f31;
 $menu-shadow: #000000;
+$active-color: #acdeff;
 
 &, > .explorer {
   background-color: #272822;
@@ -41,12 +42,44 @@ $menu-shadow: #000000;
     }
 
     &.active {
-      .label { color: #ACDDFF; text-shadow: 0 0 0.15px #ACDDFF }
+      .label {
+        color: #acdeff;
+        text-shadow: 0 0 0.15px #ACDDFF;
+      }
     }
 
     &.disabled {
       .label { color: #777777 !important }
       .binding { color: #666666 !important }
+    }
+  }
+}
+
+.marklet-checkbox {
+  color: #666666;
+
+  > .box {
+    > .inner {
+      background-color: #666666;
+      border-color: #444444;
+
+      &::after {
+        border-color: #666666;
+      }
+    }
+  }
+  
+  &.checked, &.focused {
+    > .box > .inner {
+      border-color: $active-color;
+    }
+  }
+
+  &.checked {
+    color: $active-color;
+
+    > .box > .inner {
+      background-color: $active-color;
     }
   }
 }

@@ -68,7 +68,7 @@ case 'parse': {
     config: {
       header_align: program.headerAlign,
       allow_section: program.section,
-      default_language: program.defaultLanguage
+      default_language: program.defaultLanguage,
     },
   })
   if (!program.dest) {

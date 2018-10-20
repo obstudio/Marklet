@@ -34,7 +34,7 @@ module.exports = {
   margin: 0;
   outline: 0;
   border: none;
-  padding: 4px 0;
+  padding: 2px 0;
   position: absolute;
   transition: 0.3s ease;
 }

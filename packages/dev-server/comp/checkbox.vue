@@ -32,7 +32,7 @@ module.exports = {
 
 <template>
   <label class="marklet-checkbox" :class="{ focused, disabled, checked: value }">
-    <span class="checkbox">
+    <span class="box">
       <span class="inner"></span>
       <input type="checkbox" :disabled="disabled" :value="label" v-model="value"
         @change="$emit('change', $event.target.checked)" @focus="onFocus" @blur="onBlur">
@@ -48,34 +48,32 @@ module.exports = {
 
 & {
   font-size: 14px;
-  color: #606266;
   cursor: pointer;
   user-select: none;
   display: inline-block;
   transition: 0.3s ease;
   line-height: 1em;
 
-  > .checkbox {
+  > .box {
     outline: 0;
     line-height: 1em;
     vertical-align: sub;
 
-    > span {
+    > .inner {
       position: relative;
       display: inline-block;
       box-sizing: border-box;
       transition: 0.3s ease;
-      background-color: #ffffff;
-      border: 0.07em solid #dcdfe6;
+      border: 0.07em solid;
       border-radius: 2px;
       width: 1em;
       height: 1em;
     }
 
-    > span::after {
+    > .inner::after {
       content: "";
       box-sizing: content-box;
-      border: 0.07em solid #fff;
+      border: 0.07em solid;
       border-left: 0;
       border-top: 0;
       height: 0.5em;
@@ -105,18 +103,9 @@ module.exports = {
     vertical-align: middle;
   }
 
-  &.focused > .checkbox > span {
-    border-color: #409EFF;
+  &.checked > .box > .inner::after {
+    transform: rotate(45deg) scaleY(1);
   }
-
-  &.checked > .checkbox > span {
-    background-color: #409EFF;
-    border-color: #409EFF;
-
-    &::after { transform: rotate(45deg) scaleY(1) }
-  }
-  
-  &.checked { color: #409EFF }
 }
 
 </style>
