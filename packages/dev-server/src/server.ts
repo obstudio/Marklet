@@ -77,8 +77,10 @@ interface WatchOptions {
   port?: number
 }
 
+export const DEFAULT_PORT = 10826
+
 export function watch(options: WatchOptions): void {
-  const port = options.port || 8080
+  const port = options.port || DEFAULT_PORT
   const { httpServer, wsServer } = createServer('watch')
   httpServer.listen(port)
   wsServer.on('connection', (ws) => {
@@ -96,7 +98,7 @@ interface EditOptions {
 }
 
 export function edit(options: EditOptions): void {
-  const port = options.port || 8080
+  const port = options.port || DEFAULT_PORT
   const { httpServer } = createServer('edit')
   httpServer.listen(port)
   console.log(`Server running at http://localhost:${port}/`)
