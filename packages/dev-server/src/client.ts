@@ -22,6 +22,8 @@ const client = new class WatchClient {
   private retry: boolean
   private timeout: number
   private ws: WebSocket
+  private msgQueue: string[]
+  private timerRef: number
 
   constructor({
     url = `ws://${location.host}/`,
@@ -31,7 +33,13 @@ const client = new class WatchClient {
     this.url = url
     this.retry = retry
     this.timeout = timeout
+    this.msgQueue = []
     this.createWebSocket()
+    this.timerRef = window.setInterval(() => {
+      while (this.msgQueue.length > 0 && this.ws.readyState === 1) {
+        this.ws.send(this.msgQueue.shift())
+      }
+    }, 1000) // TODO: interval can be adjusted
   }
 
   createWebSocket() {
@@ -59,14 +67,18 @@ const client = new class WatchClient {
     this.ws.addEventListener('open', () => {
       eventBus.$emit('ws.open')
     })
+    eventBus.$on('client.message', (type: string, data: string | Object) => {
+      this.msgQueue.push(JSON.stringify({ type, data }))
+    })
   }
 
-  close() {
+  dispose() {
     if (this.ws.readyState < 2) this.ws.close()
+    clearInterval(this.timerRef)
   }
 }()
 
-addEventListener('beforeunload', () => client.close())
+addEventListener('beforeunload', () => client.dispose())
 
 export const Marklet = {
   components: {

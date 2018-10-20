@@ -57,7 +57,11 @@ module.exports = {
 
   mounted() {
     window.vm = this
-    
+
+    this.$eventBus.$on('server.message.document', doc => {
+      this.openFile(doc)
+    })
+
     this.$eventBus.$on('monaco.loaded', (monaco) => {
       if (this._editor) return
       monaco.editor.setTheme(this.theme)
@@ -91,10 +95,21 @@ module.exports = {
   },
 
   methods: {
-    openFile() {},
-    save() {},
-    saveAs() {},
-    saveAll() {},
+    openFile(doc) {
+      this.source = doc // TODO: need more consideration as another listener monaco.loaded exists
+    },
+    save() {
+      this.$eventBus.$emit('client.message', 'save', this.source) // TODO: maybe file name is needed. depend on backend impl
+    },
+    saveAs() {
+      this.$eventBus.$emit('client.message', 'saveAs', {
+        source: this.source,
+        name: '' // TODO: read file name
+      })
+    },
+    saveAll() {
+      // TODO: unclear requirement
+    },
     setTheme(theme) {
       this.theme = theme
       if (window.monaco) {
