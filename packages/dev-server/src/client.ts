@@ -8,6 +8,8 @@ declare global {
 }
 
 Vue.use(renderer)
+Vue.component('mkl-checkbox', require('@/checkbox.vue'))
+
 const eventBus = new Vue()
 Vue.prototype.$eventBus = eventBus
 

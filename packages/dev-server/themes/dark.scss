@@ -6,6 +6,12 @@
   .item.active { background-color: #252525 }
 }
 
+> .input > .border {
+  background-color: #666666;
+
+  &:hover { background-color: #999999 }
+}
+
 .marklet-menu {
   background-color: #2D2F31;
   box-shadow: 0 2px 8px #000000;

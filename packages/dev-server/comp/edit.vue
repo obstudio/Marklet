@@ -13,17 +13,67 @@ module.exports = {
     nodes: [],
     loading: 3,
     changed: false,
+    dragging: false,
+    display: {
+      document: {
+        show: true,
+        width: 0.4,
+      },
+      editor: {
+        show: true,
+        width: 0.4,
+      },
+      explorer: {
+        show: false,
+        width: 0.2,
+      },
+    },
   }),
 
   computed: {
     lists() {
-      return [{
-        key: 'themes',
-        data: themes,
-        current: this.theme,
-        switch: 'setTheme',
-      }]
-    }
+      return {
+        themes: {
+          data: themes,
+          current: this.theme,
+          switch: 'setTheme',
+        },
+      }
+    },
+    editorWidth() {
+      return this.display.editor.width / (
+        this.display.editor.width
+        + this.display.document.width * this.display.document.show
+        + this.display.explorer.width * this.display.explorer.show
+      ) * 100 + '%'
+    },
+    editorStyle() {
+      const width = this.editorWidth
+      const style = { width }
+      if (this.display.editor.show) {
+        style.left = '0'
+      } else {
+        style.left = '-' + width
+      }
+      return style
+    },
+    documentWidth() {
+      return this.display.document.width / (
+        this.display.document.width
+        + this.display.editor.width * this.display.editor.show
+        + this.display.explorer.width * this.display.explorer.show
+      ) * 100 + '%'
+    },
+    documentStyle() {
+      const width = this.documentWidth
+      const style = { width }
+      if (this.display.document.show) {
+        style.right = '0'
+      } else {
+        style.right = '-' + width
+      }
+      return style
+    },
   },
 
   watch: {
@@ -61,7 +111,7 @@ module.exports = {
     this.$eventBus.$on('monaco.loaded', (monaco) => {
       if (this._editor) return
       monaco.editor.setTheme(this.theme)
-      this._editor = monaco.editor.create(this.$refs.input, {
+      this._editor = monaco.editor.create(this.$refs.monaco, {
         model: null,
         language: 'marklet',
         lineDecorationsWidth: 4,
@@ -85,6 +135,24 @@ module.exports = {
       this.$refs.input.classList.remove('no-transition')
     }, { passive: true })
 
+    addEventListener('mouseup', (event) => {
+      this.layout()
+      this.stopDrag(event)
+    }, { passive: true })
+
+    addEventListener('mousemove', (event) => {
+      if (this.dragging) {
+        this.layout()
+        event.stopPropagation()
+        const toMax = this.extensionHeight <= this.remainHeight || this.draggingLastY < event.clientY
+        const toMin = this.extensionHeight >= 36 || this.draggingLastY > event.clientY
+        if (toMax && toMin) {
+          this.extensionHeight += this.draggingLastY - event.clientY
+          this.draggingLastY = event.clientY
+        }
+      }
+    })
+
     addEventListener('beforeunload', () => {
       localStorage.setItem('source', this.source)
     })
@@ -95,6 +163,10 @@ module.exports = {
     save() {},
     saveAs() {},
     saveAll() {},
+    triggerArea(area) {
+      this.display[area].show = !this.display[area].show
+      this.$nextTick(() => this.layout(300))
+    },
     setTheme(theme) {
       this.theme = theme
       if (window.monaco) {
@@ -126,6 +198,14 @@ module.exports = {
       if (!this._editor) return
       this._editor.trigger(id, id)
     },
+    startDrag(event) {
+      this.hideContextMenus()
+      this.dragging = true
+      this.draggingLastX = event.clientX
+    },
+    stopDrag() {
+      this.dragging = false
+    },
   }
 }
 
@@ -141,8 +221,9 @@ module.exports = {
         {{ menu.name }} (<span>{{ menu.bind }}</span>)&nbsp;
       </div>
     </div>
-    <div class="input" ref="input"/>
-    <mkl-scroll class="document" :margin="4" :radius="6">
+    <div class="editor" ref="monaco" :style="editorStyle"/>
+    <div class="border" @mousedown.stop="startDrag"/>
+    <mkl-scroll class="document" :margin="4" :radius="6" :style="documentStyle">
       <mkl-nodes ref="nodes" :content="nodes"/>
     </mkl-scroll>
     <mkl-menus ref="menus" :keys="menuKeys" :data="menuData" :lists="lists"/>
@@ -180,22 +261,27 @@ module.exports = {
   }
 }
 
-> .input, > .document {
+> .editor, > .document, > .border {
   position: absolute;
   top: 32px;
   bottom: 0;
   height: auto;
+  transition:
+    left 0.3s ease,
+    right 0.3s ease,
+    width 0.3s ease;
 }
 
-> .input {
-  left: 0;
-  width: 50%;
+> .border {
+  width: 2px;
+  z-index: 100;
+  margin-left: -1px;
+  user-select: none;
+  cursor: col-resize;
+  transition: 0.3s ease;
 }
 
-> .mkl-scroll {
-  left: 50%;
-  right: 0;
-
+> .document {
   > .container {
     padding: 0 24px;
   }

@@ -20,6 +20,13 @@
     "name": "全部保存"
   },
   {
+    "method": "triggerArea",
+    "arguments": "editor",
+    "key": "trigger-editor",
+    "name": "编辑器",
+    "checked": "$display.editor.show"
+  },
+  {
     "method": "executeTrigger",
     "arguments": "undo",
     "key": "undo",
