@@ -27,13 +27,12 @@ for (const key of menuKeys) {
 
 module.exports = {
   components: {
-    mklMenuManager: require('./menu-manager.vue'),
+    MarkletMenu: require('./menu-manager.vue'),
   },
 
   data() {
     return {
       menuData,
-      menuKeys,
       menubarMove: 0,
       menubarActive: false,
       altKey: false,
@@ -42,6 +41,7 @@ module.exports = {
 
   provide() {
     return {
+      menuKeys,
       commands,
       $menu: this,
     }

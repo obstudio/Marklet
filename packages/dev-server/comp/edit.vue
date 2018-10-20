@@ -1,31 +1,30 @@
 <script>
 
-const { DocumentLexer } = require('@marklet/parser')
 const { themes } = require('@marklet/renderer')
 
+const MIN_WIDTH = 0.1
+
 module.exports = {
-  extends: require('./menu'),
+  mixins: [
+    require('./menu'),
+    require('./editor'),
+  ],
 
   data: () => ({
     theme: 'dark',
-    origin: '',
-    source: '',
-    nodes: [],
-    loading: 3,
-    changed: false,
     dragging: false,
     display: {
       document: {
         show: true,
-        width: 0.4,
+        width: 0.35,
       },
       editor: {
         show: true,
-        width: 0.4,
+        width: 0.35,
       },
       explorer: {
         show: false,
-        width: 0.2,
+        width: 0.3,
       },
     },
   }),
@@ -41,6 +40,46 @@ module.exports = {
         },
       }
     },
+    totalWidth() {
+      return this.display.editor.width * this.display.editor.show
+        + this.display.explorer.width * this.display.explorer.show
+        + this.display.document.width * this.display.document.show
+    },
+    totalShow() {
+      return this.display.editor.show
+        + this.display.document.show
+        + this.display.explorer.show
+    },
+    explorerWidth() {
+      return this.display.explorer.width / (
+        this.display.explorer.width
+        + this.display.editor.width * this.display.editor.show
+        + this.display.document.width * this.display.document.show
+      ) * 100 + '%'
+    },
+    explorerStyle() {
+      const width = this.explorerWidth
+      const style = { width }
+      if (this.display.explorer.show) {
+        style.left = '0'
+        style.zIndex = 1
+      } else {
+        style.left = '-' + width
+      }
+      if (!this.totalShow) style.opacity = '0'
+      return style
+    },
+    leftBorderStyle() {
+      const style = {}
+      if (this.display.explorer.show) {
+        style.left = this.totalShow > 1 ? this.explorerWidth : '100%'
+        if (this.totalShow > 1) {
+          style.opacity = 1
+          style.cursor = 'col-resize'
+        }
+      }
+      return style
+    },
     editorWidth() {
       return this.display.editor.width / (
         this.display.editor.width
@@ -51,10 +90,27 @@ module.exports = {
     editorStyle() {
       const width = this.editorWidth
       const style = { width }
-      if (this.display.editor.show) {
-        style.left = '0'
+      if (this.display.explorer.show) {
+        if (this.display.document.show) {
+          style.left = this.display.explorer.width * 100 + '%'
+        } else {
+          style.left = this.explorerWidth
+        }
       } else {
-        style.left = '-' + width
+        style.left = '0'
+      }
+      if (this.display.editor.show) style.zIndex = '1'
+      if (!this.totalShow) style.opacity = '0'
+      return style
+    },
+    rightBorderStyle() {
+      const style = {}
+      if (this.display.document.show) {
+        style.right = this.totalShow > 1 ? this.documentWidth : '100%'
+        if (this.totalShow > 1) {
+          style.opacity = 1
+          style.cursor = 'col-resize'
+        }
       }
       return style
     },
@@ -70,121 +126,76 @@ module.exports = {
       const style = { width }
       if (this.display.document.show) {
         style.right = '0'
+        style.zIndex = 1
       } else {
         style.right = '-' + width
       }
+      if (!this.totalShow) style.opacity = '0'
       return style
     },
-  },
-
-  watch: {
-    source(value) {
-      this.nodes = this._lexer.parse(value)
-    },
-    loading(value) {
-      if (!value) {
-        this._editor.setModel(this._model)
-        this.$nextTick(() => this.layout())
-      }
-    },
-  },
-
-  created() {
-    const source = localStorage.getItem('source')
-    if (typeof source === 'string') this.source = source
-    
-    this._lexer = new DocumentLexer()
-
-    this.$eventBus.$on('monaco.loaded', (monaco) => {
-      const model = monaco.editor.createModel(this.source, 'marklet')
-      model.onDidChangeContent(() => this.checkChange())
-      const nodes = this.nodes
-      this.nodes = []
-      this.$nextTick(() => this.nodes = nodes)
-      this._model = model
-      this.loading ^= 1
-    })
   },
 
   mounted() {
     window.vm = this
 
-    this.$eventBus.$on('server.message.document', doc => {
-      this.openFile(doc)
-    })
-
-    this.$eventBus.$on('monaco.loaded', (monaco) => {
-      if (this._editor) return
-      monaco.editor.setTheme(this.theme)
-      this._editor = monaco.editor.create(this.$refs.editor, {
-        model: null,
-        language: 'marklet',
-        lineDecorationsWidth: 4,
-        scrollBeyondLastLine: false,
-        minimap: { enabled: false },
-        scrollbar: {
-          verticalScrollbarSize: 20,
-          verticalSliderSize: 12,
-        },
-      })
-      this._editor.onDidChangeCursorPosition((event) => {
-        this.row = event.position.lineNumber
-        this.column = event.position.column
-      })
-      this.loading ^= 2
-    })
-
     addEventListener('resize', () => {
-      this.$refs.editor.classList.add('no-transition')
+      this.dragging = true
       this.layout()
-      this.$refs.editor.classList.remove('no-transition')
+      this.dragging = null
     }, { passive: true })
 
-    addEventListener('mouseup', (event) => {
+    addEventListener('mouseup', () => {
       this.layout()
-      this.stopDrag(event)
+      this.$refs.left.classList.remove('active')
+      this.$refs.right.classList.remove('active')
+      this.dragging = null
     }, { passive: true })
 
     addEventListener('mousemove', (event) => {
-      if (this.dragging) {
-        this.layout()
-        event.stopPropagation()
-        const toMax = this.extensionHeight <= this.remainHeight || this.draggingLastY < event.clientY
-        const toMin = this.extensionHeight >= 36 || this.draggingLastY > event.clientY
-        if (toMax && toMin) {
-          this.extensionHeight += this.draggingLastY - event.clientY
-          this.draggingLastY = event.clientY
-        }
-      }
-    })
+      let left, right
+      if (this.dragging === 'left') {
+        left = 'explorer'
+        if (this.display.editor.show) {
+          right = 'editor'
+        } else if (this.display.document.show) {
+          right = 'document'
+        } else return
+      } else if (this.dragging === 'right') {
+        right = 'document'
+        if (this.display.editor.show) {
+          right = 'editor'
+        } else if (this.display.explorer.show) {
+          right = 'explorer'
+        } else return
+      } else return
 
-    addEventListener('beforeunload', () => {
-      localStorage.setItem('source', this.source)
+      this.layout()
+      event.stopPropagation()
+
+      const baseWidth = innerWidth / this.totalWidth
+      const deltaX = (this.draggingLastX - event.clientX) / baseWidth
+      this.draggingLastX = event.clientX
+      if (this.display[left].width - deltaX < MIN_WIDTH) {
+        this.draggingLastX += (MIN_WIDTH - this.display[left].width + deltaX) * baseWidth
+        this.display[right].width += this.display[left].width - MIN_WIDTH
+        this.display[left].width = MIN_WIDTH
+      } else if (this.display[right].width + deltaX < MIN_WIDTH) {
+        this.draggingLastX -= (MIN_WIDTH - this.display[right].width - deltaX) * baseWidth
+        this.display[left].width -= MIN_WIDTH - this.display[right].width
+        this.display[right].width = MIN_WIDTH
+      } else {
+        this.display[left].width -= deltaX
+        this.display[right].width += deltaX
+      }
     })
   },
 
   methods: {
-    openFile(doc) {
-      this.source = doc // TODO: need more consideration as another listener monaco.loaded exists
-    },
-    save() {
-      this.$eventBus.$emit('client.message', 'save', this.source) // TODO: maybe file name is needed. depend on backend impl
-    },
-    saveAs() {
-      this.$eventBus.$emit('client.message', 'saveAs', {
-        source: this.source,
-        name: '' // TODO: read file name
-      })
-    },
-    saveAll() {
-      // TODO: unclear requirement
-    },
     triggerArea(area) {
       this.display[area].show = !this.display[area].show
-      if (!this.display.editor.show && !this.display.document.show) {
-        this.display.document.show = true
+      if (this.display.editor.show) {
+        this.$nextTick(() => this.layout(300))
       }
-      this.$nextTick(() => this.layout(300))
     },
     setTheme(theme) {
       this.theme = theme
@@ -192,38 +203,11 @@ module.exports = {
         window.monaco.editor.setTheme(theme)
       }
     },
-    checkChange(data) {
-      if (data !== undefined) this.origin = data
-      this.source = this._model.getValue()
-      this.changed = this.origin !== this.source
-    },
-    layout(deltaTime = 0) {
-      const now = performance.now(), self = this
-      this._editor._configuration.observeReferenceElement()
-      this._editor._view._actualRender()
-      if (!deltaTime) return
-      requestAnimationFrame(function layout(newTime) {
-        self._editor._configuration.observeReferenceElement()
-        self._editor._view._actualRender()
-        if (newTime - now < deltaTime) requestAnimationFrame(layout)
-      })
-    },
-    executeAction(id) {
-      if (!this._editor) return
-      const action = this._editor.getAction(id)
-      if (action) action.run(this._editor)
-    },
-    executeTrigger(id) {
-      if (!this._editor) return
-      this._editor.trigger(id, id)
-    },
-    startDrag(event) {
+    startDrag(position, event) {
       this.hideContextMenus()
-      this.dragging = true
+      this.dragging = position
+      this.$refs[position].classList.add('active')
       this.draggingLastX = event.clientX
-    },
-    stopDrag() {
-      this.dragging = false
     },
   }
 }
@@ -231,7 +215,7 @@ module.exports = {
 </script>
 
 <template>
-  <div :class="theme" class="marklet"
+  <div :class="[theme, { dragging }]" class="marklet"
     @click="hideContextMenus" @contextmenu="hideContextMenus">
     <div class="menubar">
       <div v-for="(menu, index) in menuData.menubar.content" :key="index" class="item"
@@ -240,12 +224,16 @@ module.exports = {
         {{ menu.name }} (<span>{{ menu.bind }}</span>)&nbsp;
       </div>
     </div>
-    <div class="editor" ref="editor" :style="editorStyle"/>
-    <div class="border" @mousedown.stop="startDrag"/>
-    <mkl-scroll class="document" :margin="4" :radius="6" :style="documentStyle">
+    <div class="view explorer" :style="explorerStyle"/>
+    <div class="border left" ref="left" :style="leftBorderStyle"
+      @mousedown.stop="startDrag('left', $event)"/>
+    <div class="view editor" ref="editor" :style="editorStyle"/>
+    <div class="border right" ref="right" :style="rightBorderStyle"
+      @mousedown.stop="startDrag('right', $event)"/>
+    <mkl-scroll class="view document" :style="documentStyle" :margin="4" :radius="6">
       <mkl-nodes ref="nodes" :content="nodes"/>
     </mkl-scroll>
-    <mkl-menu-manager ref="menus" :keys="menuKeys" :data="menuData"/>
+    <marklet-menu ref="menus" :data="menuData"/>
   </div>
 </template>
 
@@ -267,6 +255,7 @@ module.exports = {
   height: 32px;
   width: 100%;
   float: left;
+  z-index: 11;
   user-select: none;
   position: relative;
 
@@ -280,24 +269,45 @@ module.exports = {
   }
 }
 
-> .editor, > .document, > .border {
+> .view, > .border {
   position: absolute;
   top: 32px;
   bottom: 0;
+  z-index: 0;
   height: auto;
   transition:
     left 0.3s ease,
     right 0.3s ease,
-    width 0.3s ease;
+    width 0.3s ease,
+    opacity 0.3s ease;
+}
+
+> .view {
+  opacity: 1;
+}
+
+&.dragging {
+  > .view, > .border {
+    transition: none !important;
+  }
 }
 
 > .border {
   width: 2px;
-  z-index: 100;
-  margin-left: -1px;
+  z-index: 2;
+  opacity: 0;
   user-select: none;
-  cursor: col-resize;
   transition: 0.3s ease;
+
+  &.left {
+    left: 0;
+    margin-left: -1px;
+  }
+
+  &.right {
+    right: 0;
+    margin-right: -1px;
+  }
 }
 
 > .document {

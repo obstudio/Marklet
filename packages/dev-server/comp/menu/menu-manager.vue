@@ -1,9 +1,10 @@
 <script>
 
 module.exports = {
-  props: ['keys', 'data'],
+  props: ['data'],
+  inject: ['menuKeys'],
   components: {
-    mklMenu: require('./menu-view.vue')
+    MarkletMenuView: require('./menu-view.vue'),
   },
 }
 
@@ -11,8 +12,8 @@ module.exports = {
 
 <template>
   <div class="marklet-menu-manager">
-    <transition name="marklet-menu" v-for="key in keys" :key="key">
-      <mkl-menu v-show="data[key].show" class="marklet-menu"
+    <transition name="marklet-menu" v-for="key in menuKeys" :key="key">
+      <marklet-menu-view class="marklet-menu" v-show="data[key].show"
         :data="data[key].content" :embed="data[key].embed"/>
     </transition>
   </div>
@@ -33,6 +34,7 @@ module.exports = {
   margin: 0;
   outline: 0;
   border: none;
+  padding: 4px 0;
   position: absolute;
   transition: 0.3s ease;
 }

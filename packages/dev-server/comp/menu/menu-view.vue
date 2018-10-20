@@ -1,12 +1,12 @@
 <script>
 
 module.exports = {
-  name: 'mkl-menu',
+  name: 'marklet-menu-view',
   inject: ['commands', '$menu'],
   props: ['data', 'embed'],
   components: {
-    mklMenuList: require('./menu-list.vue'),
-    mklMenuItem: require('./menu-item.vue'),
+    MarkletMenuList: require('./menu-list.vue'),
+    MarkletMenuItem: require('./menu-item.vue'),
   },
 }
 
@@ -16,13 +16,13 @@ module.exports = {
   <div>
     <template v-for="(item, index) in data">
       <template v-if="(item instanceof Object)">
-        <mkl-menu :key="index" v-show="embed[index]" :data="item.content"/>
+        <marklet-menu-view :key="index" v-show="embed[index]" :data="item.content"/>
       </template>
       <div :key="index" v-else-if="item === '@separator'" class="menu-item disabled" @click.stop>
         <div class="separator"/>
       </div>
-      <mkl-menu-item :key="index" v-else-if="!item.startsWith('@')" :command="commands[item]"/>
-      <mkl-menu-list :key="index" v-else :list="$menu.lists[item.slice(1)]"/>
+      <marklet-menu-item :key="index" v-else-if="!item.startsWith('@')" :command="commands[item]"/>
+      <marklet-menu-list :key="index" v-else :list="$menu.lists[item.slice(1)]"/>
     </template>
   </div>
 </template>

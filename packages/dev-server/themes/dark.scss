@@ -1,20 +1,31 @@
+$menu-bgcolor: #2d2f31;
+$menu-shadow: #000000;
+
+&, > .explorer {
+  background-color: #272822;
+}
+
 > .menubar {
   color: #c8c8c8;
   background-color: #212220;
 
   .item:hover { background-color: #3A3A3A }
-  .item.active { background-color: #252525 }
+
+  .item.active {
+    background-color: $menu-bgcolor;
+    box-shadow: 0 0 8px $menu-shadow;
+  }
 }
 
-> .input > .border {
+> .border {
   background-color: #666666;
 
-  &:hover { background-color: #999999 }
+  &:hover, &.active { background-color: #999999 }
 }
 
 .marklet-menu {
-  background-color: #2D2F31;
-  box-shadow: 0 2px 8px #000000;
+  background-color: $menu-bgcolor;
+  box-shadow: 0 2px 8px $menu-shadow;
 
   .menu-item {
     .label { color: #bbbbbb }
