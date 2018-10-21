@@ -13,6 +13,12 @@ interface MarkletLexerConfig extends LexerConfig {
   require_bound?: boolean
 }
 
+export const defaultConfig: MarkletLexerConfig = {
+  header_align: true,
+  allow_section: true,
+  default_language: '',
+}
+
 export interface ParseOptions {
   input: string
   config?: MarkletLexerConfig

@@ -11,7 +11,12 @@
   "main": "dist/server.js",
   "typings": "dist/server.d.ts",
   "files": [
-    "dist"
+    "dist/server.js",
+    "dist/server.d.ts",
+    "dist/client.min.js",
+    "dist/client.min.css",
+    "dist/themes.min.css",
+    "dist/monaco.min.css"
   ],
   "repository": {
     "type": "git",

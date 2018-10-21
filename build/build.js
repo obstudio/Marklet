@@ -109,20 +109,24 @@ Promise.resolve().then(() => {
     util.exec('tsc -p packages/dev-server')
   }
 
-  if (program.prod) {
-    fs.writeFileSync(
-      util.resolve('dev-server/dist/index.html'),
-      minify(fs.readFileSync(util.resolve('dev-server/src/index.html')).toString(), {
-        collapseWhitespace: true,
-        removeAttributeQuotes: true,
-      })
-    )
-  } else {
-    fs.copyFileSync(
-      util.resolve('dev-server/src/index.html'),
-      util.resolve('dev-server/dist/index.html')
-    )
+  function minifyHTML(type) {
+    const srcPath = util.resolve(`dev-server/src/${type}.html`)
+    const distPath = util.resolve(`dev-server/dist/${type}.html`)
+    if (program.prod) {
+      fs.writeFileSync(
+        distPath,
+        minify(fs.readFileSync(srcPath).toString(), {
+          collapseWhitespace: true,
+          removeAttributeQuotes: true,
+        })
+      )
+    } else {
+      fs.copyFileSync(srcPath, distPath)
+    }
   }
+
+  minifyHTML('edit')
+  minifyHTML('watch')
 
   let css = ''
   themes.forEach(({ key }) => {
@@ -160,13 +164,14 @@ Promise.resolve().then(() => {
       })
     })))
   }).then(() => {
+    fs.writeFileSync(util.resolve('dev-server/dist/themes.min.css'), css)
     return new Promise((resolve, reject) => {
       sass.render({
         data: fs.readFileSync(util.resolve('dev-server/src/monaco.scss')).toString(),
         outputStyle: 'compressed',
       }, (error, result) => {
         if (error) reject(error)
-        fs.writeFileSync(util.resolve('dev-server/dist/editor.min.css'), css + result.css)
+        fs.writeFileSync(util.resolve('dev-server/dist/monaco.min.css'), result.css)
         resolve()
       })
     })

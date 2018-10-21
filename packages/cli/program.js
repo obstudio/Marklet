@@ -44,11 +44,11 @@ Object.assign(Object.getPrototypeOf(program), {
       .option('-p, --port [port]', 'port for the development server', parseInt, DEFAULT_PORT)
   },
   getConfig() {
-    return {
-      header_align: this.headerAlign,
-      allow_section: this.section,
-      default_language: this.language,
-    }
+    const config = {}
+    if (!this.headerAlign) config.header_align = false
+    if (!this.section) config.allow_section = false
+    if (this.language) config.default_language = this.language
+    return config
   },
   getOptions(filepath = '', forced = true) {
     filepath = path.resolve(filepath)
