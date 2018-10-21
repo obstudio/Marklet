@@ -1,4 +1,4 @@
-const { DocumentLexer } = require('@marklet/parser')
+const { DocumentLexer, defaultConfig } = require('@marklet/parser')
 
 module.exports = {
   data: () => ({
@@ -7,11 +7,16 @@ module.exports = {
     source: '',
     loading: 3,
     changed: false,
+    config: defaultConfig,
   }),
 
   watch: {
     source(value) {
       this.nodes = this._lexer.parse(value)
+    },
+    config(value) {
+      this._lexer = new DocumentLexer(value)
+      this.nodes = this._lexer.parse(this.source)
     },
     loading(value) {
       if (!value) {
@@ -22,10 +27,14 @@ module.exports = {
   },
 
   created() {
+    this._lexer = new DocumentLexer(defaultConfig)
+
     const source = localStorage.getItem('source')
     if (typeof source === 'string') this.source = source
-    
-    this._lexer = new DocumentLexer()
+
+    this.$eventBus.$on('server.config', (config) => {
+      this.config = Object.assign(defaultConfig, config)
+    })
 
     this.$eventBus.$on('monaco.loaded', (monaco) => {
       const model = monaco.editor.createModel(this.source, 'marklet')
@@ -39,13 +48,16 @@ module.exports = {
   },
 
   mounted() {
-    this.$eventBus.$on('server.message.document', doc => {
+    this.$eventBus.$on('server.document', (doc) => {
       this.openFile(doc)
+    })
+
+    this.$eventBus.$on('monaco.theme.loaded', (monaco) => {
+      monaco.editor.setTheme(this.theme)
     })
 
     this.$eventBus.$on('monaco.loaded', (monaco) => {
       if (this._editor) return
-      monaco.editor.setTheme(this.theme)
       this._editor = monaco.editor.create(this.$refs.editor, {
         model: null,
         language: 'marklet',

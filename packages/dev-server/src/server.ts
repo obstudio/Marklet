@@ -2,7 +2,9 @@ import * as path from 'path'
 import * as http from 'http'
 import * as url from 'url'
 import * as fs from 'fs'
-import * as ws from 'ws'
+import ws from 'ws'
+
+import { LexerConfig } from '@marklet/parser'
 
 export const DEFAULT_PORT = 10826
 
@@ -20,6 +22,10 @@ ws.Server.prototype.broadcast = function (data) {
   })
 }
 
+function sendMsg(this: ws, type: string, data: object) {
+  this.send(JSON.stringify({ type, data }))
+}
+
 function toDocMessage(filename: string) {
   return JSON.stringify({
     type: 'document',
@@ -31,6 +37,7 @@ type ServerType = 'watch' | 'edit'
 
 interface ServerOptions {
   port?: number
+  config?: LexerConfig
 }
 
 class MarkletServer<T extends ServerType> {
@@ -88,7 +95,12 @@ class MarkletServer<T extends ServerType> {
         handleData(data.toString(), contentType)
       })
     }).listen(this.port)
+
     this.wsServer = new ws.Server({ server: this.httpServer })
+    this.wsServer.on('connection', (ws) => {
+      sendMsg.call(ws, 'config', options.config)
+    })
+
     console.log(`Server running at http://localhost:${this.port}/`)
   }
 }
