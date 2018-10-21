@@ -7,6 +7,7 @@ const { DEFAULT_PORT } = require('@marklet/dev-server')
 
 const JS_TYPES = ['.json', '.js']
 const YAML_TYPES = ['.yml', '.yaml']
+const MARK_TYPES = ['.mkl', '.md']
 const ALL_TYPES = [
   ...JS_TYPES,
   ...YAML_TYPES,
@@ -53,11 +54,15 @@ Object.assign(Object.getPrototypeOf(program), {
   getOptions(filepath = '', forced = true) {
     filepath = path.resolve(filepath)
     let basePath = path.resolve(process.cwd(), filepath)
-    let options = {}
+    let options = { sourceType: 'project' }
     try {
       util.tryFindFile(filepath)
       if (fs.statSync(basePath).isFile()) {
-        options = loadFromFile(basePath)
+        if (!MARK_TYPES.includes(path.extname(basePath))) {
+          Object.assign(options, loadFromFile(basePath))
+        } else {
+          options.sourceType = 'file'
+        }
       } else {
         let matchFound = false
         basePath = path.join(basePath, 'marklet')
@@ -65,7 +70,7 @@ Object.assign(Object.getPrototypeOf(program), {
           const filename = basePath + type
           if (!fs.existsSync(filename)) continue
           if (fs.statSync(filename).isFile()) {
-            options = loadFromFile(filename)
+            Object.assign(options, loadFromFile(filename))
             matchFound = true
             break
           }
