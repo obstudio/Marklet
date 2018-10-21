@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "node build/build -r && node packages/cli -m edit",
+    "start": "node build/build -r && node packages/cli edit",
     "bootstrap": "lerna bootstrap --no-ci",
     "build": "tsc -b && node build/build -sr",
     "build:prod": "tsc -b && node build/build -psr",
@@ -23,7 +23,7 @@
     "chalk": "^2.4.1",
     "cheerio": "^1.0.0-rc.2",
     "commander": "^2.19.0",
-    "electron": "^3.0.4",
+    "electron": "^3.0.5",
     "eslint": "^5.7.0",
     "eslint-plugin-vue": "^5.0.0-beta.3",
     "fast-deep-equal": "^2.0.1",
@@ -35,6 +35,6 @@
     "sfc2js": "^4.0.0-beta.1",
     "tslint": "^5.11.0",
     "typescript": "^3.1.3",
-    "webpack": "^4.21.0"
+    "webpack": "^4.22.0"
   }
 }

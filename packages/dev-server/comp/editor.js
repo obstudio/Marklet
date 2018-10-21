@@ -5,7 +5,7 @@ module.exports = {
     nodes: [],
     origin: '',
     source: '',
-    loading: 3,
+    loading: 1,
     changed: false,
     config: defaultConfig,
   }),
@@ -38,16 +38,6 @@ module.exports = {
     this.$eventBus.$on('server.config', (config) => {
       this.config = Object.assign(defaultConfig, config)
     })
-
-    this.$eventBus.$on('monaco.loaded', (monaco) => {
-      const model = monaco.editor.createModel(this.source, 'marklet')
-      model.onDidChangeContent(() => this.checkChange())
-      const nodes = this.nodes
-      this.nodes = []
-      this.$nextTick(() => this.nodes = nodes)
-      this._model = model
-      this.loading ^= 1
-    })
   },
 
   mounted() {
@@ -60,6 +50,13 @@ module.exports = {
     })
 
     this.$eventBus.$on('monaco.loaded', (monaco) => {
+      const model = monaco.editor.createModel(this.source, 'marklet')
+      model.onDidChangeContent(() => this.checkChange())
+      const nodes = this.nodes
+      this.nodes = []
+      this.$nextTick(() => this.nodes = nodes)
+      this._model = model
+
       if (this._editor) return
       this._editor = monaco.editor.create(this.$refs.editor, {
         model: null,
@@ -76,7 +73,7 @@ module.exports = {
         this.row = event.position.lineNumber
         this.column = event.position.column
       })
-      this.loading ^= 2
+      this.loading = 0
     })
 
     addEventListener('beforeunload', () => {
@@ -86,7 +83,11 @@ module.exports = {
 
   methods: {
     openFile(doc) {
-      this.source = doc // TODO: need more consideration as another listener monaco.loaded exists
+      if (this.loading) {
+        this.source = doc
+      } else {
+        this._model.setValue(doc)
+      }
     },
     save() {
       this.$eventBus.$emit('client.message', 'save', this.source) // TODO: maybe file name is needed. depend on backend impl
