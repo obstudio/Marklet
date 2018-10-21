@@ -1,7 +1,6 @@
 import VueConstructor from 'vue'
 import Monaco from 'monaco-editor'
 import * as renderer from '@marklet/renderer'
-import { DocumentLexer, LexerConfig } from '@marklet/parser'
 
 declare global {
   export const Vue: typeof VueConstructor
@@ -93,16 +92,15 @@ const client = new class MarkletClient {
 
 addEventListener('beforeunload', () => client.dispose())
 
+const typeMap = {
+  edit: '编辑',
+  watch: '监视',
+}
+
 export const Marklet = {
-  components: {
-    watch: require('@/watch.vue'),
-    edit: require('@/edit.vue'),
-  },
-  parse(source: string, config: LexerConfig) {
-    return new DocumentLexer(config).parse(source)
-  },
-  start({ el, type }: { el: string | HTMLElement, type: 'watch' | 'edit' }) {
-    document.title = 'Marklet - ' + type
-    new Vue(this.components[type]).$mount(el)
+  app: require('@/app.vue'),
+  start(type: keyof typeof typeMap) {
+    document.title = 'Marklet - ' + typeMap[type]
+    return new Vue(this.app)
   }
 }

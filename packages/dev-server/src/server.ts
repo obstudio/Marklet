@@ -33,7 +33,7 @@ function toDocMessage(filename: string) {
   })
 }
 
-type ServerType = 'watch' | 'edit'
+export type ServerType = 'watch' | 'edit'
 
 interface ServerOptions {
   port?: number
@@ -72,11 +72,8 @@ class MarkletServer<T extends ServerType> {
           handleError(error)
           return
         }
-      } else if (pathname === 'start') {
-        handleData(`Marklet.start({ el: '#app', type: '${type}' })`, 'text/javascript')
-        return
       } else {
-        filepath = path.join(__dirname, pathname || 'index.html')
+        filepath = path.join(__dirname, pathname || type + '.html')
       }
       fs.readFile(filepath, (error, data) => {
         if (error) {

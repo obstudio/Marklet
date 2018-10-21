@@ -14,9 +14,12 @@ module.exports = {
     source(value) {
       this.nodes = this._lexer.parse(value)
     },
-    config(value) {
-      this._lexer = new DocumentLexer(value)
-      this.nodes = this._lexer.parse(this.source)
+    config: {
+      deep: true,
+      handler(value) {
+        this._lexer = new DocumentLexer(value)
+        this.nodes = this._lexer.parse(this.source)
+      },
     },
     loading(value) {
       if (!value) {

@@ -1,25 +1,32 @@
 let _Vue = null, ASTNodes = null
 
+const components = {
+  'collapse-transition': require('@/transitions/collapse-transition.vue'),
+  'mkl-codeblock': require('@/codeblock.vue'),
+  'mkl-collapse': require('@/collapse.vue'),
+  'mkl-heading': require('@/heading.vue'),
+  'mkl-inlinelist': require('@/inlinelist.vue'),
+  'mkl-input': require('@/input.vue'),
+  'mkl-list-item': require('@/list-item.vue'),
+  'mkl-list': require('@/list.vue'),
+  'mkl-nodes': require('@/nodes.vue'),
+  'mkl-paragraph': require('@/paragraph.vue'),
+  'mkl-quote': require('@/quote.vue'),
+  'mkl-scroll': require('@/scroll.vue'),
+  'mkl-section': require('@/section.vue'),
+  'mkl-separator': require('@/separator.vue'),
+  'mkl-table': require('@/table.vue'),
+  'mkl-usages': require('@/usages.vue'),
+}
+
 const Renderer = {
+  components,
   themes: require('../themes'),
   install(Vue) {
     _Vue = Vue
-    Vue.component('collapse-transition', require('../temp/transitions/collapse-transition.vue'))
-    Vue.component('mkl-codeblock', require('../temp/codeblock.vue'))
-    Vue.component('mkl-collapse', require('../temp/collapse.vue'))
-    Vue.component('mkl-heading', require('../temp/heading.vue'))
-    Vue.component('mkl-inlinelist', require('../temp/inlinelist.vue'))
-    Vue.component('mkl-input', require('../temp/input.vue'))
-    Vue.component('mkl-list-item', require('../temp/list-item.vue'))
-    Vue.component('mkl-list', require('../temp/list.vue'))
-    Vue.component('mkl-nodes', require('../temp/nodes.vue'))
-    Vue.component('mkl-paragraph', require('../temp/paragraph.vue'))
-    Vue.component('mkl-quote', require('../temp/quote.vue'))
-    Vue.component('mkl-scroll', require('../temp/scroll.vue'))
-    Vue.component('mkl-section', require('../temp/section.vue'))
-    Vue.component('mkl-separator', require('../temp/separator.vue'))
-    Vue.component('mkl-table', require('../temp/table.vue'))
-    Vue.component('mkl-usages', require('../temp/usages.vue'))
+    for (const key in components) {
+      Vue.component(key, components[key])
+    }
   },
   embed(element, content = []) {
     if (!_Vue) {
@@ -29,7 +36,7 @@ const Renderer = {
         throw new Error('No vue constructor was found.')
       }
     }
-    if (!ASTNodes) ASTNodes = _Vue.extend(require('../temp/nodes.vue'))
+    if (!ASTNodes) ASTNodes = _Vue.extend(components['mkl-nodes'])
     new ASTNodes({ propsData: { content } }).$mount(element)
   }
 }
