@@ -163,9 +163,9 @@ module.exports = {
       } else if (this.dragging === 'right') {
         right = 'document'
         if (this.display.editor.show) {
-          right = 'editor'
+          left = 'editor'
         } else if (this.display.explorer.show) {
-          right = 'explorer'
+          left = 'explorer'
         } else return
       } else return
 
@@ -191,6 +191,9 @@ module.exports = {
   },
 
   methods: {
+    windowOpen(url) {
+      window.open(url)
+    },
     triggerArea(area) {
       this.display[area].show = !this.display[area].show
       if (this.display.editor.show) {

@@ -41,6 +41,12 @@
     "checked": "$display.document.show"
   },
   {
+    "method": "windowOpen",
+    "arguments": "https://github.com/obstudio/Marklet",
+    "key": "open-repository",
+    "name": "源代码仓库"
+  },
+  {
     "method": "executeTrigger",
     "arguments": "undo",
     "key": "undo",
