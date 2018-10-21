@@ -40,6 +40,14 @@
         "@separator",
         "@themes"
       ]
+    },
+    {
+      "key": "link",
+      "name": "链接",
+      "bind": "L",
+      "content": [
+        "open-repository"
+      ]
     }
   ]
 }

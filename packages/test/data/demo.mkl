@@ -3,3 +3,28 @@
 text **bold** `123`
 
 > quote
+
+```c
+int code = 2;
+```
+
+-.-.-
+
++ an + inline + list
+
+^^ Section 1.1
+
+- item 1
+- item 2
+  - item 2.1
+    - item 2.1.1
+- item 3
+  1. item 3.1
+  2. item 3.2
+
+## centered #
+
+=    *<    >
+*居中*    左对齐    _右对齐_
+看上去    -很-    正确
+OH    YEAH    ♪    看不到我吧
