@@ -18,7 +18,7 @@ eventBus.$on('monaco.loaded', (monaco: typeof Monaco) => {
   monaco.editor.defineTheme('simple', require('../themes/simple'))
 })
 
-const client = new class WatchClient {
+const client = new class MarkletClient {
   private url: string
   private retry: boolean
   private timeout: number
