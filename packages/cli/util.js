@@ -11,12 +11,16 @@ function handleError(message) {
   process.exit(1)
 }
 
-function tryFindFile(filepath) {
-  if (fs.existsSync(fullPath(filepath))) return
+function tryFindFile(filepath, forceFile = false) {
+  const basePath = fullPath(filepath)
+  const isExist = fs.existsSync(basePath)
+  if (isExist && (!forceFile || fs.statSync(basePath).isFile())) return
   if (!filepath) {
     handleError('a filepath is required.')
+  } else if (!isExist) {
+    handleError(chalk`file {cyanBright ${filepath}} was not found.`)
   } else {
-    handleError(`file ${filepath} was not found.`)
+    handleError(chalk`{cyanBright ${filepath}} is not a file.`)
   }
 }
 

@@ -54,8 +54,8 @@ export class DocumentLexer extends Lexer<TokenLike[]> {
     this.entrance = options.entrance || 'main'
     this.inlineEntrance = options.inlineEntrance || 'text'
     this.requireBound = !!options.requireBound
-
-    this.macros = new MacroMap(options.macros || {})
+    this.macros = new MacroMap(options.macros || {}, this.config)
+    
     for (const key in contexts) {
       const context = contexts[key]
       if (context instanceof Array) {

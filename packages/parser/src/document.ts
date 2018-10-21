@@ -184,6 +184,7 @@ export default class MarkletDocumentLexer extends DocumentLexer {
         eol: /[ \t]*(?:\n|$)/,
         cell: /\S(?: {0,3}\S)*/,
       },
+      requireBound: config.require_bound,
       config: {
         tab_indent: 2,
         header_align: true,
