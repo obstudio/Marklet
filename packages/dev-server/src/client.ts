@@ -52,7 +52,7 @@ const client = new class MarkletClient {
       while (this.msgQueue.length > 0 && this.ws.readyState === 1) {
         this.ws.send(this.msgQueue.shift())
       }
-    }, 1000)
+    }, this._interval)
   }
 
   createWebSocket() {
