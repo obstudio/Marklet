@@ -22,22 +22,12 @@ ws.Server.prototype.broadcast = function (data) {
   })
 }
 
-function sendMsg(this: ws, type: string, data: object) {
-  this.send(JSON.stringify({ type, data }))
-}
-
-function toDocMessage(filename: string) {
-  return JSON.stringify({
-    type: 'document',
-    data: fs.readFileSync(filename).toString()
-  })
-}
-
 export type ServerType = 'watch' | 'edit'
 export type SourceType = 'file' | 'folder'
 
 interface ServerOptions {
   port?: number
+  filepath?: string
   config?: LexerConfig
   sourceType?: SourceType
 }
@@ -45,6 +35,7 @@ interface ServerOptions {
 class MarkletServer<T extends ServerType> {
   type: T
   port: number
+  filepath: string
   sourceType: SourceType
   config: LexerConfig
   wsServer: ws.Server
@@ -52,6 +43,7 @@ class MarkletServer<T extends ServerType> {
 
   constructor(type: T, options: ServerOptions = {}) {
     this.type = type
+    this.filepath = options.filepath
     this.config = options.config || {}
     this.port = options.port || DEFAULT_PORT
     this.sourceType = options.sourceType || 'file'
@@ -81,6 +73,7 @@ class MarkletServer<T extends ServerType> {
       } else if (pathname === 'initialize.js') {
         handleData(`
           marklet.type = '${type}'
+          marklet.filepath = '${this.filepath}'
           marklet.sourceType = '${this.sourceType}'
           marklet.config = ${JSON.stringify(this.config)}
         `)
@@ -107,31 +100,71 @@ class MarkletServer<T extends ServerType> {
     }).listen(this.port)
 
     this.wsServer = new ws.Server({ server: this.httpServer })
+    if (this.sourceType === 'file') {
+      this.wsServer.on('connection', (ws) => {
+        ws.send(FileMessage(this.filepath))
+      })
+      fs.watch(this.filepath, (eventType) => {
+        // FIXME: any need to check eventType?
+        this.wsServer.broadcast(FileMessage(this.filepath))
+      })
+    } else {
+      this.wsServer.on('connection', (ws) => {
+        for (const message in ProjectMessages(this.filepath)) {
+          ws.send(message)
+        }
+      })
+      fs.watch(this.filepath, () => {
+        // FIXME: only watching the index file is far from enough
+        // you need to watch the basedir and every files in it
+        for (const message in ProjectMessages(this.filepath)) {
+          this.wsServer.broadcast(message)
+        }
+      })
+    }
     
     console.log(`Server running at http://localhost:${this.port}/`)
   }
 }
 
+type FileTree = IterableIterator<string | Directory>
+interface Directory { name: string, children: FileTree }
+
+function* traverse(filepath: string): FileTree {
+  // FIXME: get all files in a directory
+}
+
+function* ProjectMessages(filepath: string): IterableIterator<string> {
+  const source = fs.readFileSync(filepath).toString()
+  const options = JSON.parse(source) // FIXME: support for yaml
+  yield JSON.stringify({ type: 'project', data: options })
+  const basedir = options.basedir || path.dirname(filepath)
+  yield JSON.stringify({ type: 'filetree', data: traverse(basedir) })
+  // FIXME: add inner messages, for example file contents
+}
+
+function FileMessage(filepath: string, type = 'document') {
+  return JSON.stringify({
+    type,
+    filepath,
+    data: fs.readFileSync(filepath).toString(),
+  })
+}
+
 export { MarkletServer as Server }
 
 export interface WatchOptions extends ServerOptions {
-  source: string
+  filepath: string // required
 }
 
 export function watch(options: WatchOptions): MarkletServer<'watch'> {
-  const server = new MarkletServer('watch', options)
-  server.wsServer.on('connection', (ws) => {
-    ws.send(toDocMessage(options.source))
-  })
-  fs.watch(options.source, () => {
-    server.wsServer.broadcast(toDocMessage(options.source))
-  })
-  return server
+  return new MarkletServer('watch', options)
 }
 
 export interface EditOptions extends ServerOptions {}
 
 export function edit(options: EditOptions): MarkletServer<'edit'> {
   const server = new MarkletServer('edit', options)
+  // handle saving files and changing config and so on
   return server
 }
