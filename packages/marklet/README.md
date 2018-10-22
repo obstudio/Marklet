@@ -10,21 +10,21 @@ A markup language designed for API manual pages.
 ## Usage: CLI
 
 ```
-Usage: marklet [filepath|dirpath] [options]
+Usage: marklet [options] [command]
+
+A command line interface for marklet.
 
 Options:
+  -v, --version                       output the version number
+  -h, --help                          output usage information
 
-  -v, --version                      output the version number
-  -m, --mode [mode]                  Choose between parse, watch and edit mode (default: parse)
-  -s, --source [path]                Read text from file
-  -i, --input [text]                 Read text directly from stdin
-  -d, --dest [path]                  Write parsed data to file instead of stdin
-  -p, --port [port]                  Port for the development server
-  -l, --default-language [language]  Default language in code block
-  -H, --no-header-align              Disable header to align at center
-  -S, --no-section                   Disallow section syntax
-  -h, --help                         output usage information
+Commands:
+  parse [options] [filepath]          Parse a marklet file into marklet AST.
+  edit [options] [filepath|dirpath]   Edit a marklet file or project.
+  watch [options] [filepath|dirpath]  Watch a marklet file or project.
 ```
+
+See details [here](https://github.com/obstudio/Marklet/blob/master/packages/cli/README.md).
 
 ## Usage: Node
 

@@ -1,0 +1,53 @@
+{
+  "menubar": [
+    {
+      "key": "file",
+      "name": "文件",
+      "bind": "F",
+      "content": [
+        "open-file",
+        "@separator",
+        "save",
+        "save-as",
+        "save-all"
+      ]
+    },
+    {
+      "key": "edit",
+      "name": "编辑",
+      "bind": "E",
+      "content": [
+        "undo",
+        "redo",
+        "@separator",
+        "cut",
+        "copy",
+        "paste",
+        "@separator",
+        "find",
+        "find-next",
+        "find-previous"
+      ]
+    },
+    {
+      "key": "view",
+      "name": "视图",
+      "bind": "V",
+      "content": [
+        "trigger-explorer",
+        "trigger-editor",
+        "trigger-document",
+        "@separator",
+        "@themes"
+      ]
+    },
+    {
+      "key": "link",
+      "name": "链接",
+      "bind": "L",
+      "content": [
+        "open-repository"
+      ]
+    }
+  ]
+}

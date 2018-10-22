@@ -31,7 +31,7 @@ module.exports = {
 </script>
 
 <template>
-  <div class="codeblock" v-html="html"/>
+  <div class="mkl-codeblock" v-html="html"/>
 </template>
 
 <style lang="scss" scoped>

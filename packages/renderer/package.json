@@ -21,10 +21,13 @@
     "url": "https://github.com/obstudio/Marklet/issues"
   },
   "dependencies": {
-    "@marklet/core": "^3.2.2"
+    "@marklet/core": "^3.2.2",
+    "neat-scroll": "^2.0.1"
+  },
+  "devDependencies": {
+    "vue": "^2.5.17"
   },
   "peerDependencies": {
-    "neat-scroll": "^2.0.1",
     "vue": "^2.5.17"
   }
 }

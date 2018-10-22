@@ -71,10 +71,9 @@ module.exports = {
   background-color: transparent;
   width: -webkit-fill-available;
   transition: background-color 0.3s ease;
-  border-bottom: 1px solid #ebeef5;
+  padding-bottom: 16px;
 
   > .header {
-    color: #303133;
     padding: 8px 16px;
     font-size: 20px;
     line-height: 1.5em;
@@ -93,7 +92,6 @@ module.exports = {
   }
 }
 
-&.header:hover { background-color: #f5f7fa }
 &.closed:not(.header) { border-bottom: none }
 
 </style>

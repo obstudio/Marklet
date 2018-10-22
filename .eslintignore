@@ -1,3 +1,4 @@
 dist/
 temp/
 *.min.js
+node_modules

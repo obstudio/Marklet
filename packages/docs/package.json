@@ -1,0 +1,9 @@
+{
+  "name": "@marklet/docs",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "shigma <1700011071@pku.edu.cn>",
+  "license": "MIT"
+}

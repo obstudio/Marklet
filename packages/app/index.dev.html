@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8">
     <title>Marklet</title>
+    <link href="comp/index.css" rel="stylesheet">
     <script src="../../node_modules/vue/dist/vue.runtime.min.js"></script>
     <!-- TODO: remove in production mode -->
     <script src="http://localhost:8098"></script>
@@ -14,6 +15,7 @@
       const style = document.createElement('style')
       style.innerText = result.css
       document.head.appendChild(style)
+      window.result = result
       Vue.use(result.plugin)
       new Vue(result.app)
     </script>

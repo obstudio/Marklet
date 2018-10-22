@@ -1,0 +1,85 @@
+$menu-bgcolor: #2d2f31;
+$menu-shadow: #000000;
+$active-color: #acdeff;
+
+&, > .explorer {
+  background-color: #272822;
+}
+
+> .menubar {
+  color: #c8c8c8;
+  background-color: #212220;
+
+  .item:hover { background-color: #3A3A3A }
+
+  .item.active {
+    background-color: $menu-bgcolor;
+    box-shadow: 0 0 8px $menu-shadow;
+  }
+}
+
+> .border {
+  background-color: #666666;
+
+  &:hover, &.active { background-color: #999999 }
+}
+
+.marklet-menu {
+  background-color: $menu-bgcolor;
+  box-shadow: 0 2px 8px $menu-shadow;
+
+  .menu-item {
+    .label { color: #bbbbbb }
+    .caption { color: #777777 }
+    .binding { color: #a5a5a5 }
+    .binding i:hover { color: #fafaf5 }
+    .separator { border-bottom-color: #888888 }
+
+    &:hover {
+      &:not(.disabled) { background-color: #3A3A3A }
+      .label { color: #e1e4e8 }
+      .binding { color: #c6cbd1 }
+    }
+
+    &.active {
+      .label {
+        color: #acdeff;
+        text-shadow: 0 0 0.15px #ACDDFF;
+      }
+    }
+
+    &.disabled {
+      .label { color: #777777 !important }
+      .binding { color: #666666 !important }
+    }
+  }
+}
+
+.marklet-checkbox {
+  color: #666666;
+
+  > .box {
+    > .inner {
+      background-color: #666666;
+      border-color: #444444;
+
+      &::after {
+        border-color: #666666;
+      }
+    }
+  }
+  
+  &.checked, &.focused {
+    > .box > .inner {
+      border-color: $active-color;
+    }
+  }
+
+  &.checked {
+    color: $active-color;
+
+    > .box > .inner {
+      background-color: $active-color;
+    }
+  }
+}

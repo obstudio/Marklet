@@ -173,7 +173,7 @@ module.exports = {
     cursor: pointer;
     position: absolute;
     pointer-events: auto;
-    background-color: #c0c4cc;
+    background-color: #606266;
     transition: opacity 0.8s ease;
 
     &:hover, &.active { opacity: 1 }

@@ -2,7 +2,8 @@ export type StringLike = string | RegExp
 export type TokenLike = string | LexerToken
 
 export type LexerConfig = Record<string, any>
-export type LexerMacros<S extends StringLike = StringLike> = Record<string, S>
+export type LexerMacrosLiteral = Record<string, StringLike>
+export type LexerMacros = LexerMacrosLiteral | ((config: LexerConfig) => LexerMacrosLiteral)
 
 export interface LexerToken {
   type?: string
@@ -71,7 +72,8 @@ export interface LexerRegexRule<
 export class MacroMap {
   private data: Record<string, { regex: RegExp, macro: string }> = {}
 
-  constructor(macros: Record<string, StringLike> = {}) {
+  constructor(macros: LexerMacros = {}, config: LexerConfig = {}) {
+    if (typeof macros === 'function') macros = macros(config)
     for (const key in macros) {
       this.data[key] = {
         regex: new RegExp(`{{${key}}}`, 'g'),

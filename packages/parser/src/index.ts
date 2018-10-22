@@ -9,6 +9,14 @@ interface MarkletLexerConfig extends LexerConfig {
   allow_section?: boolean
   /** default language in code block */
   default_language?: string
+  /** assign start/end to tokens */
+  require_bound?: boolean
+}
+
+export const defaultConfig: MarkletLexerConfig = {
+  header_align: true,
+  allow_section: true,
+  default_language: '',
 }
 
 export interface ParseOptions {
