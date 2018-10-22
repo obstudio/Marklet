@@ -18,7 +18,7 @@
     <div id="app"></div>
     <script>
       marklet.create('#app')
-      if (marklet.env === 'edit') {
+      if (marklet.type === 'edit') {
         require.config({ paths: { vs: '~/monaco-editor/min/vs' }})
         require(['vs/editor/editor.main'], () => {
           Vue.prototype.$eventBus.$emit('monaco.loaded', monaco)

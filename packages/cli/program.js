@@ -14,16 +14,19 @@ const ALL_TYPES = [
 ]
 
 function loadFromFile(filepath) {
+  let options
   const ext = path.extname(filepath)
   if (YAML_TYPES.includes(ext)) {
-    return yaml.safeLoad(fs.readFileSync(filepath).toString())
+    options = yaml.safeLoad(fs.readFileSync(filepath).toString())
   } else if (JS_TYPES.includes(ext)) {
-    return require(filepath)
+    options = require(filepath)
   } else if (ext) {
     throw new Error(`error: cannot recognize file extension '${ext}'.`)
   } else {
     throw new Error('error: cannot recognize file with no extenstion.')
   }
+  options.sourceType = 'folder'
+  return options
 }
 
 Object.assign(Object.getPrototypeOf(program), {
@@ -54,14 +57,12 @@ Object.assign(Object.getPrototypeOf(program), {
   getOptions(filepath = '', forced = true) {
     filepath = path.resolve(filepath)
     let basePath = path.resolve(process.cwd(), filepath)
-    let options = { sourceType: 'project' }
+    let options = { sourceType: 'file' }
     try {
       util.tryFindFile(filepath)
       if (fs.statSync(basePath).isFile()) {
         if (!MARK_TYPES.includes(path.extname(basePath))) {
-          Object.assign(options, loadFromFile(basePath))
-        } else {
-          options.sourceType = 'file'
+          options = loadFromFile(basePath)
         }
       } else {
         let matchFound = false
@@ -70,7 +71,7 @@ Object.assign(Object.getPrototypeOf(program), {
           const filename = basePath + type
           if (!fs.existsSync(filename)) continue
           if (fs.statSync(filename).isFile()) {
-            Object.assign(options, loadFromFile(filename))
+            options = loadFromFile(basePath)
             matchFound = true
             break
           }

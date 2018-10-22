@@ -1,6 +1,8 @@
 import VueConstructor from 'vue'
 import Monaco from 'monaco-editor'
 import * as renderer from '@marklet/renderer'
+import { LexerConfig } from '@marklet/parser'
+import { SourceType, ServerType } from './server'
 
 declare global {
   export const Vue: typeof VueConstructor
@@ -97,15 +99,16 @@ const typeMap = {
   watch: '监视',
 }
 
-const MarkletApp = Vue.extend(require('@/app.vue'))
-const marklet = Vue.prototype.$marklet = new class Marklet {
-  vm: VueConstructor
-  env: keyof typeof typeMap
+const App = Vue.extend(require('@/app.vue'))
 
-  create(el: string) {
-    document.title = 'Marklet - ' + typeMap[this.env]
-    return this.vm = new MarkletApp().$mount(el)
+export default new class Marklet {
+  vm: VueConstructor
+  type: ServerType
+  config: LexerConfig
+  sourceType: SourceType
+
+  create(el: string | HTMLElement) {
+    document.title = 'Marklet - ' + typeMap[this.type]
+    return this.vm = new App().$mount(el)
   }
 }
-
-export default marklet

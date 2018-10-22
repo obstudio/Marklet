@@ -34,21 +34,27 @@ function toDocMessage(filename: string) {
 }
 
 export type ServerType = 'watch' | 'edit'
+export type SourceType = 'file' | 'folder'
 
 interface ServerOptions {
   port?: number
   config?: LexerConfig
+  sourceType?: SourceType
 }
 
 class MarkletServer<T extends ServerType> {
   type: T
   port: number
+  sourceType: SourceType
+  config: LexerConfig
   wsServer: ws.Server
   httpServer: http.Server
 
   constructor(type: T, options: ServerOptions = {}) {
     this.type = type
+    this.config = options.config || {}
     this.port = options.port || DEFAULT_PORT
+    this.sourceType = options.sourceType || 'file'
 
     this.httpServer = http.createServer((request, response) => {
       function handleError(error: Error) {
@@ -74,7 +80,9 @@ class MarkletServer<T extends ServerType> {
         }
       } else if (pathname === 'initialize.js') {
         handleData(`
-          marklet.env = '${type}'
+          marklet.type = '${type}'
+          marklet.sourceType = '${this.sourceType}'
+          marklet.config = ${JSON.stringify(this.config)}
         `)
         return
       } else {
@@ -99,10 +107,7 @@ class MarkletServer<T extends ServerType> {
     }).listen(this.port)
 
     this.wsServer = new ws.Server({ server: this.httpServer })
-    this.wsServer.on('connection', (ws) => {
-      sendMsg.call(ws, 'config', options.config)
-    })
-
+    
     console.log(`Server running at http://localhost:${this.port}/`)
   }
 }
@@ -124,9 +129,7 @@ export function watch(options: WatchOptions): MarkletServer<'watch'> {
   return server
 }
 
-export interface EditOptions extends ServerOptions {
-  source?: string
-}
+export interface EditOptions extends ServerOptions {}
 
 export function edit(options: EditOptions): MarkletServer<'edit'> {
   const server = new MarkletServer('edit', options)

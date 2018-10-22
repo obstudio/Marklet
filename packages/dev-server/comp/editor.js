@@ -7,7 +7,10 @@ module.exports = {
     source: '',
     loading: 1,
     changed: false,
-    config: defaultConfig,
+    config: {
+      ...defaultConfig,
+      ...marklet.config,
+    },
   }),
 
   watch: {
@@ -30,14 +33,10 @@ module.exports = {
   },
 
   created() {
-    this._lexer = new DocumentLexer(defaultConfig)
+    this._lexer = new DocumentLexer(this.config)
 
     const source = localStorage.getItem('source')
     if (typeof source === 'string') this.source = source
-
-    this.$eventBus.$on('server.config', (config) => {
-      this.config = Object.assign(defaultConfig, config)
-    })
   },
 
   mounted() {
