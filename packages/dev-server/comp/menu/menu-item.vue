@@ -31,20 +31,22 @@ module.exports = {
 
 <template>
   <div :class="['menu-item', { disabled }]" @click="handleClick">
-    <span class="label">{{ command.name }}</span>
-    <span class="binding">
+    <span class="label">
       <mkl-checkbox v-if="command.checked !== undefined"
         :value="$menu.parseArgument(command.checked)" @change="handleClick"/>
-      <template v-else>{{ binding }}</template>
+      {{ command.name }}
     </span>
+    <span class="binding">{{ binding }}</span>
   </div>
 </template>
 
 <style lang="scss" scoped>
 
-> .binding {
+> .label {
   .marklet-checkbox {
     font-size: 12px;
+    margin-right: 4px;
+    vertical-align: .5px;
   }
 }
 

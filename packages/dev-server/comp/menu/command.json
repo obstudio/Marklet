@@ -24,6 +24,7 @@
     "arguments": "explorer",
     "key": "trigger-explorer",
     "name": "资源管理器",
+    "bind": "ctrl+k ctrl+r",
     "checked": "$display.explorer.show"
   },
   {
@@ -31,6 +32,7 @@
     "arguments": "editor",
     "key": "trigger-editor",
     "name": "编辑器视图",
+    "bind": "ctrl+k ctrl+e",
     "checked": "$display.editor.show"
   },
   {
@@ -38,6 +40,7 @@
     "arguments": "document",
     "key": "trigger-document",
     "name": "预览视图",
+    "bind": "ctrl+k ctrl+d",
     "checked": "$display.document.show"
   },
   {
