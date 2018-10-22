@@ -11,19 +11,22 @@
     <link href="themes.min.css" rel="stylesheet">
     <link href="monaco.min.css" rel="stylesheet">
     <script src="client.min.js"></script>
+    <script src="initialize.js"></script>
     <script src="~/monaco-editor/min/vs/loader.js"></script>
   </head>
   <body>
     <div id="app"></div>
     <script>
-      Marklet.start('edit').$mount('#app')
-      require.config({ paths: { vs: '~/monaco-editor/min/vs' }})
-      require(['vs/editor/editor.main'], () => {
-        Vue.prototype.$eventBus.$emit('monaco.loaded', monaco)
-        if (!Vue.prototype.$colorize) {
-          Vue.prototype.$colorize = (code, lang) => monaco.editor.colorize(code, lang)
-        }
-      })
+      marklet.create('#app')
+      if (marklet.env === 'edit') {
+        require.config({ paths: { vs: '~/monaco-editor/min/vs' }})
+        require(['vs/editor/editor.main'], () => {
+          Vue.prototype.$eventBus.$emit('monaco.loaded', monaco)
+          if (!Vue.prototype.$colorize) {
+            Vue.prototype.$colorize = (code, lang) => monaco.editor.colorize(code, lang)
+          }
+        })
+      }
     </script>
   </body>
 </html>

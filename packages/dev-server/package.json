@@ -16,7 +16,8 @@
     "dist/client.min.js",
     "dist/client.min.css",
     "dist/themes.min.css",
-    "dist/monaco.min.css"
+    "dist/monaco.min.css",
+    "dist/index.html"
   ],
   "repository": {
     "type": "git",

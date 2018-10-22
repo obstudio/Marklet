@@ -97,10 +97,15 @@ const typeMap = {
   watch: '监视',
 }
 
-export const Marklet = {
-  app: require('@/app.vue'),
-  start(type: keyof typeof typeMap) {
-    document.title = 'Marklet - ' + typeMap[type]
-    return new Vue(this.app)
+const MarkletApp = Vue.extend(require('@/app.vue'))
+const marklet = Vue.prototype.$marklet = new class Marklet {
+  vm: VueConstructor
+  env: keyof typeof typeMap
+
+  create(el: string) {
+    document.title = 'Marklet - ' + typeMap[this.env]
+    return this.vm = new MarkletApp().$mount(el)
   }
 }
+
+export default marklet

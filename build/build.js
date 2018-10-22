@@ -43,7 +43,7 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
     output: {
       path: util.resolve(name, 'dist'),
       filename: options.output,
-      library: 'Marklet',
+      library: 'marklet',
       libraryTarget: 'umd',
       libraryExport: options.libraryExport,
       globalObject: 'typeof self !== \'undefined\' ? self : this'
@@ -125,8 +125,7 @@ Promise.resolve().then(() => {
     }
   }
 
-  minifyHTML('edit')
-  minifyHTML('watch')
+  minifyHTML('index')
 
   let css = ''
   themes.forEach(({ key }) => {
@@ -178,7 +177,7 @@ Promise.resolve().then(() => {
   }).then(() => bundle('dev-server', {
     entry: 'dist/client.js',
     output: 'client.min.js',
-    libraryExport: 'Marklet',
+    libraryExport: 'default',
   }))
 }).catch((error) => {
   console.log(error)

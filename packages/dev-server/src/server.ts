@@ -57,7 +57,7 @@ class MarkletServer<T extends ServerType> {
         response.end()
       }
       
-      function handleData(data: any, type: string) {
+      function handleData(data: any, type: string = 'text/javascript') {
         response.writeHead(200, { 'Content-Type': type })
         response.write(data)
         response.end()
@@ -72,8 +72,13 @@ class MarkletServer<T extends ServerType> {
           handleError(error)
           return
         }
+      } else if (pathname === 'initialize.js') {
+        handleData(`
+          marklet.env = '${type}'
+        `)
+        return
       } else {
-        filepath = path.join(__dirname, pathname || type + '.html')
+        filepath = path.join(__dirname, pathname || 'index.html')
       }
       fs.readFile(filepath, (error, data) => {
         if (error) {
