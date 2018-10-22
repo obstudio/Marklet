@@ -40,15 +40,15 @@ module.exports = {
   },
 
   mounted() {
-    this.$eventBus.$on('server.document', (doc) => {
+    marklet.$on('server.document', (doc) => {
       this.openFile(doc)
     })
 
-    this.$eventBus.$on('monaco.theme.loaded', (monaco) => {
+    marklet.$on('monaco.theme.loaded', (monaco) => {
       monaco.editor.setTheme(this.theme)
     })
 
-    this.$eventBus.$on('monaco.loaded', (monaco) => {
+    marklet.$on('monaco.loaded', (monaco) => {
       const model = monaco.editor.createModel(this.source, 'marklet')
       model.onDidChangeContent(() => this.checkChange())
       const nodes = this.nodes
@@ -89,10 +89,10 @@ module.exports = {
       }
     },
     save() {
-      this.$eventBus.$emit('client.message', 'save', this.source) // TODO: maybe file name is needed. depend on backend impl
+      marklet.$emit('client.message', 'save', this.source) // TODO: maybe file name is needed. depend on backend impl
     },
     saveAs() {
-      this.$eventBus.$emit('client.message', 'saveAs', {
+      marklet.$emit('client.message', 'saveAs', {
         source: this.source,
         name: '' // TODO: read file name
       })

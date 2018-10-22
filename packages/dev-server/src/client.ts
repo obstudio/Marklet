@@ -12,12 +12,16 @@ Vue.use(renderer)
 Vue.component('mkl-checkbox', require('@/checkbox.vue'))
 
 const eventBus = new Vue()
-Vue.prototype.$eventBus = eventBus
 
 eventBus.$on('monaco.loaded', (monaco: typeof Monaco) => {
   monaco.editor.defineTheme('dark', require('../themes/dark'))
   monaco.editor.defineTheme('simple', require('../themes/simple'))
   eventBus.$emit('monaco.theme.loaded', monaco)
+  if (!Vue.prototype.$colorize) {
+    Vue.prototype.$colorize = function(code: string, lang: string) {
+      return monaco.editor.colorize(code, lang, {})
+    }
+  }
 })
 
 const client = new class MarkletClient {
@@ -102,13 +106,27 @@ const typeMap = {
 const App = Vue.extend(require('@/app.vue'))
 
 export default new class Marklet {
-  vm: VueConstructor
+  app: VueConstructor
   type: ServerType
   config: LexerConfig
   sourceType: SourceType
+  events = eventBus
+  client = client
 
   create(el: string | HTMLElement) {
     document.title = 'Marklet - ' + typeMap[this.type]
-    return this.vm = new App().$mount(el)
+    return this.app = new App().$mount(el)
+  }
+
+  $on(event: string | string[], callback: Function) {
+    this.events.$on(event, callback)
+  }
+
+  $once(event: string, callback: Function) {
+    this.events.$once(event, callback)
+  }
+
+  $emit(event: string, ...args: any[]) {
+    this.events.$emit(event, ...args)
   }
 }

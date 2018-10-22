@@ -21,10 +21,7 @@
       if (marklet.type === 'edit') {
         require.config({ paths: { vs: '~/monaco-editor/min/vs' }})
         require(['vs/editor/editor.main'], () => {
-          Vue.prototype.$eventBus.$emit('monaco.loaded', monaco)
-          if (!Vue.prototype.$colorize) {
-            Vue.prototype.$colorize = (code, lang) => monaco.editor.colorize(code, lang)
-          }
+          marklet.$emit('monaco.loaded', monaco)
         })
       }
     </script>
