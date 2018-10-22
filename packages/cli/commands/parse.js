@@ -4,46 +4,42 @@ const yaml = require('js-yaml')
 const chalk = require('chalk')
 const parser = require('@marklet/parser')
 
-function printNode(node, indent = 2, back = 1) {
-  const space = ' '.repeat(indent - 2 * back)
-  const prefix = '- '.repeat(back)
-  if (typeof node === 'string') {
-    return console.log(prefix + chalk.yellow(node))
-  } else if (node instanceof Array) {
-    return node.forEach((node, index) => {
-      if (node instanceof Array) {
-        printNode(node, indent + 2, back + 1)
-      } else {
-        process.stdout.write(space + '  '.repeat(index ? back : 1))
-        printNode(node, indent + 2, index ? 1 : back)
-      }
-    })
-  }
-  let firstLine = !node.type
-  if (node.type) {
-    console.log(chalk.greenBright('# ' + node.type))
-  }
-  for (const key in node) {
-    if (key === 'type') continue
-    if (firstLine) {
-      process.stdout.write(prefix)
-      firstLine = false
+function isObject(node) {
+  return node === null || typeof node !== 'object'
+}
+
+function prettyPrint(node, indent = 0) {
+  const space = '  '.repeat(indent)
+  if (isObject(node)) {
+    if (typeof node === 'string') {
+      console.log(chalk.yellowBright(node))
     } else {
-      process.stdout.write(space + '  ')
+      console.log(chalk.cyanBright(node))
     }
-    process.stdout.write(chalk`{cyanBright ${key}}: `)
-    if (typeof node[key] === 'string') {
-      console.log(chalk.yellow(node[key]))
-    } else if (typeof node[key] !== 'object') {
-      console.log(chalk.magentaBright(node[key]))
-    } else {
-      process.stdout.write('\n')
-      if (node[key] instanceof Array) {
-        printNode(node[key], indent + 2 * back, 1)
+  } else if (node instanceof Array) {
+    node.forEach((node, index) => {
+      if (index) process.stdout.write(space)
+      process.stdout.write('- ')
+      prettyPrint(node, indent + 1)
+    })
+  } else {
+    let firstLine = !node.type
+    if (node.type) {
+      console.log(chalk.redBright('\b\b# ' + node.type))
+    }
+    for (const key in node) {
+      if (key === 'type') continue
+      if (!firstLine) {
+        process.stdout.write(space)
       } else {
-        process.stdout.write(space + '    ')
-        printNode(node[key], indent + 2 * back - 2, 0)
+        firstLine = false
       }
+      process.stdout.write(chalk.magentaBright(key) + ': ')
+      if (!isObject(node[key])) {
+        process.stdout.write('\n' + space)
+        if (node[key] instanceof Array) process.stdout.write('  ')
+      }
+      prettyPrint(node[key], indent + 1)
     }
   }
 }
@@ -69,17 +65,12 @@ module.exports = program => program
       },
     })
     if (this.pretty) {
-      result.forEach(node => printNode(node))
-      return
-    }
-    switch (this.format || 'json') {
-    case 'json':
+      prettyPrint(result)
+    } else if (this.format === 'json' || !this.format) {
       console.log(JSON.stringify(result, null, indent))
-      break
-    case 'yaml':
+    } else if (this.format === 'yaml') {
       console.log(yaml.safeDump(result, { indent }))
-      break
-    default:
+    } else {
       util.handleError(this.format + ' is not a supported format.')
     }
   })
