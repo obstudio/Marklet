@@ -2,7 +2,7 @@
 
 module.exports = {
   inject: ['$menu'],
-  props: ['command'],
+  props: ['command', 'mnemonic'],
 
   computed: {
     disabled() {
@@ -35,6 +35,8 @@ module.exports = {
       <mkl-checkbox v-if="command.checked !== undefined"
         :value="$menu.parseArgument(command.checked)" @change="handleClick"/>
       {{ command.name }}
+      <template v-if="mnemonic"> ({{ mnemonic }})</template>
+      <template v-if="command.ellipsis"> ...</template>
     </span>
     <span class="binding">{{ binding }}</span>
   </div>

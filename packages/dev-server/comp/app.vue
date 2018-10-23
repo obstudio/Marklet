@@ -135,6 +135,11 @@ module.exports = {
     },
   },
 
+  created() {
+    this.$set(this.display.editor, 'show', this._enableEdit)
+    this.$set(this.display.explorer, 'show', this._isProject)
+  },
+
   mounted() {
     window.vm = this
 
@@ -195,6 +200,9 @@ module.exports = {
       window.open(url)
     },
     triggerArea(area) {
+      if (area === 'explorer' && !this._isProject) return
+      if (area === 'editor' && !this._enableEdit) return
+      
       this.display[area].show = !this.display[area].show
       if (this.display.editor.show) {
         this.$nextTick(() => this.layout(300))
@@ -224,7 +232,7 @@ module.exports = {
       <div v-for="(menu, index) in menuData.menubar.content" :key="index" class="item"
         @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
         :class="{ active: menuData.menubar.embed[index] }" @contextmenu.stop>
-        {{ menu.name }} (<span>{{ menu.bind }}</span>)&nbsp;
+        {{ menu.caption }} (<span>{{ menu.mnemonic }}</span>)&nbsp;
       </div>
     </div>
     <div class="view explorer" :style="explorerStyle"/>

@@ -79,7 +79,10 @@ module.exports = {
       method(...args.map(arg => this.parseArgument(arg)))
     },
     parseArgument(arg) {
-      if (typeof arg === 'string' && arg.startsWith('$')) {
+      if (typeof arg !== 'string') return arg
+      if (arg.startsWith('!$')) {
+        return !arg.slice(2).split('.').reduce((prev, curr) => prev[curr], this)
+      } else if (arg.startsWith('$')) {
         return arg.slice(1).split('.').reduce((prev, curr) => prev[curr], this)
       } else {
         return arg

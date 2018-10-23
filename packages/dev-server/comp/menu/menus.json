@@ -2,51 +2,51 @@
   "menubar": [
     {
       "key": "file",
-      "name": "文件",
-      "bind": "F",
+      "caption": "文件",
+      "mnemonic": "F",
       "content": [
-        "open-file",
+        { "command": "open-file", "mnemonic": "O" },
         "@separator",
-        "save",
-        "save-as",
-        "save-all"
+        { "command": "save", "mnemonic": "S" },
+        { "command": "save-as", "mnemonic": "" },
+        { "command": "save-all", "mnemonic": "" }
       ]
     },
     {
       "key": "edit",
-      "name": "编辑",
-      "bind": "E",
+      "caption": "编辑",
+      "mnemonic": "E",
       "content": [
-        "undo",
-        "redo",
+        { "command": "undo", "mnemonic": "" },
+        { "command": "redo", "mnemonic": "" },
         "@separator",
-        "cut",
-        "copy",
-        "paste",
+        { "command": "cut", "mnemonic": "" },
+        { "command": "copy", "mnemonic": "" },
+        { "command": "paste", "mnemonic": "" },
         "@separator",
-        "find",
-        "find-next",
-        "find-previous"
+        { "command": "find", "mnemonic": "" },
+        { "command": "find-next", "mnemonic": "" },
+        { "command": "find-previous", "mnemonic": "" }
       ]
     },
     {
       "key": "view",
-      "name": "视图",
-      "bind": "V",
+      "caption": "视图",
+      "mnemonic": "V",
       "content": [
-        "trigger-explorer",
-        "trigger-editor",
-        "trigger-document",
+        { "command": "trigger-explorer", "mnemonic": "" },
+        { "command": "trigger-editor", "mnemonic": "" },
+        { "command": "trigger-document", "mnemonic": "" },
         "@separator",
         "@themes"
       ]
     },
     {
       "key": "link",
-      "name": "链接",
-      "bind": "L",
+      "caption": "链接",
+      "mnemonic": "L",
       "content": [
-        "open-repository"
+        { "command": "open-repository", "mnemonic": "" }
       ]
     }
   ]

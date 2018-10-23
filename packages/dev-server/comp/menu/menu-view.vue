@@ -8,6 +8,10 @@ module.exports = {
     MarkletMenuList: require('./menu-list.vue'),
     MarkletMenuItem: require('./menu-item.vue'),
   },
+
+  created() {
+    console.log(this.data)
+  }
 }
 
 </script>
@@ -16,12 +20,15 @@ module.exports = {
   <div>
     <template v-for="(item, index) in data">
       <template v-if="(item instanceof Object)">
-        <marklet-menu-view :key="index" v-show="embed[index]" :data="item.content"/>
+        <template v-if="item.content">
+          <marklet-menu-view :key="index" v-show="embed[index]" :data="item.content"/>
+        </template>
+        <marklet-menu-item :key="index" v-else
+          :command="commands[item.command]" :mnemonic="item.mnemonic"/>
       </template>
       <div :key="index" v-else-if="item === '@separator'" class="menu-item disabled" @click.stop>
         <div class="separator"/>
       </div>
-      <marklet-menu-item :key="index" v-else-if="!item.startsWith('@')" :command="commands[item]"/>
       <marklet-menu-list :key="index" v-else :list="$menu.lists[item.slice(1)]"/>
     </template>
   </div>
@@ -69,7 +76,10 @@ module.exports = {
     text-align: right;
   }
 
-  &.disabled { cursor: default }
+  &.disabled {
+    pointer-events: none;
+    cursor: default !important;
+  }
 }
 
 </style>
