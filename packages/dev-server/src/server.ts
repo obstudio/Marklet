@@ -24,6 +24,7 @@ ws.Server.prototype.broadcast = function (data) {
 
 export type ServerType = 'watch' | 'edit'
 export type SourceType = 'file' | 'folder'
+export type WatchEventType = 'rename' | 'change'
 
 interface ServerOptions {
   port?: number
@@ -104,9 +105,16 @@ class MarkletServer<T extends ServerType> {
       this.wsServer.on('connection', (ws) => {
         ws.send(FileMessage(this.filepath))
       })
-      fs.watch(this.filepath, (eventType) => {
-        // FIXME: any need to check eventType?
-        this.wsServer.broadcast(FileMessage(this.filepath))
+      fs.watch(this.filepath, (eventType: WatchEventType, filename) => {
+        if (eventType === 'rename') {
+          if (fs.existsSync(filename)) {
+            this.filepath = filename // got new name
+          } else {
+            // TODO: gracefully exit since source file gone
+          }
+        } else {
+          this.wsServer.broadcast(FileMessage(this.filepath))
+        }
       })
     } else {
       this.wsServer.on('connection', (ws) => {
@@ -114,7 +122,7 @@ class MarkletServer<T extends ServerType> {
           ws.send(message)
         }
       })
-      fs.watch(this.filepath, () => {
+      fs.watch(this.filepath, { recursive: true }, (eventType: WatchEventType, filename) => {
         // FIXME: only watching the index file is far from enough
         // you need to watch the basedir and every files in it
         for (const message in ProjectMessages(this.filepath)) {
