@@ -44,7 +44,7 @@ Object.assign(Object.getPrototypeOf(program), {
   allowPort() {
     this._allowPort = true
     return this
-      .option('-o, --open', 'open in the default browser')
+      .option('-o, --open', 'show in browser when connection is established')
       .option('-p, --port [port]', 'port for the development server', parseInt, DEFAULT_PORT)
   },
   getConfig() {

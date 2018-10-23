@@ -50,7 +50,10 @@ Parse a marklet file into marklet AST.
 
 Options:
   (support config options)
+  -B, --no-bound         prevent from recording token bounds
   -f, --format [format]  the output format (default: "json")
+  -i, --indent [length]  set the indent length (default: 2)
+  -p, --pretty           pretty printed (it overrides all other options)
 ```
 
 ### edit

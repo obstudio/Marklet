@@ -101,6 +101,9 @@ class MarkletServer<T extends ServerType> {
     }).listen(this.port)
 
     this.wsServer = new ws.Server({ server: this.httpServer })
+    console.log(`Server running at http://localhost:${this.port}/`)
+
+    if (!this.filepath) return
     if (this.sourceType === 'file') {
       this.wsServer.on('connection', (ws) => {
         ws.send(FileMessage(this.filepath))
@@ -130,8 +133,6 @@ class MarkletServer<T extends ServerType> {
         }
       })
     }
-    
-    console.log(`Server running at http://localhost:${this.port}/`)
   }
 }
 
