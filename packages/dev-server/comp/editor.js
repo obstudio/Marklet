@@ -33,6 +33,8 @@ module.exports = {
   },
 
   created() {
+    this._enableEdit = marklet.type === 'edit'
+    this._isProject = marklet.sourceType !== 'file'
     this._lexer = new DocumentLexer(this.config)
 
     const source = localStorage.getItem('source')
@@ -106,6 +108,7 @@ module.exports = {
       this.changed = this.origin !== this.source
     },
     layout(deltaTime = 0) {
+      if (!this._editor) return
       const now = performance.now(), self = this
       this._editor._configuration.observeReferenceElement()
       this._editor._view._actualRender()
