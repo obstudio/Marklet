@@ -6,7 +6,8 @@ import ws from 'ws'
 
 import { LexerConfig } from '@marklet/parser'
 import { getContentType } from './util'
-import { FileManager } from './manager'
+import ProjectManager from './project'
+import FileManager from './file'
 
 export const DEFAULT_PORT = 10826
 
@@ -25,7 +26,7 @@ ws.Server.prototype.broadcast = function (data) {
 }
 
 export type ServerType = 'watch' | 'edit'
-export type SourceType = 'file' | 'folder'
+export type SourceType = 'file' | 'project'
 
 interface ServerOptions {
   port?: number
@@ -120,18 +121,9 @@ class MarkletServer<T extends ServerType> {
   }
 
   private setupProjectWatcher() {
-    this.wsServer.on('connection', (ws) => {
-      for (const message in ProjectMessages(this.filepath)) {
-        ws.send(message)
-      }
-    })
-    fs.watch(this.filepath, { recursive: true }, (eventType, filename) => {
-      // FIXME: only watching the index file is far from enough
-      // you need to watch the basedir and every files in it
-      for (const message in ProjectMessages(this.filepath)) {
-        this.wsServer.broadcast(message)
-      }
-    })
+    const manager = new ProjectManager(this.filepath)
+    this.wsServer.on('connection', ws => ws.send(manager.msg))
+    manager.on('update', msg => this.wsServer.broadcast(msg))
   }
 
   public dispose(reason: string = '') {
@@ -139,30 +131,6 @@ class MarkletServer<T extends ServerType> {
     this.httpServer.close()
     console.log(reason)
   }
-}
-
-type FileTree = IterableIterator<string | Directory>
-interface Directory { name: string, children: FileTree }
-
-function* traverse(filepath: string): FileTree {
-  // FIXME: get all files in a directory
-}
-
-function* ProjectMessages(filepath: string): IterableIterator<string> {
-  const source = fs.readFileSync(filepath).toString()
-  const options = JSON.parse(source) // FIXME: support for yaml
-  yield JSON.stringify({ type: 'project', data: options })
-  const basedir = options.basedir || path.dirname(filepath)
-  yield JSON.stringify({ type: 'filetree', data: traverse(basedir) })
-  // FIXME: add inner messages, for example file contents
-}
-
-function FileMessage(filepath: string, type = 'document') {
-  return JSON.stringify({
-    type,
-    filepath,
-    data: fs.readFileSync(filepath).toString(),
-  })
 }
 
 export { MarkletServer as Server }
