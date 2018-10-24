@@ -5,8 +5,8 @@ import * as fs from 'fs'
 import ws from 'ws'
 
 import { LexerConfig } from '@marklet/parser'
-import { getContentType } from './serverUtil'
-import { FileManager } from './ContentManager'
+import { getContentType } from './util'
+import { FileManager } from './manager'
 
 export const DEFAULT_PORT = 10826
 
@@ -87,7 +87,7 @@ class MarkletServer<T extends ServerType> {
         `)
         return
       } else {
-        filepath = path.join(__dirname, pathname || 'index.html')
+        filepath = path.join(__dirname, '..', pathname || 'index.html')
       }
       fs.readFile(filepath, (error, data) => {
         if (error) {

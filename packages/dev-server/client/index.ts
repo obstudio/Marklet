@@ -2,7 +2,7 @@ import VueConstructor from 'vue'
 import Monaco from 'monaco-editor'
 import * as renderer from '@marklet/renderer'
 import { LexerConfig } from '@marklet/parser'
-import { SourceType, ServerType } from './server'
+import { SourceType, ServerType } from '../server'
 
 declare global {
   export const Vue: typeof VueConstructor
