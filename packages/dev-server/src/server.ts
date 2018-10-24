@@ -45,8 +45,8 @@ class MarkletServer<T extends ServerType> {
 
   constructor(type: T, options: ServerOptions = {}) {
     this.type = type
-    this.filepath = options.filepath
     this.config = options.config || {}
+    this.filepath = options.filepath || ''
     this.port = options.port || DEFAULT_PORT
     this.sourceType = options.sourceType || 'file'
     this.createServer()

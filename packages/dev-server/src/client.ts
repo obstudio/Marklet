@@ -9,6 +9,7 @@ declare global {
 }
 
 Vue.use(renderer)
+Vue.use(require('@/menu'))
 Vue.component('mkl-checkbox', require('@/checkbox.vue'))
 
 const eventBus = new Vue()

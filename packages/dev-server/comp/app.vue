@@ -6,11 +6,11 @@ const MIN_WIDTH = 0.1
 
 module.exports = {
   mixins: [
-    require('./menu'),
     require('./editor'),
   ],
 
   data: () => ({
+    themes,
     theme: 'dark',
     dragging: false,
     display: {
@@ -30,16 +30,6 @@ module.exports = {
   }),
 
   computed: {
-    lists() {
-      return {
-        themes: {
-          data: themes,
-          current: this.theme,
-          switch: 'setTheme',
-          prefix: '主题：',
-        },
-      }
-    },
     totalWidth() {
       return this.display.editor.width * this.display.editor.show
         + this.display.explorer.width * this.display.explorer.show
@@ -135,6 +125,16 @@ module.exports = {
     },
   },
 
+  created() {
+    this.$set(this.display.editor, 'show', this._enableEdit)
+    this.$set(this.display.explorer, 'show', this._isProject)
+
+    this.registerCommands(require('./command'))
+    this.registerMenus(require('./menus'))
+  },
+
+  updated() {},
+
   mounted() {
     window.vm = this
 
@@ -195,6 +195,9 @@ module.exports = {
       window.open(url)
     },
     triggerArea(area) {
+      if (area === 'explorer' && !this._isProject) return
+      if (area === 'editor' && !this._enableEdit) return
+      
       this.display[area].show = !this.display[area].show
       if (this.display.editor.show) {
         this.$nextTick(() => this.layout(300))
@@ -207,7 +210,7 @@ module.exports = {
       }
     },
     startDrag(position, event) {
-      this.hideContextMenus()
+      this.$menu.hideContextMenus()
       this.dragging = position
       this.$refs[position].classList.add('active')
       this.draggingLastX = event.clientX
@@ -218,15 +221,8 @@ module.exports = {
 </script>
 
 <template>
-  <div :class="[theme, { dragging }]" class="marklet"
-    @click="hideContextMenus" @contextmenu="hideContextMenus">
-    <div class="menubar">
-      <div v-for="(menu, index) in menuData.menubar.content" :key="index" class="item"
-        @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
-        :class="{ active: menuData.menubar.embed[index] }" @contextmenu.stop>
-        {{ menu.name }} (<span>{{ menu.bind }}</span>)&nbsp;
-      </div>
-    </div>
+  <div :class="[theme, { dragging }]" class="marklet">
+    <ob-menubar class="menubar" menu="menubar"/>
     <div class="view explorer" :style="explorerStyle"/>
     <div class="border left" ref="left" :style="leftBorderStyle"
       @mousedown.stop="startDrag('left', $event)"/>
@@ -236,11 +232,12 @@ module.exports = {
     <mkl-scroll class="view document" :style="documentStyle" :margin="4" :radius="6">
       <mkl-nodes ref="nodes" :content="nodes"/>
     </mkl-scroll>
-    <marklet-menu ref="menus" :data="menuData"/>
   </div>
 </template>
 
 <style lang="scss" scoped>
+
+$-menubar-height: 32px;
 
 & {
   top: 0;
@@ -252,29 +249,12 @@ module.exports = {
 }
 
 > .menubar {
-  overflow: hidden;
-  font-size: 14px;
-  left: 0;
-  height: 32px;
-  width: 100%;
-  float: left;
-  z-index: 11;
-  user-select: none;
-  position: relative;
-
-  .item {
-    line-height: 24px;
-    padding: 4px;
-    transition:
-      color 0.3s ease,
-      background-color 0.3s ease;
-    display: inline-block;
-  }
+  height: $-menubar-height;
 }
 
 > .view, > .border {
   position: absolute;
-  top: 32px;
+  top: $-menubar-height;
   bottom: 0;
   z-index: 0;
   height: auto;

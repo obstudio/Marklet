@@ -1,0 +1,64 @@
+[{
+  "ref": "menubar",
+  "children": [
+    {
+      "caption": "文件",
+      "mnemonic": "F",
+      "children": [
+        { "command": "open-file", "mnemonic": "O" },
+        "@separator",
+        { "command": "save", "mnemonic": "S" },
+        { "command": "save-as", "mnemonic": "A" },
+        { "command": "save-all", "mnemonic": "L" }
+      ]
+    },
+    {
+      "caption": "编辑",
+      "mnemonic": "E",
+      "children": [
+        { "command": "undo", "mnemonic": "U" },
+        { "command": "redo", "mnemonic": "R" },
+        "@separator",
+        { "command": "cut", "mnemonic": "T" },
+        { "command": "copy", "mnemonic": "C" },
+        { "command": "paste", "mnemonic": "P" },
+        "@separator",
+        { "command": "find", "mnemonic": "F" },
+        { "command": "find-next" },
+        { "command": "find-previous" }
+      ]
+    },
+    {
+      "caption": "视图",
+      "mnemonic": "V",
+      "children": [
+        { "command": "trigger-explorer", "mnemonic": "R" },
+        { "command": "trigger-editor", "mnemonic": "E" },
+        { "command": "trigger-document", "mnemonic": "D" },
+        "@separator",
+        { "command": "command-palette", "mnemonic": "C" },
+        "@separator",
+        {
+          "ref": "themes",
+          "caption": "主题",
+          "mnemonic": "T",
+          "children": [
+            {
+              "role": "list",
+              "data": "$themes",
+              "current": "$theme",
+              "switch": "setTheme"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "caption": "链接",
+      "mnemonic": "L",
+      "children": [
+        { "command": "open-repository", "mnemonic": "R" }
+      ]
+    }
+  ]
+}]
