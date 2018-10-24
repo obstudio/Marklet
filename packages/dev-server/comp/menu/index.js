@@ -13,17 +13,9 @@ function toKebab(camel) {
 module.exports = function(Vue) {
   Vue.component('ob-menubar', menubar)
 
-  let $menu = null, mountedHook = []
+  let $menu = null
   const commandData = {}, menuData = {}
   const MenuManager = Vue.extend(manager)
-
-  Vue.prototype.onMenusLoad = function(callback) {
-    if ($menu) {
-      callback()
-    } else {
-      mountedHook.push(callback)
-    }
-  }
 
   Vue.prototype.registerCommands = function(commands) {
     commands.forEach((command) => {
@@ -38,7 +30,7 @@ module.exports = function(Vue) {
     })
   }
 
-  Vue.prototype.registerMenus = function(menus) {
+  Vue.prototype.registerMenus = function(menus, parentNode) {
     menus.forEach(function walk(menu) {
       if (menu.ref) {
         menuData[menu.ref] = menu
@@ -67,9 +59,7 @@ module.exports = function(Vue) {
     Vue.prototype.$menu = $menu
 
     function mountMenu() {
-      this.$el.appendChild(element)
-      $menu.$mount(element)
-      mountedHook.forEach(callback => callback())
+      $menu.$mount((parentNode || this.$el).appendChild(element))
 
       this.$el.addEventListener('click', () => {
         $menu.hideContextMenus()

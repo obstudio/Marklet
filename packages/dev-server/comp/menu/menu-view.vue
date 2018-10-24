@@ -1,12 +1,11 @@
 <script>
 
 module.exports = {
-  name: 'marklet-menu-view',
+  name: 'menu-view',
   inject: ['commands', '$menu'],
   props: ['data', 'current'],
   components: {
-    MarkletMenuList: require('./menu-list.vue'),
-    MarkletMenuItem: require('./menu-item.vue'),
+    MenuItem: require('./menu-item.vue'),
   },
 
   methods: {
@@ -31,24 +30,23 @@ module.exports = {
 <template>
   <div>
     <template v-for="(item, index) in data">
-      <template v-if="typeof item === 'object'">
-        <template v-if="item.ref">
-          <marklet-menu-item :key="index" @click.stop binding=">"
-            :caption="item.caption" :mnemonic="item.mnemonic"
-            @mouseenter.native="enterMenuItem(item.ref, $event)"
-            @mouseleave.native="leaveMenuItem(item.ref, $event)"/>
-        </template>
-        <template v-if="item.children">
-          <marklet-menu-view :key="index" v-show="current === index" :data="item.children"/>
-        </template>
-        <marklet-menu-item :key="index" v-else-if="item.command"
-          :command="commands[item.command]" :mnemonic="item.mnemonic"/>
-        <marklet-menu-list :key="index" v-else :list="item"/>
-      </template>
-      <div :key="index" v-else-if="item === '@separator'" class="menu-item disabled" @click.stop>
+      <div :key="index" v-if="item === '@separator'" class="menu-item disabled" @click.stop>
         <div class="separator"/>
       </div>
-      <marklet-menu-list :key="index" v-else :list="$menu.lists[item.slice(1)]"/>
+      <menu-item :key="index" v-else-if="item.ref"
+        @click.native.stop binding=">"
+        :caption="item.caption" :mnemonic="item.mnemonic"
+        @mouseenter.native="enterMenuItem(item.ref, $event)"
+        @mouseleave.native="leaveMenuItem(item.ref, $event)"/>
+      <menu-view :key="index" v-else-if="item.children"
+        v-show="current === index" :data="item.children"/>
+      <menu-item :key="index" v-else-if="item.command"
+        :command="commands[item.command]" :mnemonic="item.mnemonic"/>
+      <transition-group :key="index" v-else name="ob-menu-list">
+        <menu-item v-for="(sub, index) in $menu.parseArgument(item.data)" :key="index"
+          :class="{ active: sub.key === $menu.parseArgument(item.current) }"
+          @click.native="$menu.executeMethod(item.switch, sub.key)" :caption="sub.name"/>
+      </transition-group>
     </template>
   </div>
 </template>
@@ -85,6 +83,8 @@ module.exports = {
     background: none;
     display: inline-block;
     margin: 0;
+    
+    &.active { font-weight: bold }
   }
 
   > .binding {

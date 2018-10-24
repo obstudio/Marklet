@@ -37,9 +37,12 @@ module.exports = {
   },
 
   methods: {
-    handleClick() {
-      if (this.disabled) return
-      this.$menu.executeCommand(this.command)
+    handleClick(event) {
+      if (this.disabled) {
+        event.stopPropagation()
+      } else {
+        this.$menu.executeCommand(this.command)
+      }
     }
   },
 }

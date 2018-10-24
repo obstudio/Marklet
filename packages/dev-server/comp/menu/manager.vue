@@ -4,7 +4,7 @@ module.exports = {
   props: ['menuData', 'menuKeys'],
 
   components: {
-    MarkletMenu: require('./menu.vue'),
+    MenuView: require('./menu-view.vue'),
   },
 
   mounted() {
@@ -101,7 +101,7 @@ module.exports = {
 <template>
   <div class="marklet-menu-manager">
     <transition name="marklet-menu" v-for="key in menuKeys" :key="key">
-      <marklet-menu class="marklet-menu" v-show="menuData[key].show"
+      <menu-view class="marklet-menu" v-show="menuData[key].show"
         :data="menuData[key].children" :current="menuData[key].current"/>
     </transition>
   </div>
