@@ -1,8 +1,6 @@
 <script>
 
 const { themes } = require('@marklet/renderer')
-const commands = require('./menu/command')
-const menus = require('./menu/menus')
 
 const MIN_WIDTH = 0.1
 
@@ -130,13 +128,15 @@ module.exports = {
   created() {
     this.$set(this.display.editor, 'show', this._enableEdit)
     this.$set(this.display.explorer, 'show', this._isProject)
+
+    this.registerCommands(require('./command'))
+    this.registerMenus(require('./menus'))
   },
+
+  updated() {},
 
   mounted() {
     window.vm = this
-
-    this.registerCommands(commands)
-    this.registerMenus(menus)
 
     addEventListener('resize', () => {
       this.dragging = true

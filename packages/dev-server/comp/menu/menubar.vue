@@ -8,10 +8,6 @@ module.exports = {
     }
   },
 
-  data: () => ({
-    loaded: false,
-  }),
-
   computed: {
     data() {
       return this.$menu.menuData[this.menu]
@@ -19,10 +15,6 @@ module.exports = {
     element() {
       return this.$menu.menuReference[this.menu]
     },
-  },
-
-  created() {
-    this.onMenusLoad(() => this.loaded = true)
   },
 
   methods: {
@@ -52,13 +44,11 @@ module.exports = {
 
 <template>
   <div class="ob-menubar">
-    <template v-if="loaded">
-      <div v-for="(menu, index) in data.children" :key="index" class="item"
-        @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
-        :class="{ active: data.current === index }" @contextmenu.stop>
-        {{ menu.caption }} (<span>{{ menu.mnemonic }}</span>)&nbsp;
-      </div>
-    </template>
+    <div v-for="(menu, index) in data.children" :key="index" class="item"
+      @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
+      :class="{ active: data.current === index }" @contextmenu.stop>
+      {{ menu.caption }} (<span>{{ menu.mnemonic }}</span>)&nbsp;
+    </div>
   </div>
 </template>
 

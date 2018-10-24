@@ -13,19 +13,15 @@ function toKebab(camel) {
 module.exports = function(Vue) {
   Vue.component('ob-menubar', menubar)
 
-  let $menu = null, hooks = []
+  let $menu = null, mountedHook = []
   const commandData = {}, menuData = {}
   const MenuManager = Vue.extend(manager)
-
-  Object.defineProperty(Vue.prototype, '$menu', {
-    get: () => $menu
-  })
 
   Vue.prototype.onMenusLoad = function(callback) {
     if ($menu) {
       callback()
     } else {
-      hooks.push(callback)
+      mountedHook.push(callback)
     }
   }
 
@@ -54,7 +50,9 @@ module.exports = function(Vue) {
       }
     })
     const menuKeys = Object.keys(menuData)
-    const element = this.$el.appendChild(document.createElement('div'))
+    const element = document.createElement('div')
+
+    
     $menu = new MenuManager({
       propsData: { menuData, menuKeys },
       provide() {
@@ -64,17 +62,28 @@ module.exports = function(Vue) {
         }
       },
     })
+
     $menu.$context = this
-    $menu.$mount(element)
+    Vue.prototype.$menu = $menu
 
-    hooks.forEach(callback => callback())
+    function mountMenu() {
+      this.$el.appendChild(element)
+      $menu.$mount(element)
+      mountedHook.forEach(callback => callback())
 
-    this.$el.addEventListener('click', () => {
-      $menu.hideContextMenus()
-    })
+      this.$el.addEventListener('click', () => {
+        $menu.hideContextMenus()
+      })
+  
+      this.$el.addEventListener('contextmenu', () => {
+        $menu.hideContextMenus()
+      })
+    }
 
-    this.$el.addEventListener('contextmenu', () => {
-      $menu.hideContextMenus()
-    })
+    if (this._isMounted) {
+      mountMenu()
+    } else {
+      this.$options.mounted.push(mountMenu)
+    }
   }
 }
