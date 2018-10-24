@@ -3,8 +3,10 @@ import * as http from 'http'
 import * as url from 'url'
 import * as fs from 'fs'
 import ws from 'ws'
+import debounce from 'lodash.debounce'
 
 import { LexerConfig } from '@marklet/parser'
+import { getContentType } from './serverUtil'
 
 export const DEFAULT_PORT = 10826
 
@@ -41,6 +43,7 @@ class MarkletServer<T extends ServerType> {
   config: LexerConfig
   wsServer: ws.Server
   httpServer: http.Server
+  watcher: fs.FSWatcher
 
   constructor(type: T, options: ServerOptions = {}) {
     this.type = type
@@ -48,7 +51,13 @@ class MarkletServer<T extends ServerType> {
     this.config = options.config || {}
     this.port = options.port || DEFAULT_PORT
     this.sourceType = options.sourceType || 'file'
+    this.createServer()
+    if (this.filepath) {
+      this.setupContentWatcher()
+    }
+  }
 
+  private createServer() {
     this.httpServer = http.createServer((request, response) => {
       function handleError(error: Error) {
         console.error(error)
@@ -73,8 +82,8 @@ class MarkletServer<T extends ServerType> {
         }
       } else if (pathname === 'initialize.js') {
         handleData(`
-          marklet.type = '${type}'
-          marklet.filepath = '${this.filepath}'
+          marklet.type = '${this.type}'
+          marklet.filepath = ${JSON.stringify(this.filepath)}
           marklet.sourceType = '${this.sourceType}'
           marklet.config = ${JSON.stringify(this.config)}
         `)
@@ -88,51 +97,73 @@ class MarkletServer<T extends ServerType> {
           return
         }
 
-        const ext = path.extname(filepath)
-        let contentType: string
-        switch (ext) {
-          case '.css': contentType = 'text/css'; break
-          case '.js': contentType = 'text/javascript'; break
-          case '.html': contentType = 'text/html'; break
-          default: contentType = 'application/octet-stream'
-        }
-        handleData(data.toString(), contentType)
+        handleData(data.toString(), getContentType(filepath))
       })
     }).listen(this.port)
-
     this.wsServer = new ws.Server({ server: this.httpServer })
     console.log(`Server running at http://localhost:${this.port}/`)
+  }
 
-    if (!this.filepath) return
+  private setupContentWatcher() {
     if (this.sourceType === 'file') {
-      this.wsServer.on('connection', (ws) => {
-        ws.send(FileMessage(this.filepath))
-      })
-      fs.watch(this.filepath, (eventType: WatchEventType, filename) => {
-        if (eventType === 'rename') {
-          if (fs.existsSync(filename)) {
-            this.filepath = filename // got new name
-          } else {
-            // TODO: gracefully exit since source file gone
-          }
-        } else {
-          this.wsServer.broadcast(FileMessage(this.filepath))
-        }
-      })
+      this.setupFileWatcher()
     } else {
-      this.wsServer.on('connection', (ws) => {
-        for (const message in ProjectMessages(this.filepath)) {
-          ws.send(message)
-        }
-      })
-      fs.watch(this.filepath, { recursive: true }, (eventType: WatchEventType, filename) => {
-        // FIXME: only watching the index file is far from enough
-        // you need to watch the basedir and every files in it
-        for (const message in ProjectMessages(this.filepath)) {
-          this.wsServer.broadcast(message)
-        }
-      })
+      this.setupProjectWatcher()
     }
+  }
+
+  private setupFileWatcher() {
+    let content: string
+    let dirty: boolean
+    const updateContent = () => {
+      const temp = fs.readFileSync(this.filepath, 'utf8')
+      dirty = content !== temp
+      content = temp
+    }
+    updateContent()
+    const wrapDocumentMessage = () => JSON.stringify({
+      type: 'document',
+      filepath: this.filepath,
+      data: content,
+    })
+    this.wsServer.on('connection', (ws) => {
+      ws.send(wrapDocumentMessage())
+    })
+    const broadcast = debounce(() => {
+      updateContent()
+      if (dirty) {
+        this.wsServer.broadcast(wrapDocumentMessage())
+      }
+    }, 200)
+    this.watcher = fs.watch(this.filepath, (eventType: WatchEventType) => {
+      if (eventType === 'rename') {
+        this.dispose('Source file is gone.')
+      } else {
+        broadcast()
+      }
+    })
+  }
+
+  private setupProjectWatcher() {
+    this.wsServer.on('connection', (ws) => {
+      for (const message in ProjectMessages(this.filepath)) {
+        ws.send(message)
+      }
+    })
+    fs.watch(this.filepath, { recursive: true }, (eventType: WatchEventType, filename) => {
+      // FIXME: only watching the index file is far from enough
+      // you need to watch the basedir and every files in it
+      for (const message in ProjectMessages(this.filepath)) {
+        this.wsServer.broadcast(message)
+      }
+    })
+  }
+
+  public dispose(reason: string = '') {
+    this.wsServer.close()
+    this.httpServer.close()
+    this.watcher.close()
+    console.log(reason)
   }
 }
 

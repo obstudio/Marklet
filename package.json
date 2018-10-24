@@ -17,6 +17,7 @@
     "@sfc2js/sass": "^2.0.0",
     "@types/cheerio": "^0.22.9",
     "@types/js-yaml": "^3.11.2",
+    "@types/lodash.debounce": "^4.0.4",
     "@types/node": "^10.12.0",
     "@types/ws": "^6.0.1",
     "ajv": "^6.5.4",
