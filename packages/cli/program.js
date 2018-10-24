@@ -67,12 +67,12 @@ Object.assign(Object.getPrototypeOf(program), {
         options.filepath = basePath
       } else {
         let matchFound = false
-        basePath = path.join(basePath, 'marklet')
+        const configPathWithoutExt = path.join(basePath, 'marklet')
         for (const type of ALL_TYPES) {
-          const filename = basePath + type
-          if (!fs.existsSync(filename)) continue
-          if (fs.statSync(filename).isFile()) {
-            options = loadFromFile(basePath)
+          const configPath = configPathWithoutExt + type
+          if (!fs.existsSync(configPath)) continue
+          if (fs.statSync(configPath).isFile()) {
+            options = loadFromFile(configPath)
             options.filepath = basePath
             matchFound = true
             break
