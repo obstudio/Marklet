@@ -3,10 +3,10 @@ import * as http from 'http'
 import * as url from 'url'
 import * as fs from 'fs'
 import ws from 'ws'
-import debounce from 'lodash.debounce'
 
 import { LexerConfig } from '@marklet/parser'
 import { getContentType } from './serverUtil'
+import { FileManager } from './ContentManager'
 
 export const DEFAULT_PORT = 10826
 
@@ -26,7 +26,6 @@ ws.Server.prototype.broadcast = function (data) {
 
 export type ServerType = 'watch' | 'edit'
 export type SourceType = 'file' | 'folder'
-export type WatchEventType = 'rename' | 'change'
 
 interface ServerOptions {
   port?: number
@@ -43,7 +42,6 @@ class MarkletServer<T extends ServerType> {
   config: LexerConfig
   wsServer: ws.Server
   httpServer: http.Server
-  watcher: fs.FSWatcher
 
   constructor(type: T, options: ServerOptions = {}) {
     this.type = type
@@ -113,35 +111,12 @@ class MarkletServer<T extends ServerType> {
   }
 
   private setupFileWatcher() {
-    let content: string
-    let dirty: boolean
-    const updateContent = () => {
-      const temp = fs.readFileSync(this.filepath, 'utf8')
-      dirty = content !== temp
-      content = temp
-    }
-    updateContent()
-    const wrapDocumentMessage = () => JSON.stringify({
-      type: 'document',
-      filepath: this.filepath,
-      data: content,
+    const manager = new FileManager(this.filepath)
+    manager.once('close', () => {
+      this.dispose('Source file is gone.')
     })
-    this.wsServer.on('connection', (ws) => {
-      ws.send(wrapDocumentMessage())
-    })
-    const broadcast = debounce(() => {
-      updateContent()
-      if (dirty) {
-        this.wsServer.broadcast(wrapDocumentMessage())
-      }
-    }, 200)
-    this.watcher = fs.watch(this.filepath, (eventType: WatchEventType) => {
-      if (eventType === 'rename') {
-        this.dispose('Source file is gone.')
-      } else {
-        broadcast()
-      }
-    })
+    this.wsServer.on('connection', ws => ws.send(manager.msg))
+    manager.on('update', msg => this.wsServer.broadcast(msg))
   }
 
   private setupProjectWatcher() {
@@ -150,7 +125,7 @@ class MarkletServer<T extends ServerType> {
         ws.send(message)
       }
     })
-    fs.watch(this.filepath, { recursive: true }, (eventType: WatchEventType, filename) => {
+    fs.watch(this.filepath, { recursive: true }, (eventType, filename) => {
       // FIXME: only watching the index file is far from enough
       // you need to watch the basedir and every files in it
       for (const message in ProjectMessages(this.filepath)) {
@@ -162,7 +137,6 @@ class MarkletServer<T extends ServerType> {
   public dispose(reason: string = '') {
     this.wsServer.close()
     this.httpServer.close()
-    this.watcher.close()
     console.log(reason)
   }
 }
