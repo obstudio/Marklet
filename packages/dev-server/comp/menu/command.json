@@ -93,7 +93,8 @@
     "arguments": "editor.action.quickCommand",
     "key": "command-palette",
     "bind": "!f1",
-    "name": "命令面板"
+    "name": "命令面板",
+    "enabled": "$display.editor.show"
   },
   {
     "method": "executeAction",

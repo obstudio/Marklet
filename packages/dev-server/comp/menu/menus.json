@@ -1,5 +1,5 @@
 [{
-  "key": "menubar",
+  "ref": "menubar",
   "children": [
     {
       "caption": "文件",
@@ -36,7 +36,10 @@
         { "command": "trigger-editor", "mnemonic": "E" },
         { "command": "trigger-document", "mnemonic": "D" },
         "@separator",
+        { "command": "command-palette", "mnemonic": "C" },
+        "@separator",
         {
+          "ref": "themes",
           "caption": "主题",
           "mnemonic": "T",
           "children": [

@@ -2,15 +2,32 @@
 
 module.exports = {
   inject: ['$menu'],
-  props: ['command', 'mnemonic'],
+  props: {
+    command: {
+      type: Object,
+      default: {},
+    },
+    mnemonic: {
+      type: String,
+      default: '',
+    },
+    binding: {
+      type: String,
+      default: '',
+    },
+    caption: {
+      type: String,
+      default: '',
+    },
+  },
 
   computed: {
     disabled() {
       if (!this.command.enabled) return
       return !this.$menu.parseArgument(this.command.enabled)
     },
-    binding() {
-      let binding = this.command.bind
+    keybinding() {
+      let binding = this.binding || this.command.bind
       if (!binding) return ''
       if (binding.charAt(0) === '!') binding = binding.slice(1)
       return binding.replace(/[a-z]+/g, word => {
@@ -34,11 +51,11 @@ module.exports = {
     <span class="label">
       <mkl-checkbox v-if="command.checked !== undefined"
         :value="$menu.parseArgument(command.checked)" @change="handleClick"/>
-      {{ command.name }}
+      {{ caption || command.name }}
       <template v-if="mnemonic"> ({{ mnemonic }})</template>
       <template v-if="command.ellipsis"> ...</template>
     </span>
-    <span class="binding">{{ binding }}</span>
+    <span class="binding">{{ keybinding }}</span>
   </div>
 </template>
 

@@ -8,6 +8,22 @@ module.exports = {
     MarkletMenuList: require('./menu-list.vue'),
     MarkletMenuItem: require('./menu-item.vue'),
   },
+
+  methods: {
+    enterMenuItem(key, event) {
+      const style = this.$menu.menuReference[key].style
+      this.$menu.locateAtLeftRight(event, style)
+      this.$menu.menuData[key].show = true
+    },
+    leaveMenuItem(key, event) {
+      const x = event.clientX
+      const y = event.clientY
+      const rect = this.$el.getBoundingClientRect()
+      if (x >= rect.left && x <= rect.right && y >= rect.left && y <= rect.right) {
+        this.$menu.menuData[key].show = false
+      }
+    },
+  },
 }
 
 </script>
@@ -15,7 +31,13 @@ module.exports = {
 <template>
   <div>
     <template v-for="(item, index) in data">
-      <template v-if="(item instanceof Object)">
+      <template v-if="typeof item === 'object'">
+        <template v-if="item.ref">
+          <marklet-menu-item :key="index" binding=">"
+            :caption="item.caption" :mnemonic="item.mnemonic"
+            @mouseenter.native="enterMenuItem(item.ref, $event)"
+            @mouseleave.native="leaveMenuItem(item.ref, $event)"/>
+        </template>
         <template v-if="item.children">
           <marklet-menu-view :key="index" v-show="current === index" :data="item.children"/>
         </template>

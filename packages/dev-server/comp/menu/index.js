@@ -9,17 +9,20 @@ function toKebab(camel) {
 }
 
 const commands = {}
-for (const command of require('./command.json')) {
+require('./command.json').forEach((command) => {
   const key = command.key ? command.key : toKebab(command.method)
   commands[key] = command
-}
+})
 
 const menuData = {}
-require('./menus.json').forEach(function traverse(menu) {
+require('./menus.json').forEach(function walk(menu) {
+  if (menu.ref) {
+    menuData[menu.ref] = menu
+    menuData[menu.ref].show = false
+    menuData[menu.ref].current = null
+  }
   if (menu.children) {
-    menuData[menu.key] = menu
-    menuData[menu.key].show = false
-    menuData[menu.key].current = null
+    menu.children.forEach(walk)
   }
 })
 const menuKeys = Object.keys(menuData)
@@ -67,6 +70,7 @@ module.exports = {
       if (method instanceof Function) method(...args)
     },
     executeCommand(command) {
+      if (!command.method) return
       const method = this[command.method]
       if (!(method instanceof Function)) {
         console.error(`No method ${command.method} was found!`)
@@ -101,7 +105,7 @@ module.exports = {
       this.menuData[key].show = true
     },
     locateMenuAtClient(event, style) {
-      if (event.clientX + 200 > this.width) {
+      if (event.clientX + 200 > innerWidth) {
         style.left = event.clientX - 200 - this.left + 'px'
       } else {
         style.left = event.clientX - this.left + 'px'
@@ -122,7 +126,7 @@ module.exports = {
     showButtonMenu(key, event) {
       const style = this.menuReference[key].style
       this.hideContextMenus()
-      this.locateMenuAtButton(event, style)
+      this.locateAtTopBottom(event, style)
       this.menuData[key].show = true
     },
     showMenu(index, event) {
@@ -139,19 +143,30 @@ module.exports = {
         this.menubarMove = index - last
       }
       this.hideContextMenus()
-      this.locateMenuAtButton(event, style)
+      this.locateAtTopBottom(event, style)
       this.menubarActive = true
       this.menuData.menubar.show = true
       this.menuData.menubar.current = index
     },
-    locateMenuAtButton(event, style) {
+    locateAtTopBottom(event, style) {
       const rect = event.currentTarget.getBoundingClientRect()
-      if (rect.left + 200 > this.width) {
+      if (rect.left + 200 > innerWidth) {
         style.left = rect.left + rect.width - 200 + 'px'
       } else {
         style.left = rect.left + 'px'
       }
       style.top = rect.top + rect.height + 'px'
+    },
+    locateAtLeftRight(event, style) {
+      const rect = event.currentTarget.getBoundingClientRect()
+      if (rect.right + 200 > innerWidth) {
+        style.left = null
+        style.right = rect.left + 'px'
+      } else {
+        style.right = null
+        style.left = rect.right + 'px'
+      }
+      style.top = rect.top + 'px'
     },
   },
 }
