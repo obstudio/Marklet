@@ -33,7 +33,7 @@ module.exports = {
     <template v-for="(item, index) in data">
       <template v-if="typeof item === 'object'">
         <template v-if="item.ref">
-          <marklet-menu-item :key="index" binding=">"
+          <marklet-menu-item :key="index" @click.stop binding=">"
             :caption="item.caption" :mnemonic="item.mnemonic"
             @mouseenter.native="enterMenuItem(item.ref, $event)"
             @mouseleave.native="leaveMenuItem(item.ref, $event)"/>
@@ -41,8 +41,9 @@ module.exports = {
         <template v-if="item.children">
           <marklet-menu-view :key="index" v-show="current === index" :data="item.children"/>
         </template>
-        <marklet-menu-item :key="index" v-else
+        <marklet-menu-item :key="index" v-else-if="item.command"
           :command="commands[item.command]" :mnemonic="item.mnemonic"/>
+        <marklet-menu-list :key="index" v-else :list="item"/>
       </template>
       <div :key="index" v-else-if="item === '@separator'" class="menu-item disabled" @click.stop>
         <div class="separator"/>

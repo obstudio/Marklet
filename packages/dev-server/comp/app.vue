@@ -1,16 +1,18 @@
 <script>
 
 const { themes } = require('@marklet/renderer')
+const commands = require('./menu/command')
+const menus = require('./menu/menus')
 
 const MIN_WIDTH = 0.1
 
 module.exports = {
   mixins: [
-    require('./menu'),
     require('./editor'),
   ],
 
   data: () => ({
+    themes,
     theme: 'dark',
     dragging: false,
     display: {
@@ -30,16 +32,6 @@ module.exports = {
   }),
 
   computed: {
-    lists() {
-      return {
-        themes: {
-          data: themes,
-          current: this.theme,
-          switch: 'setTheme',
-          prefix: '主题：',
-        },
-      }
-    },
     totalWidth() {
       return this.display.editor.width * this.display.editor.show
         + this.display.explorer.width * this.display.explorer.show
@@ -143,6 +135,9 @@ module.exports = {
   mounted() {
     window.vm = this
 
+    this.registerCommands(commands)
+    this.registerMenus(menus)
+
     addEventListener('resize', () => {
       this.dragging = true
       this.layout()
@@ -215,7 +210,7 @@ module.exports = {
       }
     },
     startDrag(position, event) {
-      this.hideContextMenus()
+      this.$menu.hideContextMenus()
       this.dragging = position
       this.$refs[position].classList.add('active')
       this.draggingLastX = event.clientX
@@ -226,8 +221,7 @@ module.exports = {
 </script>
 
 <template>
-  <div :class="[theme, { dragging }]" class="marklet"
-    @click="hideContextMenus" @contextmenu="hideContextMenus">
+  <div :class="[theme, { dragging }]" class="marklet">
     <ob-menubar class="menubar" menu="menubar"/>
     <div class="view explorer" :style="explorerStyle"/>
     <div class="border left" ref="left" :style="leftBorderStyle"
@@ -238,7 +232,6 @@ module.exports = {
     <mkl-scroll class="view document" :style="documentStyle" :margin="4" :radius="6">
       <mkl-nodes ref="nodes" :content="nodes"/>
     </mkl-scroll>
-    <marklet-menu ref="menus" :data="menuData"/>
   </div>
 </template>
 

@@ -1,14 +1,16 @@
 <script>
 
 module.exports = {
-  inject: ['$menu'],
-
   props: {
     menu: {
       type: String,
       default: 'menubar',
     }
   },
+
+  data: () => ({
+    loaded: false,
+  }),
 
   computed: {
     data() {
@@ -17,6 +19,10 @@ module.exports = {
     element() {
       return this.$menu.menuReference[this.menu]
     },
+  },
+
+  created() {
+    this.onMenusLoad(() => this.loaded = true)
   },
 
   methods: {
@@ -46,11 +52,13 @@ module.exports = {
 
 <template>
   <div class="ob-menubar">
-    <div v-for="(menu, index) in data.children" :key="index" class="item"
-      @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
-      :class="{ active: data.current === index }" @contextmenu.stop>
-      {{ menu.caption }} (<span>{{ menu.mnemonic }}</span>)&nbsp;
-    </div>
+    <template v-if="loaded">
+      <div v-for="(menu, index) in data.children" :key="index" class="item"
+        @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
+        :class="{ active: data.current === index }" @contextmenu.stop>
+        {{ menu.caption }} (<span>{{ menu.mnemonic }}</span>)&nbsp;
+      </div>
+    </template>
   </div>
 </template>
 

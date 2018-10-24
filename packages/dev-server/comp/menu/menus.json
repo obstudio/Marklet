@@ -43,7 +43,12 @@
           "caption": "主题",
           "mnemonic": "T",
           "children": [
-            "@themes"
+            {
+              "role": "list",
+              "data": "$themes",
+              "current": "$theme",
+              "switch": "setTheme"
+            }
           ]
         }
       ]

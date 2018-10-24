@@ -1,4 +1,6 @@
 const Mousetrap = require('mousetrap')
+const manager = require('./manager.vue')
+const menubar = require('./menubar.vue')
 
 // TODO: improve this pattern maybe. 
 // Cause: firing event inside textarea is blocked by mousetrap by default.
@@ -8,138 +10,71 @@ function toKebab(camel) {
   return camel.replace(/[A-Z]/g, char => '-' + char.toLowerCase())
 }
 
-const commands = {}
-require('./command.json').forEach((command) => {
-  const key = command.key ? command.key : toKebab(command.method)
-  commands[key] = command
-})
+module.exports = function(Vue) {
+  Vue.component('ob-menubar', menubar)
 
-const menuData = {}
-require('./menus.json').forEach(function walk(menu) {
-  if (menu.ref) {
-    menuData[menu.ref] = menu
-    menuData[menu.ref].show = false
-    menuData[menu.ref].current = null
-  }
-  if (menu.children) {
-    menu.children.forEach(walk)
-  }
-})
-const menuKeys = Object.keys(menuData)
+  let $menu = null, hooks = []
+  const commandData = {}, menuData = {}
+  const MenuManager = Vue.extend(manager)
 
-module.exports = {
-  components: {
-    MarkletMenu: require('./manager.vue'),
-  },
+  Object.defineProperty(Vue.prototype, '$menu', {
+    get: () => $menu
+  })
 
-  data() {
-    return {
-      menuData,
-      altKey: false,
+  Vue.prototype.onMenusLoad = function(callback) {
+    if ($menu) {
+      callback()
+    } else {
+      hooks.push(callback)
     }
-  },
+  }
 
-  provide() {
-    return {
-      menuKeys,
-      commands,
-      $menu: this,
-    }
-  },
-
-  mounted() {
-    for (const key in commands) {
-      const command = commands[key]
-      if (!command.bind || command.bind.startsWith('!')) continue
+  Vue.prototype.registerCommands = function(commands) {
+    commands.forEach((command) => {
+      const key = command.key ? command.key : toKebab(command.method)
+      commandData[key] = command
+      if (!command.bind || command.bind.startsWith('!')) return
       Mousetrap.bind(command.bind, () => {
-        this.executeCommand(command)
+        if (!$menu) return
+        $menu.executeCommand(command)
         return false
       })
-    }
-    this.menuReference = {}
-    menuKeys.forEach((key, index) => {
-      this.menuReference[key] = this.$refs.menus.$el.children[index]
     })
-  },
+  }
 
-  methods: {
-    executeMethod(key, ...args) {
-      const method = this[key]
-      if (method instanceof Function) method(...args)
-    },
-    executeCommand(command) {
-      if (!command.method) return
-      const method = this[command.method]
-      if (!(method instanceof Function)) {
-        console.error(`No method ${command.method} was found!`)
-        return
+  Vue.prototype.registerMenus = function(menus) {
+    menus.forEach(function walk(menu) {
+      if (menu.ref) {
+        menuData[menu.ref] = menu
+        menuData[menu.ref].show = false
+        menuData[menu.ref].current = null
       }
-      let args = command.arguments
-      if (args === undefined) args = []
-      if (!(args instanceof Array)) args = [args]
-      method(...args.map(arg => this.parseArgument(arg)))
-    },
-    parseArgument(arg) {
-      if (typeof arg !== 'string') return arg
-      if (arg.startsWith('!$')) {
-        return !arg.slice(2).split('.').reduce((prev, curr) => prev[curr], this)
-      } else if (arg.startsWith('$')) {
-        return arg.slice(1).split('.').reduce((prev, curr) => prev[curr], this)
-      } else {
-        return arg
+      if (menu.children) {
+        menu.children.forEach(walk)
       }
-    },
-    hideContextMenus() {
-      for (const key in this.menuData) {
-        this.menuData[key].show = false
-        this.menuData[key].current = null
-      }
-    },
-    showContextMenu(key, event) {
-      const style = this.menuReference[key].style
-      this.hideContextMenus()
-      this.locateMenuAtClient(event, style)
-      this.menuData[key].show = true
-    },
-    locateMenuAtClient(event, style) {
-      if (event.clientX + 200 > innerWidth) {
-        style.left = event.clientX - 200 - this.left + 'px'
-      } else {
-        style.left = event.clientX - this.left + 'px'
-      }
-      if (event.clientY - this.top > this.height / 2) {
-        style.top = ''
-        style.bottom = this.top + this.height - event.clientY + 'px'
-      } else {
-        style.top = event.clientY - this.top + 'px'
-        style.bottom = ''
-      }
-    },
-    showButtonMenu(key, event) {
-      const style = this.menuReference[key].style
-      this.hideContextMenus()
-      this.locateAtTopBottom(event, style)
-      this.menuData[key].show = true
-    },
-    locateAtTopBottom(event, style) {
-      const rect = event.currentTarget.getBoundingClientRect()
-      if (rect.left + 200 > innerWidth) {
-        style.left = rect.left + rect.width - 200 + 'px'
-      } else {
-        style.left = rect.left + 'px'
-      }
-      style.top = rect.top + rect.height + 'px'
-    },
-    locateAtLeftRight(event, style) {
-      const rect = event.currentTarget.getBoundingClientRect()
-      if (rect.right + 200 > innerWidth) {
-        style.left = null
-        style.right = rect.left + 'px'
-      } else {
-        style.right = null
-        style.left = rect.right + 'px'
-      }
-      style.top = rect.top + 'px'
-    },
-  },
+    })
+    const menuKeys = Object.keys(menuData)
+    const element = this.$el.appendChild(document.createElement('div'))
+    $menu = new MenuManager({
+      propsData: { menuData, menuKeys },
+      provide() {
+        return {
+          commands: commandData,
+          $menu: this,
+        }
+      },
+    })
+    $menu.$context = this
+    $menu.$mount(element)
+
+    hooks.forEach(callback => callback())
+
+    this.$el.addEventListener('click', () => {
+      $menu.hideContextMenus()
+    })
+
+    this.$el.addEventListener('contextmenu', () => {
+      $menu.hideContextMenus()
+    })
+  }
 }

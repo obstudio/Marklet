@@ -9,10 +9,10 @@ module.exports = {
 
 <template>
   <transition-group name="marklet-menu-list">
-    <div v-for="(item, index) in list.data" :key="index"
-      :class="['menu-item', { active: item.key === list.current }]"
+    <div v-for="(item, index) in $menu.parseArgument(list.data)" :key="index"
+      :class="['menu-item', { active: item.key === $menu.parseArgument(list.current) }]"
       @click="$menu.executeMethod(list.switch, item.key)">
-      <span class="label">{{ list.prefix }}{{ item.name }}{{ list.postfix }}</span>
+      <span class="label">{{ item.name }}</span>
     </div>
   </transition-group>
 </template>
