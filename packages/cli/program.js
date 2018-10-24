@@ -64,6 +64,7 @@ Object.assign(Object.getPrototypeOf(program), {
         if (!MARK_TYPES.includes(path.extname(basePath))) {
           options = loadFromFile(basePath)
         }
+        options.filepath = basePath
       } else {
         let matchFound = false
         basePath = path.join(basePath, 'marklet')
@@ -72,6 +73,7 @@ Object.assign(Object.getPrototypeOf(program), {
           if (!fs.existsSync(filename)) continue
           if (fs.statSync(filename).isFile()) {
             options = loadFromFile(basePath)
+            options.filepath = basePath
             matchFound = true
             break
           }
