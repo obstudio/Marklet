@@ -29,14 +29,12 @@ const menuKeys = Object.keys(menuData)
 
 module.exports = {
   components: {
-    MarkletMenu: require('./menu-manager.vue'),
+    MarkletMenu: require('./manager.vue'),
   },
 
   data() {
     return {
       menuData,
-      menubarMove: 0,
-      menubarActive: false,
       altKey: false,
     }
   },
@@ -92,7 +90,6 @@ module.exports = {
       }
     },
     hideContextMenus() {
-      this.menubarActive = false
       for (const key in this.menuData) {
         this.menuData[key].show = false
         this.menuData[key].current = null
@@ -118,35 +115,11 @@ module.exports = {
         style.bottom = ''
       }
     },
-    hoverMenu(index, event) {
-      if (this.menubarActive && this.menuData.menubar.current !== index) {
-        this.showMenu(index, event)
-      }
-    },
     showButtonMenu(key, event) {
       const style = this.menuReference[key].style
       this.hideContextMenus()
       this.locateAtTopBottom(event, style)
       this.menuData[key].show = true
-    },
-    showMenu(index, event) {
-      const style = this.menuReference.menubar.style
-      const last = this.menuData.menubar.current
-      if (last === index) {
-        this.menubarActive = false
-        this.menuData.menubar.show = false
-        this.menuData.menubar.current = null
-        return
-      } else if (last === -1) {
-        this.menubarMove = 0
-      } else {
-        this.menubarMove = index - last
-      }
-      this.hideContextMenus()
-      this.locateAtTopBottom(event, style)
-      this.menubarActive = true
-      this.menuData.menubar.show = true
-      this.menuData.menubar.current = index
     },
     locateAtTopBottom(event, style) {
       const rect = event.currentTarget.getBoundingClientRect()

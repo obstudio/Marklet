@@ -228,13 +228,7 @@ module.exports = {
 <template>
   <div :class="[theme, { dragging }]" class="marklet"
     @click="hideContextMenus" @contextmenu="hideContextMenus">
-    <div class="menubar">
-      <div v-for="(menu, index) in menuData.menubar.children" :key="index" class="item"
-        @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
-        :class="{ active: menuData.menubar.current === index }" @contextmenu.stop>
-        {{ menu.caption }} (<span>{{ menu.mnemonic }}</span>)&nbsp;
-      </div>
-    </div>
+    <ob-menubar class="menubar" menu="menubar"/>
     <div class="view explorer" :style="explorerStyle"/>
     <div class="border left" ref="left" :style="leftBorderStyle"
       @mousedown.stop="startDrag('left', $event)"/>
@@ -250,6 +244,8 @@ module.exports = {
 
 <style lang="scss" scoped>
 
+$-menubar-height: 32px;
+
 & {
   top: 0;
   left: 0;
@@ -260,29 +256,12 @@ module.exports = {
 }
 
 > .menubar {
-  overflow: hidden;
-  font-size: 14px;
-  left: 0;
-  height: 32px;
-  width: 100%;
-  float: left;
-  z-index: 11;
-  user-select: none;
-  position: relative;
-
-  .item {
-    line-height: 24px;
-    padding: 4px;
-    transition:
-      color 0.3s ease,
-      background-color 0.3s ease;
-    display: inline-block;
-  }
+  height: $-menubar-height;
 }
 
 > .view, > .border {
   position: absolute;
-  top: 32px;
+  top: $-menubar-height;
   bottom: 0;
   z-index: 0;
   height: auto;
