@@ -14,7 +14,7 @@ module.exports = {
   <div class="marklet-menu-manager">
     <transition name="marklet-menu" v-for="key in menuKeys" :key="key">
       <marklet-menu-view class="marklet-menu" v-show="data[key].show"
-        :data="data[key].content" :embed="data[key].embed"/>
+        :data="data[key].children" :current="data[key].current"/>
     </transition>
   </div>
 </template>

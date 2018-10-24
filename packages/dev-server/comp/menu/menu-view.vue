@@ -3,15 +3,11 @@
 module.exports = {
   name: 'marklet-menu-view',
   inject: ['commands', '$menu'],
-  props: ['data', 'embed'],
+  props: ['data', 'current'],
   components: {
     MarkletMenuList: require('./menu-list.vue'),
     MarkletMenuItem: require('./menu-item.vue'),
   },
-
-  created() {
-    console.log(this.data)
-  }
 }
 
 </script>
@@ -20,8 +16,8 @@ module.exports = {
   <div>
     <template v-for="(item, index) in data">
       <template v-if="(item instanceof Object)">
-        <template v-if="item.content">
-          <marklet-menu-view :key="index" v-show="embed[index]" :data="item.content"/>
+        <template v-if="item.children">
+          <marklet-menu-view :key="index" v-show="current === index" :data="item.children"/>
         </template>
         <marklet-menu-item :key="index" v-else
           :command="commands[item.command]" :mnemonic="item.mnemonic"/>

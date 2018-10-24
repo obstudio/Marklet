@@ -14,16 +14,15 @@ for (const command of require('./command.json')) {
   commands[key] = command
 }
 
-const menus = require('./menus.json')
 const menuData = {}
-const menuKeys = Object.keys(menus)
-for (const key of menuKeys) {
-  menuData[key] = {
-    show: false,
-    content: menus[key],
-    embed: new Array(menus[key].length).fill(false)
+require('./menus.json').forEach(function traverse(menu) {
+  if (menu.children) {
+    menuData[menu.key] = menu
+    menuData[menu.key].show = false
+    menuData[menu.key].current = null
   }
-}
+})
+const menuKeys = Object.keys(menuData)
 
 module.exports = {
   components: {
@@ -57,9 +56,9 @@ module.exports = {
       })
     }
     this.menuReference = {}
-    for (let index = 0; index < menuKeys.length; index++) {
-      this.menuReference[menuKeys[index]] = this.$refs.menus.$el.children[index]
-    }
+    menuKeys.forEach((key, index) => {
+      this.menuReference[key] = this.$refs.menus.$el.children[index]
+    })
   },
 
   methods: {
@@ -92,9 +91,7 @@ module.exports = {
       this.menubarActive = false
       for (const key in this.menuData) {
         this.menuData[key].show = false
-        for (let index = 0; index < this.menuData[key].embed.length; index++) {
-          this.menuData[key].embed.splice(index, 1, false)
-        }
+        this.menuData[key].current = null
       }
     },
     showContextMenu(key, event) {
@@ -118,7 +115,7 @@ module.exports = {
       }
     },
     hoverMenu(index, event) {
-      if (this.menubarActive && !this.menuData.menubar.embed[index]) {
+      if (this.menubarActive && this.menuData.menubar.current !== index) {
         this.showMenu(index, event)
       }
     },
@@ -130,11 +127,11 @@ module.exports = {
     },
     showMenu(index, event) {
       const style = this.menuReference.menubar.style
-      const last = this.menuData.menubar.embed.indexOf(true)
+      const last = this.menuData.menubar.current
       if (last === index) {
         this.menubarActive = false
         this.menuData.menubar.show = false
-        this.menuData.menubar.embed.splice(index, 1, false)
+        this.menuData.menubar.current = null
         return
       } else if (last === -1) {
         this.menubarMove = 0
@@ -145,7 +142,7 @@ module.exports = {
       this.locateMenuAtButton(event, style)
       this.menubarActive = true
       this.menuData.menubar.show = true
-      this.menuData.menubar.embed.splice(index, 1, true)
+      this.menuData.menubar.current = index
     },
     locateMenuAtButton(event, style) {
       const rect = event.currentTarget.getBoundingClientRect()

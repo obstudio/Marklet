@@ -229,9 +229,9 @@ module.exports = {
   <div :class="[theme, { dragging }]" class="marklet"
     @click="hideContextMenus" @contextmenu="hideContextMenus">
     <div class="menubar">
-      <div v-for="(menu, index) in menuData.menubar.content" :key="index" class="item"
+      <div v-for="(menu, index) in menuData.menubar.children" :key="index" class="item"
         @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
-        :class="{ active: menuData.menubar.embed[index] }" @contextmenu.stop>
+        :class="{ active: menuData.menubar.current === index }" @contextmenu.stop>
         {{ menu.caption }} (<span>{{ menu.mnemonic }}</span>)&nbsp;
       </div>
     </div>

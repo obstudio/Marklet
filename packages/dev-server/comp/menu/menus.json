@@ -1,53 +1,56 @@
-{
-  "menubar": [
+[{
+  "key": "menubar",
+  "children": [
     {
-      "key": "file",
       "caption": "文件",
       "mnemonic": "F",
-      "content": [
+      "children": [
         { "command": "open-file", "mnemonic": "O" },
         "@separator",
         { "command": "save", "mnemonic": "S" },
-        { "command": "save-as", "mnemonic": "" },
-        { "command": "save-all", "mnemonic": "" }
+        { "command": "save-as", "mnemonic": "A" },
+        { "command": "save-all", "mnemonic": "L" }
       ]
     },
     {
-      "key": "edit",
       "caption": "编辑",
       "mnemonic": "E",
-      "content": [
-        { "command": "undo", "mnemonic": "" },
-        { "command": "redo", "mnemonic": "" },
+      "children": [
+        { "command": "undo", "mnemonic": "U" },
+        { "command": "redo", "mnemonic": "R" },
         "@separator",
-        { "command": "cut", "mnemonic": "" },
-        { "command": "copy", "mnemonic": "" },
-        { "command": "paste", "mnemonic": "" },
+        { "command": "cut", "mnemonic": "T" },
+        { "command": "copy", "mnemonic": "C" },
+        { "command": "paste", "mnemonic": "P" },
         "@separator",
-        { "command": "find", "mnemonic": "" },
-        { "command": "find-next", "mnemonic": "" },
-        { "command": "find-previous", "mnemonic": "" }
+        { "command": "find", "mnemonic": "F" },
+        { "command": "find-next" },
+        { "command": "find-previous" }
       ]
     },
     {
-      "key": "view",
       "caption": "视图",
       "mnemonic": "V",
-      "content": [
-        { "command": "trigger-explorer", "mnemonic": "" },
-        { "command": "trigger-editor", "mnemonic": "" },
-        { "command": "trigger-document", "mnemonic": "" },
+      "children": [
+        { "command": "trigger-explorer", "mnemonic": "R" },
+        { "command": "trigger-editor", "mnemonic": "E" },
+        { "command": "trigger-document", "mnemonic": "D" },
         "@separator",
-        "@themes"
+        {
+          "caption": "主题",
+          "mnemonic": "T",
+          "children": [
+            "@themes"
+          ]
+        }
       ]
     },
     {
-      "key": "link",
       "caption": "链接",
       "mnemonic": "L",
-      "content": [
-        { "command": "open-repository", "mnemonic": "" }
+      "children": [
+        { "command": "open-repository", "mnemonic": "R" }
       ]
     }
   ]
-}
+}]
