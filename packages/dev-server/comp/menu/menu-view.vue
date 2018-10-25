@@ -2,7 +2,6 @@
 
 module.exports = {
   name: 'menu-view',
-  inject: ['commands', '$menu'],
   props: ['data'],
   components: {
     MenuItem: require('./menu-item.vue'),
@@ -27,22 +26,22 @@ module.exports = {
         this.enterMenuItem()
       } else if (!item.disabled && !item.children) {
         if (item.command) {
-          this.$menu.executeCommand(item.command)
+          this.$menuManager.executeCommand(item.command)
         }
       }
     },
     enterMenuItem(key, index) {
-      const style = this.$menu.menuReference[key].style
+      const style = this.$menuManager.$refs[key][0].$el.style
       const rect = this.$el.children[index].getBoundingClientRect()
-      this.$menu.locateAtLeftRight(rect, style)
-      this.$menu.menuData[key].show = true
+      this.$menuManager.locateAtLeftRight(rect, style)
+      this.$menuManager.menuData[key].show = true
     },
     leaveMenuItem(key, event) {
       const x = event.clientX
       const y = event.clientY
       const rect = this.$el.getBoundingClientRect()
       if (x >= rect.left && x <= rect.right && y >= rect.left && y <= rect.right) {
-        this.$menu.menuData[key].show = false
+        this.$menuManager.menuData[key].show = false
       }
     },
   },
@@ -64,11 +63,11 @@ module.exports = {
       <menu-view :key="index" v-else-if="item.children"
         v-show="data.current === index" :data="item"/>
       <menu-item :key="index" v-else-if="item.command"
-        :command="commands[item.command]" :mnemonic="item.mnemonic"/>
+        :command="$menuManager._commands[item.command]" :mnemonic="item.mnemonic"/>
       <transition-group :key="index" v-else name="ob-menu-list">
-        <menu-item v-for="(sub, index) in $menu.parseArgument(item.data)" :key="index"
-          :class="{ active: sub.key === $menu.parseArgument(item.current) }"
-          @click.native="$menu.executeMethod(item.switch, sub.key)" :caption="sub.name"/>
+        <menu-item v-for="(sub, index) in $menuManager.parseArgument(item.data)" :key="index"
+          :class="{ active: sub.key === $menuManager.parseArgument(item.current) }"
+          @click.native="$menuManager.executeMethod(item.switch, sub.key)" :caption="sub.name"/>
       </transition-group>
     </template>
   </div>

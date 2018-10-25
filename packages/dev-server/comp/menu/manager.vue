@@ -1,7 +1,7 @@
 <script>
 
 module.exports = {
-  props: ['menuData', 'menuKeys'],
+  props: ['menuData'],
 
   components: {
     MenuView: require('./menu-view.vue'),
@@ -11,12 +11,14 @@ module.exports = {
     loaded: false,
   }),
 
+  computed: {
+    refs() {
+      return this.$refs.map(ref => ref instanceof Array ? ref[0] : ref)
+    },
+  },
+
   mounted() {
     this.loaded = true
-    this.menuReference = {}
-    this.menuKeys.forEach((key, index) => {
-      this.menuReference[key] = this.$el.children[index]
-    })
   },
 
   methods: {
@@ -53,7 +55,7 @@ module.exports = {
       }
     },
     showContextMenu(key, event) {
-      const style = this.menuReference[key].style
+      const style = this.$refs[key][0].$el.style
       this.hideContextMenus()
       this.locateMenuAtClient(event, style)
       this.menuData[key].show = true
@@ -73,7 +75,7 @@ module.exports = {
       }
     },
     showButtonMenu(key, event) {
-      const style = this.menuReference[key].style
+      const style = this.$refs[key][0].$el.style
       const rect = event.currentTarget.getBoundingClientRect()
       this.hideContextMenus()
       this.locateAtTopBottom(rect, style)
@@ -104,8 +106,8 @@ module.exports = {
 
 <template>
   <div class="marklet-menu-manager">
-    <transition name="marklet-menu" v-for="key in menuKeys" :key="key">
-      <menu-view class="marklet-menu" v-show="menuData[key].show" :data="menuData[key]"/>
+    <transition name="marklet-menu" v-for="(menu, key) in menuData" :key="key">
+      <menu-view class="marklet-menu" v-show="menu.show" :data="menu" :ref="key"/>
     </transition>
   </div>
 </template>

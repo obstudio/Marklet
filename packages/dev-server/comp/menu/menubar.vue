@@ -14,22 +14,23 @@ module.exports = {
 
   computed: {
     data() {
-      return this.$menu.menuData[this.menu]
+      return this.$menuManager.menuData[this.menu]
     },
     element() {
-      return this.$menu.menuReference[this.menu]
+      return this.$menuManager.$refs[this.menu][0].$el
     },
   },
 
   mounted() {
-    this.$mousetrap.bind('alt', () => {
+    addEventListener('keydown', (event) => {
+      if (event.keyCode !== 18) return
       this.focused = !this.focused
       this.$el.focus()
+      event.preventDefault()
     })
 
     addEventListener('keypress', (event) => {
       if (!this.focused) return
-      console.log(event)
       const key = event.key.toUpperCase()
       const index = this.data.children.findIndex(menu => menu.mnemonic === key)
       if (index >= 0) {
@@ -55,8 +56,8 @@ module.exports = {
       this.focused = false
       const style = this.element.style
       const rect = this.$el.children[index].getBoundingClientRect()
-      this.$menu.hideContextMenus()
-      this.$menu.locateAtTopBottom(rect, style)
+      this.$menuManager.hideContextMenus()
+      this.$menuManager.locateAtTopBottom(rect, style)
       this.data.show = true
       this.data.focused = true
       this.data.current = index
@@ -68,7 +69,7 @@ module.exports = {
 
 <template>
   <div :class="['ob-menubar', { focused }]">
-    <template v-if="$menu.loaded">
+    <template v-if="$menuManager.loaded">
       <div v-for="(menu, index) in data.children" :key="index" class="item"
         @click.stop="toggleMenu(index)" @mouseover.stop="hoverMenu(index)"
         :class="{ active: data.current === index }" @contextmenu.stop>

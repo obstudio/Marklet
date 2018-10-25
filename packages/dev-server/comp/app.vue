@@ -129,11 +129,9 @@ module.exports = {
     this.$set(this.display.editor, 'show', this._enableEdit)
     this.$set(this.display.explorer, 'show', this._isProject)
 
-    this.registerCommands(require('./command'))
-    this.registerMenus(require('./menus'))
+    this.$registerCommands(require('./command'))
+    this.$registerMenus(require('./menus'))
   },
-
-  updated() {},
 
   mounted() {
     window.vm = this
@@ -210,7 +208,7 @@ module.exports = {
       }
     },
     startDrag(position, event) {
-      this.$menu.hideContextMenus()
+      this.$menuManager.hideContextMenus()
       this.dragging = position
       this.$refs[position].classList.add('active')
       this.draggingLastX = event.clientX
