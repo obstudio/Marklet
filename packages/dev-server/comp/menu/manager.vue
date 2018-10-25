@@ -1,19 +1,25 @@
 <script>
 
-module.exports = {
-  props: ['menuData'],
+const util = require('./util')
+const menuView = require('./menu-view.vue')
 
-  components: {
-    MenuView: require('./menu-view.vue'),
-  },
+module.exports = {
+  components: { menuView },
 
   data: () => ({
+    menu: [],
     loaded: false,
   }),
 
   computed: {
     refs() {
-      return this.$refs.map(ref => ref instanceof Array ? ref[0] : ref)
+      const result = {}
+      this.menu.forEach((item, index) => {
+        if (item.ref) {
+          result[item.ref] = this.$refs.menus[index]
+        }
+      })
+      return result
     },
   },
 
@@ -22,13 +28,17 @@ module.exports = {
   },
 
   methods: {
-    executeMethod(key, ...args) {
-      const method = this.$context[key]
+    register(context, menu) {
+      menu.forEach(item => item.context = context)
+      this.menu.push(...menu)
+    },
+    executeMethod(context, key, ...args) {
+      const method = context[key]
       if (method instanceof Function) method(...args)
     },
     executeCommand(command) {
       if (!command.method) return
-      const method = this.$context[command.method]
+      const method = command.context[command.method]
       if (!(method instanceof Function)) {
         console.error(`No method ${command.method} was found!`)
         return
@@ -36,68 +46,36 @@ module.exports = {
       let args = command.arguments
       if (args === undefined) args = []
       if (!(args instanceof Array)) args = [args]
-      method(...args.map(arg => this.parseArgument(arg)))
+      method(...args.map(arg => this.parseArgument(arg, command.context)))
     },
-    parseArgument(arg) {
+    parseArgument(arg, ctx) {
       if (typeof arg !== 'string') return arg
       if (arg.startsWith('!$')) {
-        return !arg.slice(2).split('.').reduce((prev, curr) => prev[curr], this.$context)
+        return !arg.slice(2).split('.').reduce((prev, curr) => prev[curr], ctx)
       } else if (arg.startsWith('$')) {
-        return arg.slice(1).split('.').reduce((prev, curr) => prev[curr], this.$context)
+        return arg.slice(1).split('.').reduce((prev, curr) => prev[curr], ctx)
       } else {
         return arg
       }
     },
-    hideContextMenus() {
-      for (const key in this.menuData) {
-        this.menuData[key].show = false
-        this.menuData[key].current = null
-      }
+    hideAllMenus() {
+      this.$refs.menus.forEach(menu => menu.traverse((menu) => {
+        menu.active = false
+        menu.current = null
+      }))
     },
     showContextMenu(key, event) {
       const style = this.$refs[key][0].$el.style
-      this.hideContextMenus()
-      this.locateMenuAtClient(event, style)
-      this.menuData[key].show = true
-    },
-    locateMenuAtClient(event, style) {
-      if (event.clientX + 200 > innerWidth) {
-        style.left = event.clientX - 200 - this.left + 'px'
-      } else {
-        style.left = event.clientX - this.left + 'px'
-      }
-      if (event.clientY - this.top > this.height / 2) {
-        style.top = ''
-        style.bottom = this.top + this.height - event.clientY + 'px'
-      } else {
-        style.top = event.clientY - this.top + 'px'
-        style.bottom = ''
-      }
+      this.hideAllMenus()
+      util.locateAtMouseEvent(event, style)
+      this.menuData[key].active = true
     },
     showButtonMenu(key, event) {
       const style = this.$refs[key][0].$el.style
       const rect = event.currentTarget.getBoundingClientRect()
-      this.hideContextMenus()
-      this.locateAtTopBottom(rect, style)
-      this.menuData[key].show = true
-    },
-    locateAtTopBottom(rect, style) {
-      if (rect.left + 200 > innerWidth) {
-        style.left = rect.left + rect.width - 200 + 'px'
-      } else {
-        style.left = rect.left + 'px'
-      }
-      style.top = rect.top + rect.height + 'px'
-    },
-    locateAtLeftRight(rect, style) {
-      if (rect.right + 200 > innerWidth) {
-        style.left = null
-        style.right = rect.left + 'px'
-      } else {
-        style.right = null
-        style.left = rect.right + 'px'
-      }
-      style.top = rect.top + 'px'
+      this.hideAllMenus()
+      util.locateAtTopBottom(rect, style)
+      this.menuData[key].active = true
     },
   }
 }
@@ -105,47 +83,19 @@ module.exports = {
 </script>
 
 <template>
-  <div class="marklet-menu-manager">
-    <transition name="marklet-menu" v-for="(menu, key) in menuData" :key="key">
-      <menu-view class="marklet-menu" v-show="menu.show" :data="menu" :ref="key"/>
-    </transition>
+  <div class="marklet-menu">
+    <menu-view v-for="(item, index) in menu" :key="index"
+      :menu="item.children" :context="item.context" ref="menus"/>
   </div>
 </template>
 
 <style lang="scss" scoped>
 
 & {
-  width: 0;
-  height: 0;
   top: 0;
   left: 0;
-}
-
-.marklet-menu {
-  z-index: 10;
-  padding: 0;
-  margin: 0;
-  outline: 0;
-  border: none;
-  padding: 2px 0;
-  position: absolute;
-  transition: 0.3s ease;
-}
-
-.marklet-menu-enter-active,
-.marklet-menu-leave-active {
-  opacity: 1;
-  transform: scaleY(1);
-  transform-origin: center top;
-  transition:
-    transform 0.3s cubic-bezier(0.23, 1, 0.32, 1),
-    opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.marklet-menu-enter,
-.marklet-menu-leave-to {
-  opacity: 0;
-  transform: scaleY(0);
+  width: 0;
+  height: 0;
 }
 
 </style>
