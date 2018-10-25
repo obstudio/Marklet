@@ -6,7 +6,6 @@ type WatchEventType = 'rename' | 'change'
 
 export default class FileManager extends EventEmitter {
   private content: string
-  private dirty: boolean
   private watcher: FSWatcher
   private debouncedUpdate: () => void
   public msg: string
