@@ -8,33 +8,58 @@ module.exports = {
     }
   },
 
+  data: () => ({
+    focused: false,
+  }),
+
   computed: {
     data() {
-      return this.$menu.menuData[this.menu]
+      return this.$menuManager.menuData[this.menu]
     },
     element() {
-      return this.$menu.menuReference[this.menu]
+      return this.$menuManager.$refs[this.menu][0].$el
     },
   },
 
+  mounted() {
+    addEventListener('keydown', (event) => {
+      if (event.keyCode !== 18) return
+      this.focused = !this.focused
+      this.$el.focus()
+      event.preventDefault()
+    })
+
+    addEventListener('keypress', (event) => {
+      if (!this.focused) return
+      const key = event.key.toUpperCase()
+      const index = this.data.children.findIndex(menu => menu.mnemonic === key)
+      if (index >= 0) {
+        this.toggleMenu(index)
+      }
+    })
+  },
+
   methods: {
-    hoverMenu(index, event) {
+    hoverMenu(index) {
       const current = this.data.current
       if (current !== null && current !== index) {
-        this.showMenu(index, event)
+        this.toggleMenu(index)
       }
     },
-    showMenu(index, event) {
-      const style = this.element.style
+    toggleMenu(index) {
       const last = this.data.current
       if (last === index) {
         this.data.show = false
         this.data.current = null
         return
       }
-      this.$menu.hideContextMenus()
-      this.$menu.locateAtTopBottom(event, style)
+      this.focused = false
+      const style = this.element.style
+      const rect = this.$el.children[index].getBoundingClientRect()
+      this.$menuManager.hideContextMenus()
+      this.$menuManager.locateAtTopBottom(rect, style)
       this.data.show = true
+      this.data.focused = true
       this.data.current = index
     },
   }
@@ -43,12 +68,14 @@ module.exports = {
 </script>
 
 <template>
-  <div class="ob-menubar">
-    <div v-for="(menu, index) in data.children" :key="index" class="item"
-      @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
-      :class="{ active: data.current === index }" @contextmenu.stop>
-      {{ menu.caption }} (<span>{{ menu.mnemonic }}</span>)&nbsp;
-    </div>
+  <div :class="['ob-menubar', { focused }]">
+    <template v-if="$menuManager.loaded">
+      <div v-for="(menu, index) in data.children" :key="index" class="item"
+        @click.stop="toggleMenu(index)" @mouseover.stop="hoverMenu(index)"
+        :class="{ active: data.current === index }" @contextmenu.stop>
+        {{ menu.caption }} (<span class="mnemonic">{{ menu.mnemonic }}</span>)&nbsp;
+      </div>
+    </template>
   </div>
 </template>
 
@@ -71,6 +98,12 @@ module.exports = {
       color 0.3s ease,
       background-color 0.3s ease;
     display: inline-block;
+  }
+}
+
+&.focused {
+  .mnemonic {
+    text-decoration: underline;
   }
 }
 

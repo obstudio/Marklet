@@ -1,25 +1,13 @@
-import { dirname, join } from 'path'
+import { join } from 'path'
 import { EventEmitter } from 'events'
 import { readFileSync, watch, FSWatcher, readdirSync } from 'fs'
 import debounce from 'lodash.debounce'
 
 type WatchEventType = 'rename' | 'change'
 
-// type FileTree = IterableIterator<string | Directory>
-// interface Directory { name: string, children: FileTree }
-
 interface FileTree {
   [key: string]: string | FileTree
 }
-
-// function* ProjectMessages(filepath: string): IterableIterator<string> {
-//   const source = readFileSync(filepath).toString()
-//   const options = JSON.parse(source) // FIXME: support for yaml
-//   yield JSON.stringify({ type: 'project', data: options })
-//   const basedir = options.basedir || dirname(filepath)
-//   yield JSON.stringify({ type: 'filetree', data: traverse(basedir) })
-//   // FIXME: add inner messages, for example file contents
-// }
 
 export default class ProjectManager extends EventEmitter {
   private watcher: FSWatcher
