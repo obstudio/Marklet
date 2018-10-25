@@ -17,6 +17,8 @@ module.exports = function(Vue) {
   const commandData = {}, menuData = {}
   const MenuManager = Vue.extend(manager)
 
+  Vue.prototype.$mousetrap = Mousetrap
+
   Vue.prototype.registerCommands = function(commands) {
     commands.forEach((command) => {
       const key = command.key ? command.key : toKebab(command.method)
@@ -35,6 +37,7 @@ module.exports = function(Vue) {
       if (menu.ref) {
         menuData[menu.ref] = menu
         menuData[menu.ref].show = false
+        menuData[menu.ref].focused = false
         menuData[menu.ref].current = null
       }
       if (menu.children) {
@@ -43,7 +46,6 @@ module.exports = function(Vue) {
     })
     const menuKeys = Object.keys(menuData)
     const element = document.createElement('div')
-
     
     $menu = new MenuManager({
       propsData: { menuData, menuKeys },

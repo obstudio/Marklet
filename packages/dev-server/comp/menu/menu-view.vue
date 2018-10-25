@@ -3,15 +3,38 @@
 module.exports = {
   name: 'menu-view',
   inject: ['commands', '$menu'],
-  props: ['data', 'current'],
+  props: ['data'],
   components: {
     MenuItem: require('./menu-item.vue'),
   },
 
+  mounted() {
+    addEventListener('keypress', (event) => {
+      if (!!this.data.show || !this.data.focused) return
+      const key = event.key.toUpperCase()
+      const index = this.data.children.findIndex(menu => menu.mnemonic === key)
+      if (index >= 0) {
+        this.toggleMenuItem(index)
+      }
+    })
+  },
+
   methods: {
-    enterMenuItem(key, event) {
+    toggleMenuItem(index) {
+      const item = this.data.children[index]
+      if (typeof item !== 'object') return
+      if (item.ref) {
+        this.enterMenuItem()
+      } else if (!item.disabled && !item.children) {
+        if (item.command) {
+          this.$menu.executeCommand(item.command)
+        }
+      }
+    },
+    enterMenuItem(key, index) {
       const style = this.$menu.menuReference[key].style
-      this.$menu.locateAtLeftRight(event, style)
+      const rect = this.$el.children[index].getBoundingClientRect()
+      this.$menu.locateAtLeftRight(rect, style)
       this.$menu.menuData[key].show = true
     },
     leaveMenuItem(key, event) {
@@ -28,18 +51,18 @@ module.exports = {
 </script>
 
 <template>
-  <div>
-    <template v-for="(item, index) in data">
+  <div :class="{ focused: data.focused }">
+    <template v-for="(item, index) in data.children">
       <div :key="index" v-if="item === '@separator'" class="menu-item disabled" @click.stop>
         <div class="separator"/>
       </div>
       <menu-item :key="index" v-else-if="item.ref"
         @click.native.stop binding=">"
         :caption="item.caption" :mnemonic="item.mnemonic"
-        @mouseenter.native="enterMenuItem(item.ref, $event)"
+        @mouseenter.native="enterMenuItem(item.ref, index)"
         @mouseleave.native="leaveMenuItem(item.ref, $event)"/>
       <menu-view :key="index" v-else-if="item.children"
-        v-show="current === index" :data="item.children"/>
+        v-show="data.current === index" :data="item"/>
       <menu-item :key="index" v-else-if="item.command"
         :command="commands[item.command]" :mnemonic="item.mnemonic"/>
       <transition-group :key="index" v-else name="ob-menu-list">
