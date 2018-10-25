@@ -14,7 +14,7 @@ module.exports = function(Vue) {
   Vue.component('ob-menubar', menubar)
 
   let $menuManager = null
-  const commandData = {}, menuData = {}
+  const commandData = {}
   const MenuManager = Vue.extend(manager)
 
   Vue.prototype.$registerCommands = function(commands) {
@@ -30,41 +30,25 @@ module.exports = function(Vue) {
     })
   }
 
-  Vue.prototype.$registerMenus = function(menus, parentNode) {
-    menus.forEach(function walk(menu) {
-      if (menu.ref) {
-        menuData[menu.ref] = menu
-        menuData[menu.ref].show = false
-        menuData[menu.ref].focused = false
-        menuData[menu.ref].current = null
-      }
-      if (menu.children) {
-        menu.children.forEach(walk)
-      }
-    })
+  Vue.prototype.$registerMenus = function(menu) {
     const element = document.createElement('div')
     
-    $menuManager = new MenuManager({ propsData: { menuData } })
+    $menuManager = new MenuManager({ propsData: { menu } })
     $menuManager.$context = this
-    $menuManager._commands = commandData
+    $menuManager.commands = commandData
     Vue.prototype.$menuManager = $menuManager
 
-    function mountMenu() {
-      $menuManager.$mount((parentNode || this.$el).appendChild(element))
+    function mountMenuManager() {
+      $menuManager.$mount(this.$el.appendChild(element))
 
-      this.$el.addEventListener('click', () => {
-        $menuManager.hideContextMenus()
-      })
-  
-      this.$el.addEventListener('contextmenu', () => {
-        $menuManager.hideContextMenus()
-      })
+      this.$el.addEventListener('click', () => $menuManager.hideAllMenus())
+      this.$el.addEventListener('contextmenu', () => $menuManager.hideAllMenus())
     }
 
     if (this._isMounted) {
-      mountMenu()
+      mountMenuManager()
     } else {
-      this.$options.mounted.push(mountMenu)
+      this.$options.mounted.push(mountMenuManager)
     }
   }
 }

@@ -24,7 +24,7 @@ $active-color: #acdeff;
   &:hover, &.active { background-color: #999999 }
 }
 
-.marklet-menu {
+.marklet-menu.active {
   background-color: $menu-bgcolor;
   box-shadow: 0 2px 8px $menu-shadow;
 
