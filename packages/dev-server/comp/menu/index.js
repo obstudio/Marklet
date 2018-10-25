@@ -19,6 +19,7 @@ module.exports = function(Vue) {
 
   Vue.prototype.$registerCommands = function(commands) {
     commands.forEach((command) => {
+      command.context = this
       const key = command.key ? command.key : toKebab(command.method)
       commandData[key] = command
       if (!command.bind || command.bind.startsWith('!')) return
@@ -30,11 +31,10 @@ module.exports = function(Vue) {
     })
   }
 
-  Vue.prototype.$registerMenus = function(menu) {
+  Vue.prototype.$initializeMenu = function() {
     const element = document.createElement('div')
     
-    $menuManager = new MenuManager({ propsData: { menu } })
-    $menuManager.$context = this
+    $menuManager = new MenuManager()
     $menuManager.commands = commandData
     Vue.prototype.$menuManager = $menuManager
 
@@ -50,5 +50,11 @@ module.exports = function(Vue) {
     } else {
       this.$options.mounted.push(mountMenuManager)
     }
+  }
+
+  Vue.prototype.$registerMenus = function(menu) {
+    if (!$menuManager) this.$initializeMenu()
+
+    $menuManager.register(this, menu)
   }
 }

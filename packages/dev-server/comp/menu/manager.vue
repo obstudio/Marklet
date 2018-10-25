@@ -6,9 +6,8 @@ const menuView = require('./menu-view.vue')
 module.exports = {
   components: { menuView },
 
-  props: ['menu'],
-
   data: () => ({
+    menu: [],
     loaded: false,
   }),
 
@@ -17,7 +16,7 @@ module.exports = {
       const result = {}
       this.menu.forEach((item, index) => {
         if (item.ref) {
-          result[item.ref] = this.$refs.main.$refs[index][0]
+          result[item.ref] = this.$refs.menus[index]
         }
       })
       return result
@@ -29,13 +28,17 @@ module.exports = {
   },
 
   methods: {
-    executeMethod(key, ...args) {
-      const method = this.$context[key]
+    register(context, menu) {
+      menu.forEach(item => item.context = context)
+      this.menu.push(...menu)
+    },
+    executeMethod(context, key, ...args) {
+      const method = context[key]
       if (method instanceof Function) method(...args)
     },
     executeCommand(command) {
       if (!command.method) return
-      const method = this.$context[command.method]
+      const method = command.context[command.method]
       if (!(method instanceof Function)) {
         console.error(`No method ${command.method} was found!`)
         return
@@ -43,36 +46,36 @@ module.exports = {
       let args = command.arguments
       if (args === undefined) args = []
       if (!(args instanceof Array)) args = [args]
-      method(...args.map(arg => this.parseArgument(arg)))
+      method(...args.map(arg => this.parseArgument(arg, command.context)))
     },
-    parseArgument(arg) {
+    parseArgument(arg, ctx) {
       if (typeof arg !== 'string') return arg
       if (arg.startsWith('!$')) {
-        return !arg.slice(2).split('.').reduce((prev, curr) => prev[curr], this.$context)
+        return !arg.slice(2).split('.').reduce((prev, curr) => prev[curr], ctx)
       } else if (arg.startsWith('$')) {
-        return arg.slice(1).split('.').reduce((prev, curr) => prev[curr], this.$context)
+        return arg.slice(1).split('.').reduce((prev, curr) => prev[curr], ctx)
       } else {
         return arg
       }
     },
     hideAllMenus() {
-      for (const key in this.menuData) {
-        this.menuData[key].show = false
-        this.menuData[key].current = null
-      }
+      this.$refs.menus.forEach(menu => menu.traverse((menu) => {
+        menu.active = false
+        menu.current = null
+      }))
     },
     showContextMenu(key, event) {
       const style = this.$refs[key][0].$el.style
       this.hideAllMenus()
       util.locateAtMouseEvent(event, style)
-      this.menuData[key].show = true
+      this.menuData[key].active = true
     },
     showButtonMenu(key, event) {
       const style = this.$refs[key][0].$el.style
       const rect = event.currentTarget.getBoundingClientRect()
       this.hideAllMenus()
       util.locateAtTopBottom(rect, style)
-      this.menuData[key].show = true
+      this.menuData[key].active = true
     },
   }
 }
@@ -80,7 +83,10 @@ module.exports = {
 </script>
 
 <template>
-  <menu-view ref="main" :menu="menu"/>
+  <div class="marklet-menu">
+    <menu-view v-for="(item, index) in menu" :key="index"
+      :menu="item.children" :context="item.context" ref="menus"/>
+  </div>
 </template>
 
 <style lang="scss" scoped>

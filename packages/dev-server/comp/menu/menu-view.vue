@@ -10,6 +10,7 @@ module.exports = {
 
   props: {
     menu: Object,
+    context: Object,
   },
 
   data: () => ({
@@ -66,6 +67,16 @@ module.exports = {
         this.$refs[index][0].active = false
       }
     },
+    traverse(callback) {
+      callback(this)
+      this.menu.forEach((item, index) => {
+        if (item.children) {
+          const submenu = this.$refs[index][0]
+          callback(submenu)
+          submenu.traverse(callback)
+        }
+      })
+    },
   },
 }
 
@@ -78,20 +89,21 @@ module.exports = {
       <template v-for="(item, index) in menu">
         <!-- submenu -->
         <menu-item :key="index" v-if="item.children"
-          @click.native.stop binding=">"
+          @click.native.stop binding=">" :context="context"
           :caption="item.caption" :mnemonic="item.mnemonic"
           @mouseenter.native="enterMenuItem(index, $event)"
           @mouseleave.native="leaveMenuItem(index, $event)"/>
 
         <!-- command -->
-        <menu-item :key="index" v-else-if="item.command"
+        <menu-item :key="index" v-else-if="item.command" :context="context"
           :command="$menuManager.commands[item.command]" :mnemonic="item.mnemonic"/>
         
         <!-- list -->
         <transition-group :key="index" v-else-if="item.switch" name="ob-menu-list">
-          <menu-item v-for="(sub, index) in $menuManager.parseArgument(item.data)" :key="index"
-            :class="{ active: sub.key === $menuManager.parseArgument(item.current) }"
-            @click.native="$menuManager.executeMethod(item.switch, sub.key)" :caption="sub.name"/>
+          <menu-item v-for="(sub, index) in $menuManager.parseArgument(item.data, context)"
+            :key="index" :context="context" :caption="sub.name"
+            :class="{ active: sub.key === $menuManager.parseArgument(item.current, context) }"
+            @click.native="$menuManager.executeMethod(context, item.switch, sub.key)"/>
         </transition-group>
 
         <!-- caption -->
@@ -104,7 +116,7 @@ module.exports = {
 
     <!-- children -->
     <menu-view v-for="(item, index) in menu" v-if="item.children" :key="index"
-      :menu="item.children" :ref="index" v-show="!active || current === index"/>
+      :menu="item.children" :ref="index" v-show="!active || current === index" :context="context"/>
   </div>
 </template>
 

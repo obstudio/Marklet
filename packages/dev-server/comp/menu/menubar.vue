@@ -11,13 +11,15 @@ module.exports = {
   },
 
   data: () => ({
-    current: null,
     focused: false,
   }),
 
   computed: {
     children() {
       return this.$menuManager.menu.find(item => item.ref === this.from).children
+    },
+    source() {
+      return this.$menuManager.refs[this.from]
     },
   },
 
@@ -41,25 +43,26 @@ module.exports = {
 
   methods: {
     hoverMenu(index) {
-      const current = this.current
+      const current = this.source.current
       if (current !== null && current !== index) {
         this.toggleMenu(index)
       }
     },
     toggleMenu(index) {
-      if (this.current === index) {
-        this.current = null
+      if (this.source.current === index) {
+        this.source.active = false
+        this.source.current = null
         return
       }
       this.focused = false
-      const source = this.$menuManager.refs[this.from]
-      const style = source.$el.style
+      const style = this.source.$el.style
       const rect = this.$el.children[index].getBoundingClientRect()
       this.$menuManager.hideAllMenus()
       util.locateAtTopBottom(rect, style)
-      source.active = true
-      source.current = index
-      this.current = index
+      this.source.current = index
+      if (!this.source.active) {
+        this.$nextTick(() => this.source.active = true)
+      }
     },
   }
 }
@@ -71,7 +74,7 @@ module.exports = {
     <template v-if="$menuManager.loaded">
       <div v-for="(menu, index) in children" :key="index" class="item"
         @click.stop="toggleMenu(index)" @mouseover.stop="hoverMenu(index)"
-        :class="{ active: current === index }" @contextmenu.stop>
+        :class="{ active: source.current === index }" @contextmenu.stop>
         {{ menu.caption }} (<span class="mnemonic">{{ menu.mnemonic }}</span>)&nbsp;
       </div>
     </template>
