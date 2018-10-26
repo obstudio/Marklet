@@ -18,12 +18,15 @@ module.exports = {
       type: String,
       default: '',
     },
+    context: {
+      type: Object
+    },
   },
 
   computed: {
     disabled() {
       if (!this.command.enabled) return
-      return !this.$menuManager.parseArgument(this.command.enabled)
+      return !this.$menuManager.parseArgument(this.command.enabled, this.context)
     },
     keybinding() {
       let binding = this.binding || this.command.bind
@@ -52,9 +55,9 @@ module.exports = {
   <div :class="['menu-item', { disabled }]" @click="handleClick">
     <span class="label">
       <mkl-checkbox v-if="command.checked !== undefined"
-        :value="$menuManager.parseArgument(command.checked)" @change="handleClick"/>
+        :value="$menuManager.parseArgument(command.checked, context)" @change="handleClick"/>
       {{ caption || command.name }}
-      <template v-if="mnemonic"> ({{ mnemonic }})</template>
+      <template v-if="mnemonic"> (<span class="mnemonic">{{ mnemonic }}</span>)</template>
       <template v-if="command.ellipsis"> ...</template>
     </span>
     <span class="binding">{{ keybinding }}</span>

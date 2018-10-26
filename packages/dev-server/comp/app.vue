@@ -208,7 +208,7 @@ module.exports = {
       }
     },
     startDrag(position, event) {
-      this.$menuManager.hideContextMenus()
+      this.$menuManager.hideAllMenus()
       this.dragging = position
       this.$refs[position].classList.add('active')
       this.draggingLastX = event.clientX
@@ -220,7 +220,7 @@ module.exports = {
 
 <template>
   <div :class="[theme, { dragging }]" class="marklet">
-    <ob-menubar class="menubar" menu="menubar"/>
+    <ob-menubar class="menubar" from="menubar"/>
     <div class="view explorer" :style="explorerStyle"/>
     <div class="border left" ref="left" :style="leftBorderStyle"
       @mousedown.stop="startDrag('left', $event)"/>

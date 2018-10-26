@@ -6,7 +6,7 @@
       "mnemonic": "F",
       "children": [
         { "command": "open-file", "mnemonic": "O" },
-        "@separator",
+        { "caption": "-" },
         { "command": "save", "mnemonic": "S" },
         { "command": "save-as", "mnemonic": "A" },
         { "command": "save-all", "mnemonic": "L" }
@@ -18,11 +18,11 @@
       "children": [
         { "command": "undo", "mnemonic": "U" },
         { "command": "redo", "mnemonic": "R" },
-        "@separator",
+        { "caption": "-" },
         { "command": "cut", "mnemonic": "T" },
         { "command": "copy", "mnemonic": "C" },
         { "command": "paste", "mnemonic": "P" },
-        "@separator",
+        { "caption": "-" },
         { "command": "find", "mnemonic": "F" },
         { "command": "find-next" },
         { "command": "find-previous" }
@@ -35,11 +35,10 @@
         { "command": "trigger-explorer", "mnemonic": "R" },
         { "command": "trigger-editor", "mnemonic": "E" },
         { "command": "trigger-document", "mnemonic": "D" },
-        "@separator",
+        { "caption": "-" },
         { "command": "command-palette", "mnemonic": "C" },
-        "@separator",
+        { "caption": "-" },
         {
-          "ref": "themes",
           "caption": "主题",
           "mnemonic": "T",
           "children": [
