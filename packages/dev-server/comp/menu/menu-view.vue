@@ -1,6 +1,5 @@
 <script>
 
-const util = require('./util')
 const menuItem = require('./menu-item.vue')
 
 module.exports = {
@@ -9,60 +8,91 @@ module.exports = {
   components: { menuItem },
 
   props: {
-    menu: Object,
+    menu: Array,
     context: Object,
   },
 
   data: () => ({
+    chosen: null,
     active: false,
-    current: null,
-    focused: false,
+    children: [],
   }),
 
-  watch: {
-    show(value) {
-      this.focused = value
+  computed: {
+    current: {
+      get() {
+        const index = this.children.findIndex(submenu => submenu && submenu.active)
+        return index < 0 ? null : index
+      },
+      set(value) {
+        this.children.forEach((submenu, index) => {
+          if (!submenu) return
+          submenu.active = index === value
+        })
+      },
     },
-    current(value) {
-      if (value !== null) {
-        this.$refs[value].active = true
-      }
+    focused() {
+      return this.active && this.current === null
     },
   },
 
   mounted() {
-    addEventListener('keypress', (event) => {
-      if (!this.show) return
-      const key = event.key.toUpperCase()
-      const index = this.menu.findIndex(menu => menu.mnemonic === key)
-      if (index >= 0) {
-        this.toggleMenuItem(index)
-      }
+    addEventListener('keydown', this.handleKeyDown)
+    addEventListener('keypress', this.handleKeyPress)
+
+    this.children = this.menu.map((item, index) => {
+      if (!item.children) return
+      return this.$refs[index][0]
     })
   },
 
+  beforeDestroy() {
+    removeEventListener('keydown', this.handleKeyDown)
+    removeEventListener('keypress', this.handleKeyPress)
+  },
+
   methods: {
+    handleKeyDown(event) {
+      if (!this.focused) return
+      console.log(event.key, event.keyCode)
+      if (event.keyCode === 8) {
+        event.preventDefault()
+        event.stopPropagation()
+        this.$nextTick(() => this.$parent.current = null)
+      }
+    },
+    handleKeyPress(event) {
+      if (!this.focused) return
+      const key = event.key.toUpperCase()
+      const index = this.menu.findIndex(item => item.mnemonic === key)
+      if (index >= 0) {
+        event.preventDefault()
+        event.stopPropagation()
+        this.toggleMenuItem(index)
+        this.$menuManager.underlineMnemonic = true
+      }
+    },
     toggleMenuItem(index) {
       const item = this.menu[index]
-      if (typeof item !== 'object') return
-      if (item.ref) {
-        this.enterMenuItem()
-      } else if (!item.disabled && !item.children) {
+      if (item.children) {
+        this.enterMenuItem(index)
+      } else if (!item.disabled) {
         if (item.command) {
+          this.$menuManager.hideAllMenus()
           this.$menuManager.executeCommand(item.command)
         }
       }
     },
     enterMenuItem(index) {
-      const style = this.$refs[index][0].$el.style
+      const style = this.$refs.standalone.style
       const button = this.$refs.body.children[index]
-      util.locateAtLeftRight(style, button)
+      this.$menuManager.locateAtLeftRight(style, button, -2)
       this.$refs[index][0].active = true
     },
     leaveMenuItem(index, event) {
       const x = event.clientX
       const y = event.clientY
-      const rect = this.$el.getBoundingClientRect()
+      const rect = this.$refs.body.getBoundingClientRect()
       if (x >= rect.left && x <= rect.right && y >= rect.left && y <= rect.right) {
         this.$refs[index][0].active = false
       }
@@ -83,9 +113,14 @@ module.exports = {
 </script>
 
 <template>
-  <!-- eslint-disable -->
-  <div class="marklet-menu" :class="{ active }">
-    <span ref="body" v-show="active && current === null || $parent.active">
+  <span class="marklet-menu" :class="{ active }">
+    <!-- children --><!-- eslint-disable -->
+    <div ref="standalone" :class="{ standalone: current !== null }">
+      <menu-view v-for="(item, index) in menu" v-if="item.children" :key="index"
+        :menu="item.children" :context="context" :ref="index"/>
+    </div>
+
+    <div ref="body" v-show="active" :class="['menu-body', { focused }]">
       <template v-for="(item, index) in menu">
         <!-- submenu -->
         <menu-item :key="index" v-if="item.children"
@@ -96,7 +131,7 @@ module.exports = {
 
         <!-- command -->
         <menu-item :key="index" v-else-if="item.command" :context="context"
-          :command="$menuManager.commands[item.command]" :mnemonic="item.mnemonic"/>
+          :mnemonic="item.mnemonic" :command="$menuManager.commands[item.command]"/>
         
         <!-- list -->
         <transition-group :key="index" v-else-if="item.switch" name="ob-menu-list">
@@ -112,12 +147,8 @@ module.exports = {
           <div v-else class="caption">{{ item.caption }}</div>
         </div>
       </template>
-    </span>
-
-    <!-- children -->
-    <menu-view v-for="(item, index) in menu" v-if="item.children" :key="index"
-      :menu="item.children" :ref="index" v-show="!active || current === index" :context="context"/>
-  </div>
+    </div>
+  </span>
 </template>
 
 <style lang="scss" scoped>
@@ -126,18 +157,27 @@ module.exports = {
   position: relative;
 }
 
-&.active {
+> .standalone {
   z-index: 10;
   padding: 0;
   margin: 0;
   outline: 0;
   border: none;
-  padding: 2px 0;
   min-width: 200px;
   user-select: none;
   width: max-content;
   position: absolute;
   transition: 0.3s ease;
+}
+
+.menu-body {
+  padding: 2px 0;
+
+  &:not(.focused) {
+    .mnemonic {
+      text-decoration: none;
+    }
+  }
 }
 
 .menu-item {

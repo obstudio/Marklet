@@ -31,7 +31,7 @@ module.exports = function(Vue) {
     })
   }
 
-  Vue.prototype.$initializeMenu = function() {
+  Vue.prototype.$initializeMenu = function(parentNode) {
     const element = document.createElement('div')
     
     $menuManager = new MenuManager()
@@ -39,10 +39,11 @@ module.exports = function(Vue) {
     Vue.prototype.$menuManager = $menuManager
 
     function mountMenuManager() {
-      $menuManager.$mount(this.$el.appendChild(element))
-
-      this.$el.addEventListener('click', () => $menuManager.hideAllMenus())
-      this.$el.addEventListener('contextmenu', () => $menuManager.hideAllMenus())
+      if (!parentNode) parentNode = this.$el
+      $menuManager.$mount(parentNode.appendChild(element))
+      
+      parentNode.addEventListener('click', () => $menuManager.hideAllMenus())
+      parentNode.addEventListener('contextmenu', () => $menuManager.hideAllMenus())
     }
 
     if (this._isMounted) {
@@ -55,6 +56,6 @@ module.exports = function(Vue) {
   Vue.prototype.$registerMenus = function(menu) {
     if (!$menuManager) this.$initializeMenu()
 
-    $menuManager.register(this, menu)
+    $menuManager.registerMenus(this, menu)
   }
 }

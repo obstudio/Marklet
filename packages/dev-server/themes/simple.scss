@@ -24,7 +24,7 @@ $active-color: #409eff;
   &:hover, &.active { background-color: #aaaaaa }
 }
 
-.marklet-menu.active {
+.marklet-menu > .standalone {
   background-color: $menu-bgcolor;
   box-shadow: 0 2px 8px $menu-shadow;
 
@@ -35,7 +35,7 @@ $active-color: #409eff;
     .binding i:hover { color: #000000 }
     .separator { border-bottom-color: #b0b0b0 }
 
-    &:hover {
+    &:hover, &.chosen {
       &:not(.disabled) { background-color: #e8e8e8 }
       .label { color: #24292e }
       .binding { color: #f5eaea }

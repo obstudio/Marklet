@@ -9,6 +9,7 @@ module.exports = {
   data: () => ({
     menu: [],
     loaded: false,
+    underlineMnemonic: false,
   }),
 
   computed: {
@@ -28,16 +29,37 @@ module.exports = {
   },
 
   methods: {
-    register(context, menu) {
+    registerMenus(context, menu) {
       menu.forEach(item => item.context = context)
       this.menu.push(...menu)
+    },
+    locateAtTopBottom(rect, style) {
+      if (rect.left + 200 > innerWidth) {
+        style.left = rect.left + rect.width - 200 + 'px'
+      } else {
+        style.left = rect.left + 'px'
+      }
+      style.top = rect.top + rect.height + 'px'
+    },
+    locateAtLeftRight(style, ref, offsetY = 0, marginX = 0) {
+      if (ref.offsetRight + 200 > innerWidth) {
+        style.left = null
+        style.right = ref.offsetLeft - marginX + 'px'
+      } else {
+        style.right = null
+        style.left = ref.offsetLeft + marginX + ref.offsetWidth + 'px'
+      }
+      style.top = ref.offsetTop + offsetY + 'px'
     },
     executeMethod(context, key, ...args) {
       const method = context[key]
       if (method instanceof Function) method(...args)
     },
     executeCommand(command) {
-      if (!command.method) return
+      if (typeof command === 'string') {
+        command = this.commands[command]
+      }
+      if (!command || !command.method || !command.context) return
       const method = command.context[command.method]
       if (!(method instanceof Function)) {
         console.error(`No method ${command.method} was found!`)
@@ -59,8 +81,8 @@ module.exports = {
       }
     },
     hideAllMenus() {
+      this.underlineMnemonic = false
       this.$refs.menus.forEach(menu => menu.traverse((menu) => {
-        menu.active = false
         menu.current = null
       }))
     },
@@ -70,20 +92,13 @@ module.exports = {
       util.locateAtMouseEvent(event, style)
       this.menuData[key].active = true
     },
-    showButtonMenu(key, event) {
-      const style = this.$refs[key][0].$el.style
-      const rect = event.currentTarget.getBoundingClientRect()
-      this.hideAllMenus()
-      util.locateAtTopBottom(rect, style)
-      this.menuData[key].active = true
-    },
   }
 }
 
 </script>
 
 <template>
-  <div class="marklet-menu">
+  <div class="ob-menu-manager" :class="{ 'underline-mnemonic': underlineMnemonic }">
     <menu-view v-for="(item, index) in menu" :key="index"
       :menu="item.children" :context="item.context" ref="menus"/>
   </div>
@@ -96,6 +111,12 @@ module.exports = {
   left: 0;
   width: 0;
   height: 0;
+}
+
+&.underline-mnemonic {
+  .mnemonic {
+    text-decoration: underline;
+  }
 }
 
 </style>

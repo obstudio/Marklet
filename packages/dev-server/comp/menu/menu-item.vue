@@ -57,7 +57,7 @@ module.exports = {
       <mkl-checkbox v-if="command.checked !== undefined"
         :value="$menuManager.parseArgument(command.checked, context)" @change="handleClick"/>
       {{ caption || command.name }}
-      <template v-if="mnemonic"> ({{ mnemonic }})</template>
+      <template v-if="mnemonic"> (<span class="mnemonic">{{ mnemonic }}</span>)</template>
       <template v-if="command.ellipsis"> ...</template>
     </span>
     <span class="binding">{{ keybinding }}</span>
