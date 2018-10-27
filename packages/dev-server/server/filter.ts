@@ -1,7 +1,7 @@
 import { makeRe } from 'minimatch'
 import { extname } from 'path'
 
-type StringLike = string | RegExp
+export type StringLike = string | RegExp
 
 export default class FileFilter {
   private extensions: string[]

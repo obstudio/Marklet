@@ -1,7 +1,7 @@
 import { Server, Manager, WatchEventType } from './index'
+import FileFilter, { StringLike } from './filter'
 import debounce from 'lodash.debounce'
 import EventEmitter from 'events'
-import FileFilter from './filter'
 import DirTree from './tree'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
@@ -10,7 +10,7 @@ import * as fs from 'fs'
 export interface ProjectConfig {
   baseDir?: string
   extensions?: string[]
-  ignore?: string[]
+  ignore?: StringLike[]
 }
 
 const JSON_EXTENSIONS = ['.js', '.json']
