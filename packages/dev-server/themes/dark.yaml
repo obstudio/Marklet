@@ -1,5 +1,4 @@
 base: vs-dark
-rules: []
 inherit: true
 
 colors:
@@ -74,3 +73,7 @@ colors:
   peekViewResult.selectionBackground: '#414339'
   peekViewResult.matchHighlightBackground: '#75715E'
   peekViewEditor.matchHighlightBackground: '#75715E'
+
+rules:
+  - token: heading
+    forground: 'a6e22e'

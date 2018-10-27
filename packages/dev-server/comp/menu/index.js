@@ -13,67 +13,49 @@ function toKebab(camel) {
 module.exports = function(Vue) {
   Vue.component('ob-menubar', menubar)
 
-  let $menu = null
-  const commandData = {}, menuData = {}
+  let $menuManager = null
+  const commandData = {}
   const MenuManager = Vue.extend(manager)
 
-  Vue.prototype.registerCommands = function(commands) {
+  Vue.prototype.$registerCommands = function(commands) {
     commands.forEach((command) => {
+      command.context = this
       const key = command.key ? command.key : toKebab(command.method)
       commandData[key] = command
       if (!command.bind || command.bind.startsWith('!')) return
       Mousetrap.bind(command.bind, () => {
-        if (!$menu) return
-        $menu.executeCommand(command)
+        if (!$menuManager) return
+        $menuManager.executeCommand(command)
         return false
       })
     })
   }
 
-  Vue.prototype.registerMenus = function(menus, parentNode) {
-    menus.forEach(function walk(menu) {
-      if (menu.ref) {
-        menuData[menu.ref] = menu
-        menuData[menu.ref].show = false
-        menuData[menu.ref].current = null
-      }
-      if (menu.children) {
-        menu.children.forEach(walk)
-      }
-    })
-    const menuKeys = Object.keys(menuData)
+  Vue.prototype.$initializeMenu = function(parentNode) {
     const element = document.createElement('div')
-
     
-    $menu = new MenuManager({
-      propsData: { menuData, menuKeys },
-      provide() {
-        return {
-          commands: commandData,
-          $menu: this,
-        }
-      },
-    })
+    $menuManager = new MenuManager()
+    $menuManager.commands = commandData
+    Vue.prototype.$menuManager = $menuManager
 
-    $menu.$context = this
-    Vue.prototype.$menu = $menu
-
-    function mountMenu() {
-      $menu.$mount((parentNode || this.$el).appendChild(element))
-
-      this.$el.addEventListener('click', () => {
-        $menu.hideContextMenus()
-      })
-  
-      this.$el.addEventListener('contextmenu', () => {
-        $menu.hideContextMenus()
-      })
+    function mountMenuManager() {
+      if (!parentNode) parentNode = this.$el
+      $menuManager.$mount(parentNode.appendChild(element))
+      
+      parentNode.addEventListener('click', () => $menuManager.hideAllMenus())
+      parentNode.addEventListener('contextmenu', () => $menuManager.hideAllMenus())
     }
 
     if (this._isMounted) {
-      mountMenu()
+      mountMenuManager()
     } else {
-      this.$options.mounted.push(mountMenu)
+      this.$options.mounted.push(mountMenuManager)
     }
+  }
+
+  Vue.prototype.$registerMenus = function(menu) {
+    if (!$menuManager) this.$initializeMenu()
+
+    $menuManager.registerMenus(this, menu)
   }
 }

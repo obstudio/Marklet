@@ -2,7 +2,7 @@ import { LexerConfig } from '@marklet/parser'
 import Monaco from 'monaco-editor'
 
 export default function(config: LexerConfig = {}) {
-  const language: Monaco.languages.IMonarchLanguage = {
+  return {
     tokenizer: {
       root: [
         { include: 'topLevel' },
@@ -16,7 +16,5 @@ export default function(config: LexerConfig = {}) {
         }
       ],
     },
-  }
-
-  return language
+  } as Monaco.languages.IMonarchLanguage
 }

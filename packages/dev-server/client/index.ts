@@ -1,5 +1,6 @@
 import VueConstructor from 'vue'
 import Monaco from 'monaco-editor'
+import defineLanguage from './language'
 import * as renderer from '@marklet/renderer'
 import { LexerConfig } from '@marklet/parser'
 import { SourceType, ServerType } from '../server'
@@ -15,6 +16,13 @@ Vue.component('mkl-checkbox', require('@/checkbox.vue'))
 const eventBus = new Vue()
 
 eventBus.$on('monaco.loaded', (monaco: typeof Monaco) => {
+  monaco.languages.register({
+    id: 'marklet',
+    extensions: ['mkl', 'md'],
+  })
+  monaco.languages.setMonarchTokensProvider('marklet', defineLanguage())
+  eventBus.$emit('monaco.language.loaded', monaco)
+  console.log(require('../themes/dark'))
   monaco.editor.defineTheme('dark', require('../themes/dark'))
   monaco.editor.defineTheme('simple', require('../themes/simple'))
   eventBus.$emit('monaco.theme.loaded', monaco)

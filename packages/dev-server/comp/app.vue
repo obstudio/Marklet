@@ -129,11 +129,9 @@ module.exports = {
     this.$set(this.display.editor, 'show', this._enableEdit)
     this.$set(this.display.explorer, 'show', this._isProject)
 
-    this.registerCommands(require('./command'))
-    this.registerMenus(require('./menus'))
+    this.$registerCommands(require('./command'))
+    this.$registerMenus(require('./menus'))
   },
-
-  updated() {},
 
   mounted() {
     window.vm = this
@@ -210,7 +208,7 @@ module.exports = {
       }
     },
     startDrag(position, event) {
-      this.$menu.hideContextMenus()
+      this.$menuManager.hideAllMenus()
       this.dragging = position
       this.$refs[position].classList.add('active')
       this.draggingLastX = event.clientX
@@ -222,7 +220,7 @@ module.exports = {
 
 <template>
   <div :class="[theme, { dragging }]" class="marklet">
-    <ob-menubar class="menubar" menu="menubar"/>
+    <ob-menubar class="menubar" from="menubar"/>
     <div class="view explorer" :style="explorerStyle"/>
     <div class="border left" ref="left" :style="leftBorderStyle"
       @mousedown.stop="startDrag('left', $event)"/>

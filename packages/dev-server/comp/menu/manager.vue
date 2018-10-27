@@ -1,80 +1,39 @@
 <script>
 
-module.exports = {
-  props: ['menuData', 'menuKeys'],
+const util = require('./util')
+const menuView = require('./menu-view.vue')
 
-  components: {
-    MenuView: require('./menu-view.vue'),
+module.exports = {
+  components: { menuView },
+
+  data: () => ({
+    menu: [],
+    loaded: false,
+    underlineMnemonic: false,
+  }),
+
+  computed: {
+    refs() {
+      const result = {}
+      this.menu.forEach((item, index) => {
+        if (item.ref) {
+          result[item.ref] = this.$refs.menus[index]
+        }
+      })
+      return result
+    },
   },
 
   mounted() {
-    this.menuReference = {}
-    this.menuKeys.forEach((key, index) => {
-      this.menuReference[key] = this.$el.children[index]
-    })
+    this.loaded = true
   },
 
   methods: {
-    executeMethod(key, ...args) {
-      const method = this.$context[key]
-      if (method instanceof Function) method(...args)
+    registerMenus(context, menu) {
+      menu.forEach(item => item.context = context)
+      this.menu.push(...menu)
     },
-    executeCommand(command) {
-      if (!command.method) return
-      const method = this.$context[command.method]
-      if (!(method instanceof Function)) {
-        console.error(`No method ${command.method} was found!`)
-        return
-      }
-      let args = command.arguments
-      if (args === undefined) args = []
-      if (!(args instanceof Array)) args = [args]
-      method(...args.map(arg => this.parseArgument(arg)))
-    },
-    parseArgument(arg) {
-      if (typeof arg !== 'string') return arg
-      if (arg.startsWith('!$')) {
-        return !arg.slice(2).split('.').reduce((prev, curr) => prev[curr], this.$context)
-      } else if (arg.startsWith('$')) {
-        return arg.slice(1).split('.').reduce((prev, curr) => prev[curr], this.$context)
-      } else {
-        return arg
-      }
-    },
-    hideContextMenus() {
-      for (const key in this.menuData) {
-        this.menuData[key].show = false
-        this.menuData[key].current = null
-      }
-    },
-    showContextMenu(key, event) {
-      const style = this.menuReference[key].style
-      this.hideContextMenus()
-      this.locateMenuAtClient(event, style)
-      this.menuData[key].show = true
-    },
-    locateMenuAtClient(event, style) {
-      if (event.clientX + 200 > innerWidth) {
-        style.left = event.clientX - 200 - this.left + 'px'
-      } else {
-        style.left = event.clientX - this.left + 'px'
-      }
-      if (event.clientY - this.top > this.height / 2) {
-        style.top = ''
-        style.bottom = this.top + this.height - event.clientY + 'px'
-      } else {
-        style.top = event.clientY - this.top + 'px'
-        style.bottom = ''
-      }
-    },
-    showButtonMenu(key, event) {
-      const style = this.menuReference[key].style
-      this.hideContextMenus()
-      this.locateAtTopBottom(event, style)
-      this.menuData[key].show = true
-    },
-    locateAtTopBottom(event, style) {
-      const rect = event.currentTarget.getBoundingClientRect()
+    locateAtTopBottom(rect, style) {
       if (rect.left + 200 > innerWidth) {
         style.left = rect.left + rect.width - 200 + 'px'
       } else {
@@ -82,16 +41,56 @@ module.exports = {
       }
       style.top = rect.top + rect.height + 'px'
     },
-    locateAtLeftRight(event, style) {
-      const rect = event.currentTarget.getBoundingClientRect()
-      if (rect.right + 200 > innerWidth) {
+    locateAtLeftRight(style, ref, offsetY = 0, marginX = 0) {
+      if (ref.offsetRight + 200 > innerWidth) {
         style.left = null
-        style.right = rect.left + 'px'
+        style.right = ref.offsetLeft - marginX + 'px'
       } else {
         style.right = null
-        style.left = rect.right + 'px'
+        style.left = ref.offsetLeft + marginX + ref.offsetWidth + 'px'
       }
-      style.top = rect.top + 'px'
+      style.top = ref.offsetTop + offsetY + 'px'
+    },
+    executeMethod(context, key, ...args) {
+      const method = context[key]
+      if (method instanceof Function) method(...args)
+    },
+    executeCommand(command) {
+      if (typeof command === 'string') {
+        command = this.commands[command]
+      }
+      if (!command || !command.method || !command.context) return
+      const method = command.context[command.method]
+      if (!(method instanceof Function)) {
+        console.error(`No method ${command.method} was found!`)
+        return
+      }
+      let args = command.arguments
+      if (args === undefined) args = []
+      if (!(args instanceof Array)) args = [args]
+      method(...args.map(arg => this.parseArgument(arg, command.context)))
+    },
+    parseArgument(arg, ctx) {
+      if (typeof arg !== 'string') return arg
+      if (arg.startsWith('!$')) {
+        return !arg.slice(2).split('.').reduce((prev, curr) => prev[curr], ctx)
+      } else if (arg.startsWith('$')) {
+        return arg.slice(1).split('.').reduce((prev, curr) => prev[curr], ctx)
+      } else {
+        return arg
+      }
+    },
+    hideAllMenus() {
+      this.underlineMnemonic = false
+      this.$refs.menus.forEach(menu => menu.traverse((menu) => {
+        menu.current = null
+      }))
+    },
+    showContextMenu(key, event) {
+      const style = this.$refs[key][0].$el.style
+      this.hideAllMenus()
+      util.locateAtMouseEvent(event, style)
+      this.menuData[key].active = true
     },
   }
 }
@@ -99,48 +98,25 @@ module.exports = {
 </script>
 
 <template>
-  <div class="marklet-menu-manager">
-    <transition name="marklet-menu" v-for="key in menuKeys" :key="key">
-      <menu-view class="marklet-menu" v-show="menuData[key].show"
-        :data="menuData[key].children" :current="menuData[key].current"/>
-    </transition>
+  <div class="ob-menu-manager" :class="{ 'underline-mnemonic': underlineMnemonic }">
+    <menu-view v-for="(item, index) in menu" :key="index"
+      :menu="item.children" :context="item.context" ref="menus"/>
   </div>
 </template>
 
 <style lang="scss" scoped>
 
 & {
-  width: 0;
-  height: 0;
   top: 0;
   left: 0;
+  width: 0;
+  height: 0;
 }
 
-.marklet-menu {
-  z-index: 10;
-  padding: 0;
-  margin: 0;
-  outline: 0;
-  border: none;
-  padding: 2px 0;
-  position: absolute;
-  transition: 0.3s ease;
-}
-
-.marklet-menu-enter-active,
-.marklet-menu-leave-active {
-  opacity: 1;
-  transform: scaleY(1);
-  transform-origin: center top;
-  transition:
-    transform 0.3s cubic-bezier(0.23, 1, 0.32, 1),
-    opacity 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.marklet-menu-enter,
-.marklet-menu-leave-to {
-  opacity: 0;
-  transform: scaleY(0);
+&.underline-mnemonic {
+  .mnemonic {
+    text-decoration: underline;
+  }
 }
 
 </style>
