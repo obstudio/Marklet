@@ -5,10 +5,13 @@ const fs = require('fs')
 
 const lexer = new DocumentLexer()
 
-const testFiles = fs.readdirSync(path.join(__dirname, 'data')).map((file) => ({
-  name: file.slice(0, -4),
-  content: fs.readFileSync(path.join(__dirname, 'data', file)).toString()
-}))
+const testFiles = fs
+  .readdirSync(path.join(__dirname, 'data'))
+  .filter(file => path.extname(file) === '.mkl')
+  .map((file) => ({
+    name: file.slice(0, -4),
+    content: fs.readFileSync(path.join(__dirname, 'data', file)).toString()
+  }))
 
 const parsedFiles = testFiles.map((file) => ({
   name: file.name,

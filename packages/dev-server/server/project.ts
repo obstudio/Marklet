@@ -1,6 +1,8 @@
 import { Server, Manager, WatchEventType } from './index'
 import FileFilter, { StringLike } from './filter'
+import { LexerConfig } from '@marklet/parser'
 import debounce from 'lodash.debounce'
+import equal from 'fast-deep-equal'
 import EventEmitter from 'events'
 import DirTree from './tree'
 import * as yaml from 'js-yaml'
@@ -11,23 +13,31 @@ export interface ProjectConfig {
   baseDir?: string
   extensions?: string[]
   ignore?: StringLike[]
+  parseOptions?: LexerConfig
 }
 
 const JSON_EXTENSIONS = ['.js', '.json']
 const YAML_EXTENSIONS = ['.yml', '.yaml']
 
+interface ServerMessage {
+  type: string
+  [ key: string ]: any
+}
+
 export default class ProjectManager extends EventEmitter implements Manager {
   static EXTENSIONS = [...JSON_EXTENSIONS, ...YAML_EXTENSIONS]
 
   private tree: DirTree
+  private server: Server
   private filter: FileFilter
   private config: ProjectConfig
+  private oldConfig: ProjectConfig
   private folderWatcher: fs.FSWatcher
   private configWatcher: fs.FSWatcher
   private debouncedUpdate: () => void
   private delSet: Set<string> = new Set()
   private addSet: Set<string> = new Set()
-  private msgQueue: string[] = []
+  private msgQueue: ServerMessage[] = []
   private configUpdated: boolean
   private basepath: string
   private basename: string
@@ -42,6 +52,19 @@ export default class ProjectManager extends EventEmitter implements Manager {
     const config = this.getConfig()
     this.filter = new FileFilter(config.extensions, config.ignore)
     this.tree = new DirTree(config.baseDir, this.filter)
+
+    this.on('update', (data) => {
+      if (!this.server) {
+        let index = this.msgQueue.findIndex(({ type }) => type === data.type)
+        if (index >= 0) {
+          this.msgQueue[index] = data
+        } else {
+          this.msgQueue.push(data)
+        }
+      } else {
+        this.server.wsServer.broadcast(JSON.stringify(data))
+      }
+    })
 
     this.update()
     this.debouncedUpdate = debounce(this.update.bind(this), 200)
@@ -69,6 +92,7 @@ export default class ProjectManager extends EventEmitter implements Manager {
   }
 
   private getConfig() {
+    this.oldConfig = this.config || {}
     const beforeCreate = !this.config
     function takeTry(task: Function) {
       try {
@@ -88,6 +112,7 @@ export default class ProjectManager extends EventEmitter implements Manager {
     config.baseDir = path.resolve(this.basepath, config.baseDir || '')
     if (!config.extensions) config.extensions = ['.mkl']
     if (!config.ignore) config.ignore = []
+    if (!config.parseOptions) config.parseOptions = {}
     if (this.filepath.startsWith(config.baseDir)) {
       config.ignore.push(this.filepath.slice(config.baseDir.length + 1))
     }
@@ -106,27 +131,27 @@ export default class ProjectManager extends EventEmitter implements Manager {
       } catch (_) {}
     }
     this.addSet.clear()
-    const entriesMessage = JSON.stringify({
+    this.emit('update', {
       type: 'entries',
       tree: this.tree.entryTree,
     })
-    this.msgQueue.push(entriesMessage)
-    this.emit('update', entriesMessage)
     if (this.configUpdated) {
-      const configMessage = JSON.stringify({
-        type: 'config',
-        config: this.config,
-      })
-      this.msgQueue.push(configMessage)
-      this.emit('update', configMessage)
+      if (!equal(this.config.parseOptions, this.oldConfig.parseOptions)) {
+        this.emit('update', {
+          type: 'parseOptions',
+          config: this.config,
+        })
+      }
       this.configUpdated = false
     }
     // FIXME: events when a file content was changed
   }
 
   public bind(server: Server): this {
+    this.server = server
+    this.once('close', reason => server.dispose(reason))
     server.wsServer.on('connection', (ws) => {
-      this.msgQueue.forEach(msg => ws.send(msg))
+      this.msgQueue.forEach(msg => ws.send(JSON.stringify(msg)))
       ws.on('message', data => {
         const parsed = JSON.parse(<string>data)
         switch (parsed.type) {
@@ -136,8 +161,6 @@ export default class ProjectManager extends EventEmitter implements Manager {
         }
       })
     })
-    this.on('update', msg => server.wsServer.broadcast(msg))
-    this.once('close', reason => server.dispose(reason))
     return this
   }
 
