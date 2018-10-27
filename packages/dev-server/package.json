@@ -30,6 +30,8 @@
     "@marklet/parser": "^1.5.2",
     "@marklet/renderer": "^1.3.2",
     "lodash.debounce": "^4.0.8",
+    "js-yaml": "^3.12.0",
+    "minimatch": "^3.0.4",
     "monaco-editor": "^0.14.3",
     "mousetrap": "^1.6.2",
     "vue": "^2.5.17",

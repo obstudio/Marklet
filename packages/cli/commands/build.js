@@ -6,6 +6,7 @@ module.exports = program => program
   // .option('-d, --dest [path]', 'Write parsed data to file instead of stdin')
   .allowConfig()
   .action(function(filepath = '') {
-    const options = this.getOptions(filepath)
+    const options = this.getOptions()
+    options.filepath = filepath
     console.log(options)
   })

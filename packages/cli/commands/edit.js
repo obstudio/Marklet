@@ -6,8 +6,9 @@ module.exports = program => program
   .description('Edit a marklet file or project.')
   .allowPort()
   .allowConfig()
-  .action(function(filepath = '') {
-    const options = this.getOptions(filepath, false)
+  .action(function(filepath) {
+    const options = this.getOptions()
+    options.filepath = filepath
     server.edit(options)
     if (this.open) {
       open(`http://localhost:${options.port || 8080}`)

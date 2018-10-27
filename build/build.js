@@ -51,6 +51,10 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
   })
 
   new webpack.ProgressPlugin().apply(compiler)
+  
+  new webpack.DefinePlugin({
+    'process.env.MARKLET_ENV': JSON.stringify(env),
+  }).apply(compiler)
 
   compiler.run((error, stat) => {
     if (error) {

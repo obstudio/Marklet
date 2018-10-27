@@ -3,6 +3,8 @@ import { readFileSync, watch, FSWatcher } from 'fs'
 import debounce from 'lodash.debounce'
 import { Server, Manager, WatchEventType } from './index'
 
+export const MARKUP_EXTENSIONS = ['.md', '.mkl']
+
 export default class FileManager extends EventEmitter implements Manager {
   private content: string
   private watcher: FSWatcher

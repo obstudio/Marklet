@@ -1,9 +1,23 @@
-import { dirname, join, basename } from 'path'
-import { EventEmitter } from 'events'
-import { readFileSync, watch, FSWatcher, readdirSync } from 'fs'
 import { Server, Manager, WatchEventType } from './index'
+import { dirname, join, basename, extname } from 'path'
+import { readFileSync, watch, FSWatcher } from 'fs'
+import { FileTree, DirTree } from './tree'
+import { EventEmitter } from 'events'
+import { safeLoad } from 'js-yaml'
 import debounce from 'lodash.debounce'
-import yaml from 'js-yaml'
+import filter from './glob'
+
+interface ProjectConfig {
+  basedir?: string
+  ignore?: string[]
+}
+
+const JSON_EXTENSIONS = ['.js', '.json']
+const YAML_EXTENSIONS = ['.yml', '.yaml']
+export const CONFIG_EXTENSIONS = [
+  ...JSON_EXTENSIONS,
+  ...YAML_EXTENSIONS,
+]
 
 export default class ProjectManager extends EventEmitter implements Manager {
   private watcher: FSWatcher
@@ -11,6 +25,7 @@ export default class ProjectManager extends EventEmitter implements Manager {
   private debouncedUpdate: () => void
   private delSet: Set<string> = new Set()
   private addSet: Set<string> = new Set()
+  private config: any
   private basepath: string
   private basename: string
   private configUpdated: boolean
@@ -23,6 +38,7 @@ export default class ProjectManager extends EventEmitter implements Manager {
     this.basename = basename(filepath)
     this.tree = new DirTree(this.basepath)
 
+    this.getConfig()
     this.update()
     this.debouncedUpdate = debounce(this.update.bind(this), 200)
     this.watcher = watch(this.basepath, {
@@ -36,6 +52,23 @@ export default class ProjectManager extends EventEmitter implements Manager {
       }
       this.debouncedUpdate()
     })
+  }
+
+  private getConfig(): any {
+    const ext = extname(this.filepath).toLowerCase()
+    let config: ProjectConfig
+    if (JSON_EXTENSIONS.includes(ext)) {
+      require.cache[this.filepath] = null
+      config = require(this.filepath)
+      // FIXME: catch error
+    } else if (YAML_EXTENSIONS.includes(ext)) {
+      config = safeLoad(readFileSync(this.filepath).toString())
+      // FIXME: catch error
+    } else {
+      throw new Error('Cannot recognize file extension for configuration file.')
+    }
+    console.log(this.filepath, require(this.filepath))
+    this.config = config
   }
 
   private update() {
@@ -88,88 +121,5 @@ export default class ProjectManager extends EventEmitter implements Manager {
   public dispose(): void {
     this.watcher.close()
     this.emit('close')
-  }
-}
-
-interface FileTree {
-  [key: string]: string | FileTree
-}
-
-interface EntryTree extends Array<SubEntry> {}
-type SubEntry = EntryTree | string
-
-class DirTree {
-  static separator = /[\/\\]/
-  public tree: FileTree
-
-  constructor(private filepath: string) {
-    this.tree = this.init(filepath)
-  }
-
-  private init(filepath: string): FileTree {
-    const children = readdirSync(filepath, { withFileTypes: true }), subtree: FileTree = {}
-    for (const child of children) {
-      const newPath = join(filepath, child.name)
-      subtree[child.name] = child.isFile() ? readFileSync(newPath, 'utf8') : this.init(newPath)
-    }
-    return subtree
-  }
-
-  public get(path: string) {
-    const segments = path.split(DirTree.separator)
-    let result = this.tree
-    for (const segment of segments) {
-      result = <FileTree>result[segment]
-    }
-    return result
-  }
-
-  public set(path: string, value: string | FileTree) {
-    const segments = path.split(DirTree.separator)
-    const last = segments.pop()
-    let tree = this.tree
-    for (const segment of segments) {
-      tree = <FileTree>(tree[segment] = tree[segment] || {})
-    }
-    tree[last] = value
-  }
-
-  public has(path: string) {
-    const segments = path.split(DirTree.separator)
-    let result = this.tree
-    for (const segment of segments) {
-      if (result = <FileTree>result[segment])
-        continue
-      return false
-    }
-    return true
-  }
-
-  public del(path: string) {
-    const segments = path.split(DirTree.separator)
-    const last = segments.pop()
-    let tree = this.tree
-    for (const segment of segments) {
-      tree = <FileTree>tree[segment]
-    }
-    delete tree[last]
-  }
-
-  get entryTree() {
-    return DirTree.generateEntryTree(this.tree)
-  }
-
-  static generateEntryTree(tree: FileTree) {
-    const entries: EntryTree = Object.keys(tree)
-    for (let i = 0; i < entries.length; i++) {
-      const element = entries[i]
-      const content = tree[<string>element]
-      if (typeof content === 'object') {
-        const sub = this.generateEntryTree(content)
-        sub.unshift(element)
-        entries.splice(i, 1, sub)
-      }
-    }
-    return entries
   }
 }
