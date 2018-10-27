@@ -32,8 +32,8 @@ Object.assign(Object.getPrototypeOf(program), {
       if (this.port) options.port = this.port
     }
     if (this._allowConfig) {
-      if (!options.config) options.config = {}
-      Object.assign(options.config, this.getConfig())
+      if (!options.parseOptions) options.parseOptions = {}
+      Object.assign(options.parseOptions, this.getConfig())
     }
     return options
   },

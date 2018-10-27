@@ -4,11 +4,11 @@ import * as url from 'url'
 import * as fs from 'fs'
 import ws from 'ws'
 
-import ProjectManager, { CONFIG_EXTENSIONS } from './project'
-import FileManager, { MARKUP_EXTENSIONS } from './file'
 import { LexerConfig } from '@marklet/parser'
 import { getContentType } from './util'
 import { EventEmitter } from 'events'
+import ProjectManager from './project'
+import FileManager from './file'
 
 export const DEFAULT_PORT = 10826
 
@@ -37,19 +37,19 @@ export type WatchEventType = 'rename' | 'change'
 
 interface ServerOptions {
   port?: number
-  config?: LexerConfig
+  parseOptions?: LexerConfig
 }
 
 class MarkletServer<T extends ServerType = ServerType> {
   public port: number
   public manager: MarkletManager
   public sourceType: SourceType
-  public config: LexerConfig
+  public parseOptions: LexerConfig
   public wsServer: ws.Server
   public httpServer: http.Server
 
   constructor(public serverType: T, public filepath = '', options: ServerOptions = {}) {
-    this.config = options.config || {}
+    this.parseOptions = options.parseOptions || {}
     this.port = options.port || DEFAULT_PORT
     this.createServer()
     this.setupManager()
@@ -83,7 +83,7 @@ class MarkletServer<T extends ServerType = ServerType> {
           marklet.serverType = '${this.serverType}'
           marklet.filepath = ${JSON.stringify(this.filepath)}
           marklet.sourceType = '${this.sourceType}'
-          marklet.config = ${JSON.stringify(this.config)}
+          marklet.parseOptions = ${JSON.stringify(this.parseOptions)}
         `)
         return
       } else {
@@ -104,23 +104,25 @@ class MarkletServer<T extends ServerType = ServerType> {
   private setupManager() {
     if (!this.filepath) {
       this.sourceType = 'file'
-      // FIXME: A file manager is also needed so as to handle client requests.
+      // FIXME: Is a file manager is needed here so as to handle client requests?
       return
     } else if (!fs.existsSync(this.filepath)) {
       throw new Error(`${this.filepath} does not exist.`)
     }
     if (fs.statSync(this.filepath).isFile()) {
       const ext = path.extname(this.filepath).toLowerCase()
-      if (CONFIG_EXTENSIONS.includes(ext)) {
+      if (ProjectManager.EXTENSIONS.includes(ext)) {
         this.sourceType = 'project'
         this.manager = new ProjectManager(this.filepath).bind(this)
-      } else if (MARKUP_EXTENSIONS.includes(ext)) {
+      } else if (FileManager.EXTENSIONS.includes(ext)) {
         this.sourceType = 'file'
         this.manager = new FileManager(this.filepath).bind(this)
+      } else {
+        throw new Error('Cannot recognize the file extension.')
       }
     } else {
       const configPathWithoutExt = path.join(this.filepath, 'marklet')
-      for (const ext of CONFIG_EXTENSIONS) {
+      for (const ext of ProjectManager.EXTENSIONS) {
         const configPath = configPathWithoutExt + ext
         if (!fs.existsSync(configPath)) continue
         if (fs.statSync(configPath).isFile()) {

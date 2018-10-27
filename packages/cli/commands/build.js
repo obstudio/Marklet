@@ -1,3 +1,5 @@
+const path = require('path')
+
 module.exports = program => program
   .command('build [filepath|dirpath]')
   .description('Build a marklet project into a website.')
@@ -7,6 +9,6 @@ module.exports = program => program
   .allowConfig()
   .action(function(filepath = '') {
     const options = this.getOptions()
-    options.filepath = filepath
+    options.filepath = path.resolve(process.cwd(), filepath)
     console.log(options)
   })

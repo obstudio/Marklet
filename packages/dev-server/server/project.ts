@@ -1,74 +1,98 @@
 import { Server, Manager, WatchEventType } from './index'
-import { dirname, join, basename, extname } from 'path'
-import { readFileSync, watch, FSWatcher } from 'fs'
-import { FileTree, DirTree } from './tree'
-import { EventEmitter } from 'events'
-import { safeLoad } from 'js-yaml'
 import debounce from 'lodash.debounce'
-import filter from './glob'
+import EventEmitter from 'events'
+import FileFilter from './filter'
+import DirTree from './tree'
+import * as yaml from 'js-yaml'
+import * as path from 'path'
+import * as fs from 'fs'
 
-interface ProjectConfig {
-  basedir?: string
+export interface ProjectConfig {
+  baseDir?: string
+  extensions?: string[]
   ignore?: string[]
 }
 
 const JSON_EXTENSIONS = ['.js', '.json']
 const YAML_EXTENSIONS = ['.yml', '.yaml']
-export const CONFIG_EXTENSIONS = [
-  ...JSON_EXTENSIONS,
-  ...YAML_EXTENSIONS,
-]
 
 export default class ProjectManager extends EventEmitter implements Manager {
-  private watcher: FSWatcher
+  static EXTENSIONS = [...JSON_EXTENSIONS, ...YAML_EXTENSIONS]
+
   private tree: DirTree
+  private filter: FileFilter
+  private config: ProjectConfig
+  private folderWatcher: fs.FSWatcher
+  private configWatcher: fs.FSWatcher
   private debouncedUpdate: () => void
   private delSet: Set<string> = new Set()
   private addSet: Set<string> = new Set()
-  private config: any
+  private msgQueue: string[] = []
+  private configUpdated: boolean
   private basepath: string
   private basename: string
-  private configUpdated: boolean
-  public entriesMessage: string
-  public optionMessage: string
+  private extension: string
 
   constructor(private filepath: string) {
     super()
-    this.basepath = dirname(filepath)
-    this.basename = basename(filepath)
-    this.tree = new DirTree(this.basepath)
+    this.basepath = path.dirname(filepath)
+    this.basename = path.basename(filepath)
+    this.extension = path.extname(filepath).toLowerCase()
 
-    this.getConfig()
+    const config = this.getConfig()
+    this.filter = new FileFilter(config.extensions, config.ignore)
+    this.tree = new DirTree(config.baseDir, this.filter)
+
     this.update()
     this.debouncedUpdate = debounce(this.update.bind(this), 200)
-    this.watcher = watch(this.basepath, {
+
+    this.folderWatcher = fs.watch(this.config.baseDir, {
       recursive: true
     }, (type: WatchEventType, filename) => {
+      if (!this.filter.test(filename)) return
       if (type === 'rename' && this.tree.has(filename)) {
         this.delSet.add(filename)
       } else {
         this.addSet.add(filename)
-        this.configUpdated = filename === this.basename
       }
       this.debouncedUpdate()
     })
+
+    this.configWatcher = fs.watch(this.filepath, (type: WatchEventType) => {
+      if (type === 'rename') {
+        this.dispose('Configuration file has been removed or renamed.')
+      } else {
+        this.getConfig()
+        this.debouncedUpdate()
+      }
+    })
   }
 
-  private getConfig(): any {
-    const ext = extname(this.filepath).toLowerCase()
-    let config: ProjectConfig
-    if (JSON_EXTENSIONS.includes(ext)) {
-      require.cache[this.filepath] = null
-      config = require(this.filepath)
-      // FIXME: catch error
-    } else if (YAML_EXTENSIONS.includes(ext)) {
-      config = safeLoad(readFileSync(this.filepath).toString())
-      // FIXME: catch error
-    } else {
-      throw new Error('Cannot recognize file extension for configuration file.')
+  private getConfig() {
+    const beforeCreate = !this.config
+    function takeTry(task: Function) {
+      try {
+        return task()
+      } catch (error) {
+        if (beforeCreate) throw error
+      }
     }
-    console.log(this.filepath, require(this.filepath))
-    this.config = config
+
+    let config: ProjectConfig
+    if (JSON_EXTENSIONS.includes(this.extension)) {
+      require.cache[this.filepath] = null
+      takeTry(() => config = require(this.filepath))
+    } else if (YAML_EXTENSIONS.includes(this.extension)) {
+      takeTry(() => config = yaml.safeLoad(fs.readFileSync(this.filepath).toString()))
+    }
+    config.baseDir = path.resolve(this.basepath, config.baseDir || '')
+    if (!config.extensions) config.extensions = ['.mkl']
+    if (!config.ignore) config.ignore = []
+    if (this.filepath.startsWith(config.baseDir)) {
+      config.ignore.push(this.filepath.slice(config.baseDir.length + 1))
+    }
+    this.configUpdated = true
+    return this.config = config
   }
 
   private update() {
@@ -78,26 +102,31 @@ export default class ProjectManager extends EventEmitter implements Manager {
     this.delSet.clear()
     for (const item of this.addSet) {
       try {
-        this.tree.set(item, readFileSync(join(this.basepath, item), 'utf8'))        
+        this.tree.set(item, fs.readFileSync(path.join(this.config.baseDir, item), 'utf8'))        
       } catch (_) {}
     }
     this.addSet.clear()
-    this.emit('update', this.entriesMessage = JSON.stringify({
+    const entriesMessage = JSON.stringify({
       type: 'entries',
       tree: this.tree.entryTree,
-    }))
+    })
+    this.msgQueue.push(entriesMessage)
+    this.emit('update', entriesMessage)
     if (this.configUpdated) {
-      this.emit('update', this.optionMessage = JSON.stringify({
-        type: 'options',
-        tree: this.tree.get(this.basename) // parse it
-      }))
+      const configMessage = JSON.stringify({
+        type: 'config',
+        config: this.config,
+      })
+      this.msgQueue.push(configMessage)
+      this.emit('update', configMessage)
       this.configUpdated = false
     }
+    // FIXME: events when a file content was changed
   }
 
   public bind(server: Server): this {
-    server.wsServer.on('connection', ws => {
-      ws.send(this.entriesMessage)
+    server.wsServer.on('connection', (ws) => {
+      this.msgQueue.forEach(msg => ws.send(msg))
       ws.on('message', data => {
         const parsed = JSON.parse(<string>data)
         switch (parsed.type) {
@@ -108,18 +137,17 @@ export default class ProjectManager extends EventEmitter implements Manager {
       })
     })
     this.on('update', msg => server.wsServer.broadcast(msg))
-    this.once('close', () => {
-      server.dispose('Source file is gone.')
-    })
+    this.once('close', reason => server.dispose(reason))
     return this
   }
 
-  public getContent(path: string): FileTree {
+  public getContent(path: string) {
     return this.tree.get(path)
   }
 
-  public dispose(): void {
-    this.watcher.close()
-    this.emit('close')
+  public dispose(reason = '') {
+    this.folderWatcher.close()
+    this.configWatcher.close()
+    this.emit('close', reason)
   }
 }

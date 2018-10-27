@@ -9,7 +9,7 @@ module.exports = {
     changed: false,
     config: {
       ...defaultConfig,
-      ...marklet.config,
+      ...marklet.parseOptions,
     },
   }),
 

@@ -1,5 +1,6 @@
-import { readFileSync, readdirSync } from 'fs'
-import { join } from 'path'
+import * as fs from 'fs'
+import * as path from 'path'
+import FileFilter from './filter'
 
 export interface FileTree {
   [key: string]: string | FileTree
@@ -8,19 +9,21 @@ export interface FileTree {
 interface EntryTree extends Array<SubEntry> {}
 type SubEntry = EntryTree | string
 
-export class DirTree {
+export default class DirTree {
   static separator = /[\/\\]/
   public tree: FileTree
 
-  constructor(private filepath: string) {
+  constructor(private filepath: string, private filter: FileFilter) {
     this.tree = this.init(filepath)
   }
 
   private init(filepath: string): FileTree {
-    const children = readdirSync(filepath, { withFileTypes: true }), subtree: FileTree = {}
+    const children = fs.readdirSync(filepath, { withFileTypes: true })
+    const subtree: FileTree = {}
     for (const child of children) {
-      const newPath = join(filepath, child.name)
-      subtree[child.name] = child.isFile() ? readFileSync(newPath, 'utf8') : this.init(newPath)
+      const newPath = path.join(filepath, child.name)
+      if (!this.filter.test(newPath)) continue
+      subtree[child.name] = child.isFile() ? fs.readFileSync(newPath, 'utf8') : this.init(newPath)
     }
     return subtree
   }
