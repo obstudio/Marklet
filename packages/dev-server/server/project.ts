@@ -1,24 +1,17 @@
 import { dirname, join, basename } from 'path'
 import { EventEmitter } from 'events'
 import { readFileSync, watch, FSWatcher, readdirSync } from 'fs'
+import { Server, Manager, WatchEventType } from './index'
 import debounce from 'lodash.debounce'
+import yaml from 'js-yaml'
 
-type WatchEventType = 'rename' | 'change'
-
-interface FileTree {
-  [key: string]: string | FileTree
-}
-
-interface EntryTree extends Array<SubEntry> {}
-type SubEntry = EntryTree | string
-
-export default class ProjectManager extends EventEmitter {
+export default class ProjectManager extends EventEmitter implements Manager {
   private watcher: FSWatcher
   private tree: DirTree
   private debouncedUpdate: () => void
-  private deleteSet: Set<string> = new Set()
+  private delSet: Set<string> = new Set()
   private addSet: Set<string> = new Set()
-  private basePath: string
+  private basepath: string
   private basename: string
   private configUpdated: boolean
   public entriesMessage: string
@@ -26,37 +19,39 @@ export default class ProjectManager extends EventEmitter {
 
   constructor(private filepath: string) {
     super()
-    this.basePath = dirname(filepath)
+    this.basepath = dirname(filepath)
     this.basename = basename(filepath)
-    this.tree = new DirTree(this.basePath)
-    this.watcher = watch(this.basePath, { recursive: true }, this.handleWatchEvent.bind(this))
-    this.debouncedUpdate = debounce(this.update.bind(this), 200)
-  }
+    this.tree = new DirTree(this.basepath)
 
-  private handleWatchEvent(eventType: WatchEventType, filename: string) {
-    if (eventType === 'rename' && this.tree.has(filename)) {
-      this.deleteSet.add(filename)
-    } else {
-      this.addSet.add(filename)
-      this.configUpdated = filename === this.basename
-    }
-    this.debouncedUpdate()
+    this.update()
+    this.debouncedUpdate = debounce(this.update.bind(this), 200)
+    this.watcher = watch(this.basepath, {
+      recursive: true
+    }, (type: WatchEventType, filename) => {
+      if (type === 'rename' && this.tree.has(filename)) {
+        this.delSet.add(filename)
+      } else {
+        this.addSet.add(filename)
+        this.configUpdated = filename === this.basename
+      }
+      this.debouncedUpdate()
+    })
   }
 
   private update() {
-    for (const item of this.deleteSet) {
+    for (const item of this.delSet) {
       this.tree.del(item)
     }
-    this.deleteSet.clear()
+    this.delSet.clear()
     for (const item of this.addSet) {
       try {
-        this.tree.set(item, readFileSync(join(this.basePath, item), 'utf8'))        
+        this.tree.set(item, readFileSync(join(this.basepath, item), 'utf8'))        
       } catch (_) {}
     }
     this.addSet.clear()
     this.emit('update', this.entriesMessage = JSON.stringify({
       type: 'entries',
-      tree: this.tree.entryTree
+      tree: this.tree.entryTree,
     }))
     if (this.configUpdated) {
       this.emit('update', this.optionMessage = JSON.stringify({
@@ -67,7 +62,26 @@ export default class ProjectManager extends EventEmitter {
     }
   }
 
-  public getContent(path: string) {
+  public bind(server: Server): this {
+    server.wsServer.on('connection', ws => {
+      ws.send(this.entriesMessage)
+      ws.on('message', data => {
+        const parsed = JSON.parse(<string>data)
+        switch (parsed.type) {
+          case 'content':
+            this.getContent(parsed.data)            
+            break
+        }
+      })
+    })
+    this.on('update', msg => server.wsServer.broadcast(msg))
+    this.once('close', () => {
+      server.dispose('Source file is gone.')
+    })
+    return this
+  }
+
+  public getContent(path: string): FileTree {
     return this.tree.get(path)
   }
 
@@ -76,6 +90,13 @@ export default class ProjectManager extends EventEmitter {
     this.emit('close')
   }
 }
+
+interface FileTree {
+  [key: string]: string | FileTree
+}
+
+interface EntryTree extends Array<SubEntry> {}
+type SubEntry = EntryTree | string
 
 class DirTree {
   static separator = /[\/\\]/

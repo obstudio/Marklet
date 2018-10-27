@@ -5,7 +5,7 @@ module.exports = {
     nodes: [],
     origin: '',
     source: '',
-    loading: 1,
+    loaded: false,
     changed: false,
     config: {
       ...defaultConfig,
@@ -24,16 +24,10 @@ module.exports = {
         this.nodes = this._lexer.parse(this.source)
       },
     },
-    loading(value) {
-      if (!value) {
-        this._editor.setModel(this._model)
-        this.$nextTick(() => this.layout())
-      }
-    },
   },
 
   created() {
-    this._enableEdit = marklet.type === 'edit'
+    this._enableEdit = marklet.serverType === 'edit'
     this._isProject = marklet.sourceType !== 'file'
     this._lexer = new DocumentLexer(this.config)
 
@@ -42,8 +36,12 @@ module.exports = {
   },
 
   mounted() {
-    marklet.$on('server.document', (doc) => {
-      this.openFile(doc)
+    marklet.$on('server.document', ({ data }) => {
+      this.openFile(data)
+    })
+
+    marklet.$on('server.entries', ({ tree }) => {
+      console.log(tree)
     })
 
     marklet.$on('monaco.theme.loaded', (monaco) => {
@@ -74,7 +72,9 @@ module.exports = {
         this.row = event.position.lineNumber
         this.column = event.position.column
       })
-      this.loading = 0
+      this._editor.setModel(this._model)
+      this.$nextTick(() => this.layout())
+      this.loaded = true
     })
 
     addEventListener('beforeunload', () => {
@@ -84,14 +84,16 @@ module.exports = {
 
   methods: {
     openFile(doc) {
-      if (this.loading) {
-        this.source = doc
-      } else {
+      if (this.loaded) {
         this._model.setValue(doc)
+      } else {
+        this.source = doc
       }
     },
     save() {
-      marklet.$emit('client.message', 'save', this.source) // TODO: maybe file name is needed. depend on backend impl
+      // try to use functional APIs instead of events
+      // TODO: maybe file name is needed. depend on backend impl
+      marklet.$emit('client.message', 'save', this.source)
     },
     saveAs() {
       marklet.$emit('client.message', 'saveAs', {

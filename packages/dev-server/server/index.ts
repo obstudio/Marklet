@@ -6,6 +6,7 @@ import ws from 'ws'
 
 import { LexerConfig } from '@marklet/parser'
 import { getContentType } from './util'
+import { EventEmitter } from 'events'
 import ProjectManager from './project'
 import FileManager from './file'
 
@@ -25,8 +26,14 @@ ws.Server.prototype.broadcast = function (data) {
   })
 }
 
+interface MarkletManager extends EventEmitter {
+  bind(server: MarkletServer): this
+  dispose(): void
+}
+
 export type ServerType = 'watch' | 'edit'
 export type SourceType = 'file' | 'project'
+export type WatchEventType = 'rename' | 'change'
 
 interface ServerOptions {
   port?: number
@@ -35,24 +42,27 @@ interface ServerOptions {
   sourceType?: SourceType
 }
 
-class MarkletServer<T extends ServerType> {
-  type: T
-  port: number
-  filepath: string
-  sourceType: SourceType
-  config: LexerConfig
-  wsServer: ws.Server
-  httpServer: http.Server
+class MarkletServer<T extends ServerType = ServerType> {
+  public port: number
+  public filepath: string
+  public manager: MarkletManager
+  public sourceType: SourceType
+  public config: LexerConfig
+  public wsServer: ws.Server
+  public httpServer: http.Server
 
-  constructor(type: T, options: ServerOptions = {}) {
-    this.type = type
+  constructor(public serverType: T, options: ServerOptions = {}) {
     this.config = options.config || {}
     this.filepath = options.filepath || ''
     this.port = options.port || DEFAULT_PORT
     this.sourceType = options.sourceType || 'file'
     this.createServer()
     if (this.filepath) {
-      this.setupContentWatcher()
+      if (this.sourceType === 'file') {
+        this.manager = new FileManager(this.filepath).bind(this)
+      } else {
+        this.manager = new ProjectManager(this.filepath).bind(this)
+      }
     }
   }
 
@@ -64,7 +74,7 @@ class MarkletServer<T extends ServerType> {
         response.end()
       }
       
-      function handleData(data: any, type: string = 'text/javascript') {
+      function handleData(data: any, type = 'text/javascript') {
         response.writeHead(200, { 'Content-Type': type })
         response.write(data)
         response.end()
@@ -81,7 +91,7 @@ class MarkletServer<T extends ServerType> {
         }
       } else if (pathname === 'initialize.js') {
         handleData(`
-          marklet.type = '${this.type}'
+          marklet.serverType = '${this.serverType}'
           marklet.filepath = ${JSON.stringify(this.filepath)}
           marklet.sourceType = '${this.sourceType}'
           marklet.config = ${JSON.stringify(this.config)}
@@ -103,39 +113,6 @@ class MarkletServer<T extends ServerType> {
     console.log(`Server running at http://localhost:${this.port}/`)
   }
 
-  private setupContentWatcher() {
-    if (this.sourceType === 'file') {
-      this.setupFileWatcher()
-    } else {
-      this.setupProjectWatcher()
-    }
-  }
-
-  private setupFileWatcher() {
-    const manager = new FileManager(this.filepath)
-    manager.once('close', () => {
-      this.dispose('Source file is gone.')
-    })
-    this.wsServer.on('connection', ws => ws.send(manager.msg))
-    manager.on('update', msg => this.wsServer.broadcast(msg))
-  }
-
-  private setupProjectWatcher() {
-    const manager = new ProjectManager(this.filepath)
-    this.wsServer.on('connection', ws => {
-      ws.send(manager.entriesMessage)
-      ws.on('message', data => {
-        const parsed = JSON.parse(<string>data)
-        switch (parsed.type) {
-          case 'content':
-            manager.getContent(parsed.data)            
-            break
-        }
-      })
-    })
-    manager.on('update', msg => this.wsServer.broadcast(msg))
-  }
-
   public dispose(reason: string = '') {
     this.wsServer.close()
     this.httpServer.close()
@@ -143,7 +120,7 @@ class MarkletServer<T extends ServerType> {
   }
 }
 
-export { MarkletServer as Server }
+export { MarkletServer as Server, MarkletManager as Manager }
 
 export interface WatchOptions extends ServerOptions {
   filepath: string // required

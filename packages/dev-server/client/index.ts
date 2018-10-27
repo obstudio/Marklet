@@ -22,7 +22,6 @@ eventBus.$on('monaco.loaded', (monaco: typeof Monaco) => {
   })
   monaco.languages.setMonarchTokensProvider('marklet', defineLanguage())
   eventBus.$emit('monaco.language.loaded', monaco)
-  console.log(require('../themes/dark'))
   monaco.editor.defineTheme('dark', require('../themes/dark'))
   monaco.editor.defineTheme('simple', require('../themes/simple'))
   eventBus.$emit('monaco.theme.loaded', monaco)
@@ -85,8 +84,8 @@ const client = new class MarkletClient {
     })
     this.ws.addEventListener('message', (event) => {
       try {
-        const { type, data } = JSON.parse(event.data)
-        eventBus.$emit('server.' + type, data)
+        const data = JSON.parse(event.data)
+        eventBus.$emit('server.' + data.type, data)
       } catch (error) {
         eventBus.$emit('server.error', error)
       }

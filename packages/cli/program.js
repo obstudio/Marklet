@@ -25,7 +25,7 @@ function loadFromFile(filepath) {
   } else {
     throw new Error('error: cannot recognize file with no extenstion.')
   }
-  options.sourceType = 'folder'
+  options.sourceType = 'project'
   return options
 }
 
