@@ -122,7 +122,17 @@ class MarkletServer<T extends ServerType> {
 
   private setupProjectWatcher() {
     const manager = new ProjectManager(this.filepath)
-    this.wsServer.on('connection', ws => ws.send(manager.msg))
+    this.wsServer.on('connection', ws => {
+      ws.send(manager.entriesMessage)
+      ws.on('message', data => {
+        const parsed = JSON.parse(<string>data)
+        switch (parsed.type) {
+          case 'content':
+            manager.getContent(parsed.data)            
+            break
+        }
+      })
+    })
     manager.on('update', msg => this.wsServer.broadcast(msg))
   }
 

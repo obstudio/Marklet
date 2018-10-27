@@ -73,7 +73,7 @@ Object.assign(Object.getPrototypeOf(program), {
           if (!fs.existsSync(configPath)) continue
           if (fs.statSync(configPath).isFile()) {
             options = loadFromFile(configPath)
-            options.filepath = basePath
+            options.filepath = configPath
             matchFound = true
             break
           }
