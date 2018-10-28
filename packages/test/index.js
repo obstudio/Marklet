@@ -5,8 +5,20 @@ const fs = require('fs')
 
 const lexer = new DocumentLexer()
 
-const testFiles = fs
-  .readdirSync(path.join(__dirname, 'data'))
+function traverse(basedir) {
+  return Array.from(function* walk(filename = '') {
+    const filepath = path.join(basedir, filename)
+    if (fs.statSync(filepath).isFile()) {
+      yield filename
+    } else {
+      for (const name of fs.readdirSync(filepath)) {
+        yield* walk(path.join(filename, name))
+      }
+    }
+  }())
+}
+
+const testFiles = traverse(path.join(__dirname, 'data'))
   .filter(file => path.extname(file) === '.mkl')
   .map((file) => ({
     name: file.slice(0, -4),

@@ -22,8 +22,13 @@ export default class DirTree {
     const subtree: FileTree = {}
     for (const child of children) {
       const newPath = path.join(filepath, child.name)
-      if (!this.filter.test(newPath)) continue
-      subtree[child.name] = child.isFile() ? fs.readFileSync(newPath, 'utf8') : this.init(newPath)
+      if (child.isFile()) {
+        if (this.filter.test(newPath)) {
+          subtree[child.name] = fs.readFileSync(newPath, 'utf8')
+        }
+      } else {
+        subtree[child.name] = this.init(newPath)
+      }
     }
     return subtree
   }
