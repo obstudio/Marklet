@@ -1,4 +1,4 @@
-import { Server, Manager, WatchEventType } from './index'
+import { Server, Manager, WatchEventType, EditorConfig } from './index'
 import FileFilter, { StringLike } from './filter'
 import { LexerConfig } from '@marklet/parser'
 import debounce from 'lodash.debounce'
@@ -13,6 +13,7 @@ export interface ProjectConfig {
   baseDir?: string
   extensions?: string[]
   ignore?: StringLike[]
+  editOptions?: EditorConfig
   parseOptions?: LexerConfig
 }
 
@@ -30,6 +31,7 @@ export default class ProjectManager extends EventEmitter implements Manager {
   private tree: DirTree
   private server: Server
   private filter: FileFilter
+  private rawConfig: string
   private config: ProjectConfig
   private oldConfig: ProjectConfig
   private folderWatcher: fs.FSWatcher
@@ -83,7 +85,7 @@ export default class ProjectManager extends EventEmitter implements Manager {
 
     this.configWatcher = fs.watch(this.filepath, (type: WatchEventType) => {
       if (type === 'rename') {
-        this.dispose('Configuration file has been removed or renamed.')
+        this.dispose('Configuration file has been removed.')
       } else {
         this.getConfig()
         this.debouncedUpdate()
@@ -103,15 +105,17 @@ export default class ProjectManager extends EventEmitter implements Manager {
     }
 
     let config: ProjectConfig
+    this.rawConfig = fs.readFileSync(this.filepath).toString()
     if (JSON_EXTENSIONS.includes(this.extension)) {
       require.cache[this.filepath] = null
       takeTry(() => config = require(this.filepath))
     } else if (YAML_EXTENSIONS.includes(this.extension)) {
-      takeTry(() => config = yaml.safeLoad(fs.readFileSync(this.filepath).toString()))
+      takeTry(() => config = yaml.safeLoad(this.rawConfig))
     }
     config.baseDir = path.resolve(this.basepath, config.baseDir || '')
     if (!config.extensions) config.extensions = ['.mkl']
     if (!config.ignore) config.ignore = []
+    if (!config.editOptions) config.editOptions = {}
     if (!config.parseOptions) config.parseOptions = {}
     if (this.filepath.startsWith(config.baseDir)) {
       config.ignore.push(this.filepath.slice(config.baseDir.length + 1))
@@ -133,13 +137,25 @@ export default class ProjectManager extends EventEmitter implements Manager {
     this.addSet.clear()
     this.emit('update', {
       type: 'entries',
+      path: this.config.baseDir,
       tree: this.tree.entryTree,
     })
     if (this.configUpdated) {
+      this.emit('update', {
+        type: 'config',
+        config: this.config,
+        content: this.rawConfig,
+      })
       if (!equal(this.config.parseOptions, this.oldConfig.parseOptions)) {
         this.emit('update', {
-          type: 'parseOptions',
-          config: this.config,
+          type: 'config.parseOptions',
+          options: this.config.parseOptions,
+        })
+      }
+      if (!equal(this.config.editOptions, this.oldConfig.editOptions)) {
+        this.emit('update', {
+          type: 'config.editOptions',
+          options: this.config.editOptions,
         })
       }
       this.configUpdated = false
