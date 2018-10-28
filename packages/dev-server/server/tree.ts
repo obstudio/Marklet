@@ -74,22 +74,34 @@ export default class DirTree {
   }
 
   get entryTree() {
-    const rootTree = DirTree.generateEntryTree(this.tree)
+    const rootTree = (function generateEntryTree(tree: FileTree) {
+      const entries: EntryTree = Object.keys(tree)
+      for (let i = 0; i < entries.length; i++) {
+        const element = entries[i]
+        const content = tree[<string>element]
+        if (typeof content === 'object') {
+          const sub = generateEntryTree(content)
+          sub.unshift(element)
+          entries.splice(i, 1, sub)
+        }
+      }
+      return entries
+    })(this.tree)
     rootTree.unshift(path.basename(this.filepath))
     return rootTree
   }
 
-  static generateEntryTree(tree: FileTree) {
-    const entries: EntryTree = Object.keys(tree)
-    for (let i = 0; i < entries.length; i++) {
-      const element = entries[i]
-      const content = tree[<string>element]
-      if (typeof content === 'object') {
-        const sub = this.generateEntryTree(content)
-        sub.unshift(element)
-        entries.splice(i, 1, sub)
+  get entryList() {
+    return Array.from(function* entries(tree: FileTree, basename = ''): IterableIterator<string> {
+      for (const key of Object.keys(tree)) {
+        const content = tree[key]
+        const filename = path.join(basename, key)
+        if (typeof content === 'string') {
+          yield filename
+        } else {
+          yield* entries(content, filename)
+        }
       }
-    }
-    return entries
+    }(this.tree)).map(filename => filename.replace(/\\/g, '/'))
   }
 }

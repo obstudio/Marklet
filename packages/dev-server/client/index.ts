@@ -1,6 +1,6 @@
 import VueConstructor from 'vue'
 import Monaco from 'monaco-editor'
-import MarkletFile from './file'
+import fileConstructor from './file'
 import defineLanguage from './language'
 import * as renderer from '@marklet/renderer'
 import { LexerConfig } from '@marklet/parser'
@@ -123,7 +123,7 @@ export default new class Marklet {
   parseOptions: LexerConfig
   events = eventBus
   client = client
-  File = MarkletFile
+  File = fileConstructor(this)
   
   create(el: string | HTMLElement) {
     document.title = 'Marklet - ' + typeMap[this.serverType]

@@ -9,6 +9,10 @@ module.exports = {
     require('./editor'),
   ],
 
+  components: {
+    fileTree: require('./tree.vue')
+  },
+
   data: () => ({
     themes,
     theme: 'dark',
@@ -16,15 +20,15 @@ module.exports = {
     display: {
       document: {
         show: true,
-        width: 0.35,
+        width: 0.4,
       },
       editor: {
         show: true,
-        width: 0.35,
+        width: 0.4,
       },
       explorer: {
         show: false,
-        width: 0.3,
+        width: 0.2,
       },
     },
   }),
@@ -221,7 +225,7 @@ module.exports = {
 <template>
   <div :class="[theme, { dragging }]" class="marklet">
     <ob-menubar class="menubar" from="menubar"/>
-    <div class="view explorer" :style="explorerStyle"/>
+    <file-tree class="view explorer" :style="explorerStyle" :tree="tree"/>
     <div class="border left" ref="left" :style="leftBorderStyle"
       @mousedown.stop="startDrag('left', $event)"/>
     <div class="view editor" ref="editor" :style="editorStyle"/>

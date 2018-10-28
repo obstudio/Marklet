@@ -57,19 +57,15 @@ export default class ProjectManager extends EventEmitter implements Manager {
 
     this.on('update', (data) => {
       if (!this.server) {
-        let index = this.msgQueue.findIndex(({ type }) => type === data.type)
-        if (index >= 0) {
-          this.msgQueue[index] = data
-        } else {
-          this.msgQueue.push(data)
-        }
+        this.msgQueue.push(data)
       } else {
         this.server.wsServer.broadcast(JSON.stringify(data))
       }
     })
 
-    this.update()
+    this.tree.entryList.forEach(filepath => this.addSet.add(filepath))
     this.debouncedUpdate = debounce(this.update.bind(this), 200)
+    this.update()
 
     this.folderWatcher = fs.watch(this.config.baseDir, {
       recursive: true
@@ -131,7 +127,13 @@ export default class ProjectManager extends EventEmitter implements Manager {
     this.delSet.clear()
     for (const item of this.addSet) {
       try {
-        this.tree.set(item, fs.readFileSync(path.join(this.config.baseDir, item), 'utf8'))        
+        const content = fs.readFileSync(path.join(this.config.baseDir, item), 'utf8')
+        this.tree.set(item, content)
+        this.emit('update', {
+          type: 'document',
+          path: item,
+          value: content,
+        })
       } catch (_) {}
     }
     this.addSet.clear()

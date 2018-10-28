@@ -2,11 +2,13 @@ const { DocumentLexer, defaultConfig } = require('@marklet/parser')
 
 module.exports = {
   data: () => ({
+    tree: [],
     nodes: [],
     origin: '',
     source: '',
     loaded: false,
     changed: false,
+    files: {},
     config: {
       ...defaultConfig,
       ...marklet.parseOptions,
@@ -42,8 +44,16 @@ module.exports = {
       })
     }
 
-    marklet.$on('server.document', ({ data }) => {
-      this.openFile(data)
+    marklet.$on('server.entries', ({ tree }) => {
+      this.tree = tree
+    })
+
+    marklet.$on('server.document', ({ value, path }) => {
+      if (this.files[path]) {
+        this.files[path].value = value
+      } else {
+        this.files[path] = new marklet.File({ path, value })
+      }
     })
 
     marklet.$on('monaco.theme.loaded', (monaco) => {
@@ -62,7 +72,7 @@ module.exports = {
       this._editor = monaco.editor.create(this.$refs.editor, {
         model: null,
         language: 'marklet',
-        lineDecorationsWidth: 4,
+        lineDecorationsWidth: 8,
         scrollBeyondLastLine: false,
         minimap: { enabled: false },
         scrollbar: {
