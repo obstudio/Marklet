@@ -76,4 +76,4 @@ colors:
 
 rules:
   - token: heading
-    forground: 'a6e22e'
+    foreground: 'a6e22e'
