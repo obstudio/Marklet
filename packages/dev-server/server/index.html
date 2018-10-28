@@ -18,7 +18,7 @@
     <div id="app"></div>
     <script>
       marklet.create('#app')
-      if (marklet.type === 'edit') {
+      if (marklet.serverType === 'edit') {
         require.config({ paths: { vs: '~/monaco-editor/min/vs' }})
         require(['vs/editor/editor.main'], () => {
           marklet.$emit('monaco.loaded', monaco)
