@@ -1,4 +1,5 @@
 const open = require('opn')
+const util = require('../util')
 const server = require('@marklet/dev-server')
 
 module.exports = program => program
@@ -6,8 +7,9 @@ module.exports = program => program
   .description('Watch a marklet file or project.')
   .allowPort()
   .allowConfig()
-  .action(function(filepath = '') {
-    const options = this.getOptions(filepath)
+  .action(function(filepath) {
+    const options = this.getOptions()
+    options.filepath = util.fullPath(filepath)
     server.watch(options)
     if (this.open) {
       open(`http://localhost:${options.port || 8080}`)

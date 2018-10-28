@@ -85,6 +85,7 @@ const client = new class MarkletClient {
     this.ws.addEventListener('message', (event) => {
       try {
         const data = JSON.parse(event.data)
+        eventBus.$emit('server.message', data)
         eventBus.$emit('server.' + data.type, data)
       } catch (error) {
         eventBus.$emit('server.error', error)
@@ -111,19 +112,19 @@ const typeMap = {
   watch: '监视',
 }
 
-const App = Vue.extend(require('@/app.vue'))
+const app = require('@/app.vue')
 
 export default new class Marklet {
   app: VueConstructor
-  type: ServerType
-  config: LexerConfig
+  serverType: ServerType
   sourceType: SourceType
+  config: LexerConfig
   events = eventBus
   client = client
-
+  
   create(el: string | HTMLElement) {
-    document.title = 'Marklet - ' + typeMap[this.type]
-    return this.app = new App().$mount(el)
+    document.title = 'Marklet - ' + typeMap[this.serverType]
+    return this.app = new Vue(app).$mount(el)
   }
 
   $on(event: string | string[], callback: Function) {

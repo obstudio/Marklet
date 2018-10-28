@@ -37,33 +37,22 @@ export type WatchEventType = 'rename' | 'change'
 
 interface ServerOptions {
   port?: number
-  filepath?: string
-  config?: LexerConfig
-  sourceType?: SourceType
+  parseOptions?: LexerConfig
 }
 
 class MarkletServer<T extends ServerType = ServerType> {
   public port: number
-  public filepath: string
   public manager: MarkletManager
   public sourceType: SourceType
-  public config: LexerConfig
+  public parseOptions: LexerConfig
   public wsServer: ws.Server
   public httpServer: http.Server
 
-  constructor(public serverType: T, options: ServerOptions = {}) {
-    this.config = options.config || {}
-    this.filepath = options.filepath || ''
+  constructor(public serverType: T, public filepath = '', options: ServerOptions = {}) {
+    this.parseOptions = options.parseOptions || {}
     this.port = options.port || DEFAULT_PORT
-    this.sourceType = options.sourceType || 'file'
     this.createServer()
-    if (this.filepath) {
-      if (this.sourceType === 'file') {
-        this.manager = new FileManager(this.filepath).bind(this)
-      } else {
-        this.manager = new ProjectManager(this.filepath).bind(this)
-      }
-    }
+    this.setupManager()
   }
 
   private createServer() {
@@ -94,7 +83,7 @@ class MarkletServer<T extends ServerType = ServerType> {
           marklet.serverType = '${this.serverType}'
           marklet.filepath = ${JSON.stringify(this.filepath)}
           marklet.sourceType = '${this.sourceType}'
-          marklet.config = ${JSON.stringify(this.config)}
+          marklet.parseOptions = ${JSON.stringify(this.parseOptions)}
         `)
         return
       } else {
@@ -105,12 +94,46 @@ class MarkletServer<T extends ServerType = ServerType> {
           handleError(error)
           return
         }
-
         handleData(data.toString(), getContentType(filepath))
       })
     }).listen(this.port)
     this.wsServer = new ws.Server({ server: this.httpServer })
     console.log(`Server running at http://localhost:${this.port}/`)
+  }
+
+  private setupManager() {
+    if (!this.filepath) {
+      this.sourceType = 'file'
+      // FIXME: Is a file manager is needed here so as to handle client requests?
+      return
+    } else if (!fs.existsSync(this.filepath)) {
+      throw new Error(`${this.filepath} does not exist.`)
+    }
+    if (fs.statSync(this.filepath).isFile()) {
+      const ext = path.extname(this.filepath).toLowerCase()
+      if (ProjectManager.EXTENSIONS.includes(ext)) {
+        this.sourceType = 'project'
+        this.manager = new ProjectManager(this.filepath).bind(this)
+      } else if (FileManager.EXTENSIONS.includes(ext)) {
+        this.sourceType = 'file'
+        this.manager = new FileManager(this.filepath).bind(this)
+      } else {
+        throw new Error('Cannot recognize the file extension.')
+      }
+    } else {
+      const configPathWithoutExt = path.join(this.filepath, 'marklet')
+      for (const ext of ProjectManager.EXTENSIONS) {
+        const configPath = configPathWithoutExt + ext
+        if (!fs.existsSync(configPath)) continue
+        if (fs.statSync(configPath).isFile()) {
+          this.sourceType = 'project'
+          this.filepath = configPath
+          this.manager = new ProjectManager(configPath).bind(this)
+          return
+        }
+      }
+      throw new Error(`No config file was found in ${this.filepath}.`)
+    }
   }
 
   public dispose(reason: string = '') {
@@ -123,17 +146,22 @@ class MarkletServer<T extends ServerType = ServerType> {
 export { MarkletServer as Server, MarkletManager as Manager }
 
 export interface WatchOptions extends ServerOptions {
-  filepath: string // required
+  filepath: string
 }
 
 export function watch(options: WatchOptions): MarkletServer<'watch'> {
-  return new MarkletServer('watch', options)
+  if (!options.filepath) {
+    throw new Error('Filepath is required in watch mode.')
+  }
+  return new MarkletServer('watch', options.filepath, options)
 }
 
-export interface EditOptions extends ServerOptions {}
+export interface EditOptions extends ServerOptions {
+  filepath?: string
+}
 
 export function edit(options: EditOptions): MarkletServer<'edit'> {
-  const server = new MarkletServer('edit', options)
-  // handle saving files and changing config and so on
+  const server = new MarkletServer('edit', options.filepath, options)
+  // FIXME: handle saving files and other client requests.
   return server
 }

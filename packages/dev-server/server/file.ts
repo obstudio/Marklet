@@ -1,11 +1,15 @@
-import { EventEmitter } from 'events'
-import { readFileSync, watch, FSWatcher } from 'fs'
-import debounce from 'lodash.debounce'
 import { Server, Manager, WatchEventType } from './index'
+import debounce from 'lodash.debounce'
+import EventEmitter from 'events'
+import * as fs from 'fs'
+
+export const MARKUP_EXTENSIONS = ['.md', '.mkl']
 
 export default class FileManager extends EventEmitter implements Manager {
+  static EXTENSIONS = ['.md', '.mkl']
+  
   private content: string
-  private watcher: FSWatcher
+  private watcher: fs.FSWatcher
   private debouncedUpdate: () => void
   public msg: string
 
@@ -13,17 +17,17 @@ export default class FileManager extends EventEmitter implements Manager {
     super()
     this.update()
     this.debouncedUpdate = debounce(() => this.update(), 200)
-    this.watcher = watch(this.filepath, (type: WatchEventType) => {
+    this.watcher = fs.watch(this.filepath, (type: WatchEventType) => {
       if (type === 'rename') {
-        this.dispose()
+        this.dispose('Source file is gone.')
       } else {
         this.debouncedUpdate()
       }
     })
   }
 
-  private update(): void {
-    const temp = readFileSync(this.filepath, 'utf8')
+  private update() {
+    const temp = fs.readFileSync(this.filepath, 'utf8')
     if (this.content !== temp) {
       this.content = temp
       this.msg = JSON.stringify({
@@ -35,17 +39,15 @@ export default class FileManager extends EventEmitter implements Manager {
     }
   }
 
-  public bind(server: Server): this {
+  public bind(server: Server) {
     server.wsServer.on('connection', ws => ws.send(this.msg))
     this.on('update', msg => server.wsServer.broadcast(msg))
-    this.once('close', () => {
-      server.dispose('Source file is gone.')
-    })
+    this.once('close', reason => server.dispose(reason))
     return this
   }
 
-  public dispose(): void {
+  public dispose(reason = '') {
     this.watcher.close()
-    this.emit('close')
+    this.emit('close', reason)
   }
 }

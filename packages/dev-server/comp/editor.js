@@ -9,7 +9,7 @@ module.exports = {
     changed: false,
     config: {
       ...defaultConfig,
-      ...marklet.config,
+      ...marklet.parseOptions,
     },
   }),
 
@@ -36,12 +36,14 @@ module.exports = {
   },
 
   mounted() {
+    if (process.env.MARKLET_ENV === 'development') {
+      marklet.$on('server.message', (event) => {
+        console.log('server.' + event.type, event)
+      })
+    }
+
     marklet.$on('server.document', ({ data }) => {
       this.openFile(data)
-    })
-
-    marklet.$on('server.entries', ({ tree }) => {
-      console.log(tree)
     })
 
     marklet.$on('monaco.theme.loaded', (monaco) => {
