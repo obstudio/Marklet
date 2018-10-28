@@ -74,7 +74,9 @@ export default class DirTree {
   }
 
   get entryTree() {
-    return DirTree.generateEntryTree(this.tree)
+    const rootTree = DirTree.generateEntryTree(this.tree)
+    rootTree.unshift(path.basename(this.filepath))
+    return rootTree
   }
 
   static generateEntryTree(tree: FileTree) {

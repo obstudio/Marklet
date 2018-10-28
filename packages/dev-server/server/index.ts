@@ -26,6 +26,10 @@ ws.Server.prototype.broadcast = function (data) {
   })
 }
 
+export interface EditorConfig {
+  line_ending?: 'LF' | 'CRLF'
+}
+
 interface MarkletManager extends EventEmitter {
   bind(server: MarkletServer): this
   dispose(): void
@@ -37,19 +41,31 @@ export type WatchEventType = 'rename' | 'change'
 
 interface ServerOptions {
   port?: number
+  editOptions?: EditorConfig
   parseOptions?: LexerConfig
+}
+
+function assignment(dataMap: Record<string, any>) {
+  return `\
+(function(marklet) {
+${Object.keys(dataMap).map((key) => `\
+  marklet.${key} = ${JSON.stringify(dataMap[key])}
+`).join('')}\
+})(marklet)`
 }
 
 class MarkletServer<T extends ServerType = ServerType> {
   public port: number
   public manager: MarkletManager
   public sourceType: SourceType
+  public editOptions: EditorConfig
   public parseOptions: LexerConfig
   public wsServer: ws.Server
   public httpServer: http.Server
 
   constructor(public serverType: T, public filepath = '', options: ServerOptions = {}) {
     this.parseOptions = options.parseOptions || {}
+    this.editOptions = options.editOptions || {}
     this.port = options.port || DEFAULT_PORT
     this.createServer()
     this.setupManager()
@@ -79,12 +95,13 @@ class MarkletServer<T extends ServerType = ServerType> {
           return
         }
       } else if (pathname === 'initialize.js') {
-        handleData(`
-          marklet.serverType = '${this.serverType}'
-          marklet.filepath = ${JSON.stringify(this.filepath)}
-          marklet.sourceType = '${this.sourceType}'
-          marklet.parseOptions = ${JSON.stringify(this.parseOptions)}
-        `)
+        handleData(assignment({
+          filepath: this.filepath,
+          serverType: this.serverType,
+          sourceType: this.sourceType,
+          editOptions: this.editOptions,
+          parseOptions: this.parseOptions,
+        }))
         return
       } else {
         filepath = path.join(__dirname, '..', pathname || 'index.html')
@@ -147,6 +164,7 @@ export { MarkletServer as Server, MarkletManager as Manager }
 
 export interface WatchOptions extends ServerOptions {
   filepath: string
+  editOptions: never
 }
 
 export function watch(options: WatchOptions): MarkletServer<'watch'> {

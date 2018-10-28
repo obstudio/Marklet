@@ -19,7 +19,7 @@ export default class FileManager extends EventEmitter implements Manager {
     this.debouncedUpdate = debounce(() => this.update(), 200)
     this.watcher = fs.watch(this.filepath, (type: WatchEventType) => {
       if (type === 'rename') {
-        this.dispose('Source file is gone.')
+        this.dispose('Source file has been removed.')
       } else {
         this.debouncedUpdate()
       }
@@ -32,7 +32,7 @@ export default class FileManager extends EventEmitter implements Manager {
       this.content = temp
       this.msg = JSON.stringify({
         type: 'document',
-        filepath: this.filepath,
+        path: this.filepath,
         data: this.content,
       })
       this.emit('update', this.msg)
