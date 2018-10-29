@@ -224,7 +224,10 @@ module.exports = {
 
 <template>
   <div :class="[theme, { dragging }]" class="marklet">
-    <ob-menubar class="menubar" from="menubar"/>
+    <div class="menubar">
+      <ob-menubar from="menubar"/>
+      <span class="title">{{ files[current].path || 'Untitled' }}</span>
+    </div>
     <file-tree class="view explorer" :style="explorerStyle" :tree="tree"/>
     <div class="border left" ref="left" :style="leftBorderStyle"
       @mousedown.stop="startDrag('left', $event)"/>
@@ -251,7 +254,20 @@ $-menubar-height: 32px;
 }
 
 > .menubar {
+  width: 100%;
+  display: inline-flex;
   height: $-menubar-height;
+
+  > .ob-menubar {
+    width: auto;
+  }
+
+  > .title {
+    flex-grow: 1;
+    font-size: 14px;
+    text-align: center;
+    line-height: $-menubar-height;
+  }
 }
 
 > .view, > .border {

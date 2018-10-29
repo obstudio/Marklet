@@ -33,13 +33,15 @@ module.exports = {
       menu.forEach(item => item.context = context)
       this.menu.push(...menu)
     },
-    locateAtTopBottom(rect, style) {
-      if (rect.left + 200 > innerWidth) {
-        style.left = rect.left + rect.width - 200 + 'px'
+    locateAtTopBottom(style, ref, marginY = 0, offsetX = 0) {
+      if (ref.offsetLeft + 200 > innerWidth) {
+        style.left = null
+        style.right = ref.offsetRight - offsetX + 'px'
       } else {
-        style.left = rect.left + 'px'
+        style.left = ref.offsetLeft + offsetX + 'px'
+        style.right = null
       }
-      style.top = rect.top + rect.height + 'px'
+      style.top = ref.offsetBottom + marginY + 'px'
     },
     locateAtLeftRight(style, ref, offsetY = 0, marginX = 0) {
       if (ref.offsetRight + 200 > innerWidth) {
@@ -50,6 +52,20 @@ module.exports = {
         style.left = ref.offsetLeft + marginX + ref.offsetWidth + 'px'
       }
       style.top = ref.offsetTop + offsetY + 'px'
+    },
+    locateAtMouseEvent(event, style) {
+      if (event.clientX + 200 > innerWidth) {
+        style.left = event.clientX - 200 + 'px'
+      } else {
+        style.left = event.clientX + 'px'
+      }
+      if (event.clientY > innerHeight / 2) {
+        style.top = ''
+        style.bottom = innerHeight - event.clientY + 'px'
+      } else {
+        style.top = event.clientY + 'px'
+        style.bottom = ''
+      }
     },
     executeMethod(context, key, ...args) {
       const method = context[key]

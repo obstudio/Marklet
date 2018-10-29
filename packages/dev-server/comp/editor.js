@@ -8,7 +8,10 @@ module.exports = {
     source: '',
     loaded: false,
     changed: false,
-    files: {},
+    files: {
+      __untitled__: new marklet.File({ title: 'untitled' }),
+    },
+    current: '__untitled__',
     config: {
       ...defaultConfig,
       ...marklet.parseOptions,
@@ -38,12 +41,6 @@ module.exports = {
   },
 
   mounted() {
-    if (process.env.MARKLET_ENV === 'development') {
-      marklet.$on('server.message', (event) => {
-        console.log('server.' + event.type, event)
-      })
-    }
-
     marklet.$on('server.entries', ({ tree }) => {
       this.tree = tree
     })
@@ -52,7 +49,10 @@ module.exports = {
       if (this.files[path]) {
         this.files[path].value = value
       } else {
-        this.files[path] = new marklet.File({ path, value })
+        this.$set(this.files, path, new marklet.File({ path, value }))
+      }
+      if (this.current === '__untitled__') {
+        this.current = path
       }
     })
 

@@ -11,12 +11,16 @@ export default class FileManager extends EventEmitter implements Manager {
   private content: string
   private watcher: fs.FSWatcher
   private debouncedUpdate: () => void
-  public msg: string
+  public generalFilepath: string
+  public unsentMessage: string
 
   constructor(private filepath: string) {
     super()
-    this.update()
+
+    this.generalFilepath = filepath.replace(/\\/g, '/')
     this.debouncedUpdate = debounce(() => this.update(), 200)
+    this.update()
+
     this.watcher = fs.watch(this.filepath, (type: WatchEventType) => {
       if (type === 'rename') {
         this.dispose('Source file has been removed.')
@@ -30,17 +34,17 @@ export default class FileManager extends EventEmitter implements Manager {
     const temp = fs.readFileSync(this.filepath, 'utf8')
     if (this.content !== temp) {
       this.content = temp
-      this.msg = JSON.stringify({
+      this.unsentMessage = JSON.stringify({
         type: 'document',
-        path: this.filepath,
-        data: this.content,
+        value: this.content,
+        path: this.generalFilepath,
       })
-      this.emit('update', this.msg)
+      this.emit('update', this.unsentMessage)
     }
   }
 
   public bind(server: Server) {
-    server.wsServer.on('connection', ws => ws.send(this.msg))
+    server.wsServer.on('connection', ws => ws.send(this.unsentMessage))
     this.on('update', msg => server.wsServer.broadcast(msg))
     this.once('close', reason => server.dispose(reason))
     return this

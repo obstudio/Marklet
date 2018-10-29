@@ -131,8 +131,8 @@ export default class ProjectManager extends EventEmitter implements Manager {
         this.tree.set(item, content)
         this.emit('update', {
           type: 'document',
-          path: item,
           value: content,
+          path: item.replace(/\\/g, '/'),
         })
       } catch (_) {}
     }

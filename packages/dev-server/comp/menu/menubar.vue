@@ -1,7 +1,5 @@
 <script>
 
-const util = require('./util')
-
 module.exports = {
   props: {
     from: {
@@ -68,9 +66,8 @@ module.exports = {
       }
       this.focused = false
       const style = this.origin.$refs.standalone.style
-      const rect = this.$el.children[index].getBoundingClientRect()
       this.$menuManager.hideAllMenus()
-      util.locateAtTopBottom(rect, style)
+      this.$menuManager.locateAtTopBottom(style, this.$el.children[index])
       this.origin.current = index
     },
   }
