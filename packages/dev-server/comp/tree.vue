@@ -2,7 +2,16 @@
 
 module.exports = {
   name: 'file-tree',
-  props: ['tree'],
+
+  inject: ['$editor'],
+
+  props: {
+    tree: Array,
+    prefix: {
+      type: String,
+      default: '',
+    }
+  },
 }
 
 </script>
@@ -11,8 +20,9 @@ module.exports = {
   <div>
     <div v-if="tree.length" class="title">{{ tree[0] }}</div>
     <template v-for="(item, index) in tree.slice(1)">
-      <div :key="index" class="item" v-if="typeof item === 'string'">{{ item }}</div>
-      <file-tree :key="index" v-else class="children" :tree="item">
+      <div :key="index" class="item" v-if="typeof item === 'string'"
+        @click="$editor.switchTo(prefix + item)">{{ item }}</div>
+      <file-tree :key="index" v-else class="children" :tree="item" :prefix="prefix + item[0] + '/'">
     </template>
   </div>
 </template>

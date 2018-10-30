@@ -95,13 +95,13 @@ export default class DirTree {
     return Array.from(function* entries(tree: FileTree, basename = ''): IterableIterator<string> {
       for (const key of Object.keys(tree)) {
         const content = tree[key]
-        const filename = path.join(basename, key)
+        const filename = basename + key
         if (typeof content === 'string') {
           yield filename
         } else {
-          yield* entries(content, filename)
+          yield* entries(content, filename + '/')
         }
       }
-    }(this.tree)).map(filename => filename.replace(/\\/g, '/'))
+    }(this.tree))
   }
 }

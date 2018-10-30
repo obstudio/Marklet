@@ -11,12 +11,18 @@ module.exports = {
     files: {
       __untitled__: new marklet.File({ title: 'untitled' }),
     },
-    current: '__untitled__',
+    currentPath: '__untitled__',
     config: {
       ...defaultConfig,
       ...marklet.parseOptions,
     },
   }),
+
+  computed: {
+    currentFile() {
+      return this.files[this.currentPath]
+    },
+  },
 
   watch: {
     source(value) {
@@ -51,8 +57,8 @@ module.exports = {
       } else {
         this.$set(this.files, path, new marklet.File({ path, value }))
       }
-      if (this.current === '__untitled__') {
-        this.current = path
+      if (this.currentPath === '__untitled__') {
+        this.currentPath = path
       }
     })
 
@@ -95,6 +101,13 @@ module.exports = {
   },
 
   methods: {
+    switchTo(path) {
+      if (this.currentPath === path) return
+      if (!this.files[path]) return
+      this.currentFile.viewState = this._editor.saveViewState()
+      this.currentPath = path
+      this.activate()
+    },
     openFile(doc) {
       if (this.loaded) {
         this._model.setValue(doc)
@@ -120,6 +133,19 @@ module.exports = {
       if (data !== undefined) this.origin = data
       this.source = this._model.getValue()
       this.changed = this.origin !== this.source
+    },
+    activate() {
+      if (!this._editor) return
+      monaco.editor.setTheme(this.theme)
+      this._editor.setModel(this.currentFile.model)
+      if (this.currentFile.viewState) {
+        this._editor.restoreViewState(this.currentFile.viewState)
+      }
+      const position = this._editor.getPosition()
+      this.row = position.lineNumber
+      this.column = position.column
+      this.nodes = this._lexer.parse(this.currentFile.value)
+      this.layout()
     },
     layout(deltaTime = 0) {
       if (!this._editor) return

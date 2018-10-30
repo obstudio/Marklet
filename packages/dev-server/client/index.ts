@@ -25,12 +25,12 @@ eventBus.$on('monaco.loaded', (monaco: typeof Monaco) => {
   eventBus.$emit('monaco.language.loaded', monaco)
   monaco.editor.defineTheme('dark', require('../themes/dark'))
   monaco.editor.defineTheme('simple', require('../themes/simple'))
-  eventBus.$emit('monaco.theme.loaded', monaco)
   if (!Vue.prototype.$colorize) {
     Vue.prototype.$colorize = function(code: string, lang: string) {
       return monaco.editor.colorize(code, lang, {})
     }
   }
+  eventBus.$emit('monaco.theme.loaded', monaco)
 })
 
 const client = new class MarkletClient {

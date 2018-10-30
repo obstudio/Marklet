@@ -21,7 +21,8 @@ export default function(marklet: typeof Marklet) {
     public changed: boolean
     public id: string
 
-    private model: Monaco.editor.ITextModel
+    public model: Monaco.editor.ITextModel
+    public viewState: Monaco.editor.ICodeEditorViewState
 
     constructor(options: FileOptions = {}) {
       this.value = options.value
