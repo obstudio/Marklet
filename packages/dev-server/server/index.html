@@ -6,7 +6,9 @@
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
     <link href="~/@marklet/renderer/dist/marklet.min.css" rel="stylesheet">
     <link href="~/@marklet/renderer/dist/themes.min.css" rel="stylesheet">
+    <link href="~/obui/dist/index.css" rel="stylesheet">
     <script src="~/vue/dist/vue.runtime.min.js"></script>
+    <script src="~/obui/dist/index.js"></script>
     <link href="client.min.css" rel="stylesheet">
     <link href="themes.min.css" rel="stylesheet">
     <link href="monaco.min.css" rel="stylesheet">
@@ -17,6 +19,7 @@
   <body>
     <div id="app"></div>
     <script>
+      Vue.use(obui)
       marklet.create('#app')
       if (marklet.serverType === 'edit') {
         require.config({ paths: { vs: '~/monaco-editor/min/vs' }})

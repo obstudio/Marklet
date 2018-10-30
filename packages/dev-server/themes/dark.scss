@@ -25,7 +25,7 @@ $active-color: #acdeff;
   &:hover, &.active { background-color: #999999 }
 }
 
-.marklet-menu > .standalone {
+.ob-menu > .standalone {
   background-color: $menu-bgcolor;
   box-shadow: 0 2px 8px $menu-shadow;
 
@@ -56,7 +56,7 @@ $active-color: #acdeff;
   }
 }
 
-.marklet-checkbox {
+.ob-checkbox {
   color: #666666;
 
   > .box {

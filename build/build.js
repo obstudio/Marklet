@@ -37,7 +37,8 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
     entry: util.resolve(name, options.entry),
     resolve: {
       alias: {
-        '@': util.resolve(name, 'temp')
+        '@': util.resolve(name, 'temp'),
+        '@@': util.resolve('..'),
       }
     },
     output: {
