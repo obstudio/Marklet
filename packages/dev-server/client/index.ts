@@ -93,8 +93,8 @@ const client = new class MarkletClient {
     this.ws.addEventListener('open', () => {
       eventBus.$emit('ws.open')
     })
-    eventBus.$on('client.message', (type: string, data: string | Object) => {
-      this.msgQueue.push(JSON.stringify({ type, data }))
+    eventBus.$on('client.message', (data: object) => {
+      this.msgQueue.push(JSON.stringify({ data }))
     })
   }
 

@@ -1,9 +1,8 @@
-import { Server, Manager, WatchEventType, EditorConfig } from './index'
+import { WatchEventType, EditorConfig } from './index'
 import FileFilter, { StringLike } from './filter'
 import { LexerConfig } from '@marklet/parser'
-import debounce from 'lodash.debounce'
+import MarkletManager from './manager'
 import equal from 'fast-deep-equal'
-import EventEmitter from 'events'
 import DirTree from './tree'
 import * as yaml from 'js-yaml'
 import * as path from 'path'
@@ -20,26 +19,18 @@ export interface ProjectConfig {
 const JSON_EXTENSIONS = ['.js', '.json']
 const YAML_EXTENSIONS = ['.yml', '.yaml']
 
-interface ServerMessage {
-  type: string
-  [ key: string ]: any
-}
-
-export default class ProjectManager extends EventEmitter implements Manager {
+export default class ProjectManager extends MarkletManager {
   static EXTENSIONS = [...JSON_EXTENSIONS, ...YAML_EXTENSIONS]
 
   private tree: DirTree
-  private server: Server
   private filter: FileFilter
   private rawConfig: string
   private config: ProjectConfig
   private oldConfig: ProjectConfig
   private folderWatcher: fs.FSWatcher
   private configWatcher: fs.FSWatcher
-  private debouncedUpdate: () => void
   private delSet: Set<string> = new Set()
   private addSet: Set<string> = new Set()
-  private msgQueue: ServerMessage[] = []
   private configUpdated: boolean
   private basepath: string
   private basename: string
@@ -47,6 +38,7 @@ export default class ProjectManager extends EventEmitter implements Manager {
 
   constructor(private filepath: string) {
     super()
+
     this.basepath = path.dirname(filepath)
     this.basename = path.basename(filepath)
     this.extension = path.extname(filepath).toLowerCase()
@@ -54,18 +46,9 @@ export default class ProjectManager extends EventEmitter implements Manager {
     const config = this.getConfig()
     this.filter = new FileFilter(config.extensions, config.ignore)
     this.tree = new DirTree(config.baseDir, this.filter)
-
-    this.on('update', (data) => {
-      if (!this.server) {
-        this.msgQueue.push(data)
-      } else {
-        this.server.wsServer.broadcast(JSON.stringify(data))
-      }
-    })
-
     this.tree.entryList.forEach(filepath => this.addSet.add(filepath))
-    this.debouncedUpdate = debounce(this.update.bind(this), 200)
-    this.update()
+
+    this.initialize()
 
     this.folderWatcher = fs.watch(this.config.baseDir, {
       recursive: true
@@ -120,7 +103,7 @@ export default class ProjectManager extends EventEmitter implements Manager {
     return this.config = config
   }
 
-  private update() {
+  public update() {
     for (const item of this.delSet) {
       this.tree.del(item)
     }
@@ -163,23 +146,6 @@ export default class ProjectManager extends EventEmitter implements Manager {
       this.configUpdated = false
     }
     // FIXME: events when a file content was changed
-  }
-
-  public bind(server: Server): this {
-    this.server = server
-    this.once('close', reason => server.dispose(reason))
-    server.wsServer.on('connection', (ws) => {
-      this.msgQueue.forEach(msg => ws.send(JSON.stringify(msg)))
-      ws.on('message', data => {
-        const parsed = JSON.parse(<string>data)
-        switch (parsed.type) {
-          case 'content':
-            this.getContent(parsed.data)            
-            break
-        }
-      })
-    })
-    return this
   }
 
   public getContent(path: string) {

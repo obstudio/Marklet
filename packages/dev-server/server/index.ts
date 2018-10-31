@@ -6,7 +6,7 @@ import ws from 'ws'
 
 import { LexerConfig } from '@marklet/parser'
 import { getContentType } from './util'
-import { EventEmitter } from 'events'
+import MarkletManager from './manager'
 import ProjectManager from './project'
 import FileManager from './file'
 
@@ -28,11 +28,6 @@ ws.Server.prototype.broadcast = function (data) {
 
 export interface EditorConfig {
   line_ending?: 'LF' | 'CRLF'
-}
-
-interface MarkletManager extends EventEmitter {
-  bind(server: MarkletServer): this
-  dispose(): void
 }
 
 export type ServerType = 'watch' | 'edit'
@@ -160,7 +155,7 @@ class MarkletServer<T extends ServerType = ServerType> {
   }
 }
 
-export { MarkletServer as Server, MarkletManager as Manager }
+export { MarkletServer as Server }
 
 export interface WatchOptions extends ServerOptions {
   filepath: string
