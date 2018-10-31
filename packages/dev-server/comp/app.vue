@@ -230,7 +230,7 @@ module.exports = {
   <div :class="[theme, { dragging }]" class="marklet">
     <div class="menubar">
       <ob-menubar from="menubar"/>
-      <span class="title">{{ currentFile.path || 'Untitled' }}</span>
+      <span class="title">{{ current.path || 'Untitled' }}</span>
     </div>
     <file-tree class="view explorer" :style="explorerStyle" :tree="tree"/>
     <div class="border left" ref="left" :style="leftBorderStyle"

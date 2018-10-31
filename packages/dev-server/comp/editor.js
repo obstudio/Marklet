@@ -5,13 +5,9 @@ module.exports = {
     tree: [],
     nodes: [],
     origin: '',
-    source: '',
-    loaded: false,
     changed: false,
-    files: {
-      __untitled__: new marklet.File({ title: 'untitled' }),
-    },
-    currentPath: '__untitled__',
+    files: marklet.files,
+    path: '__untitled__',
     config: {
       ...defaultConfig,
       ...marklet.parseOptions,
@@ -19,20 +15,22 @@ module.exports = {
   }),
 
   computed: {
-    currentFile() {
-      return this.files[this.currentPath]
+    current() {
+      return this.files.get(this.path)
     },
   },
 
   watch: {
-    source(value) {
-      this.nodes = this._lexer.parse(value)
+    'current.value': 'parse',
+    path() {
+      if (!this._editor) return
+      this._editor.setModel(this.current.model)
     },
     config: {
       deep: true,
-      handler(value) {
-        this._lexer = new DocumentLexer(value)
-        this.nodes = this._lexer.parse(this.source)
+      handler(config) {
+        this._lexer = new DocumentLexer(config)
+        this.parse()
       },
     },
   },
@@ -41,9 +39,6 @@ module.exports = {
     this._enableEdit = marklet.serverType === 'edit'
     this._isProject = marklet.sourceType !== 'file'
     this._lexer = new DocumentLexer(this.config)
-
-    const source = localStorage.getItem('source')
-    if (typeof source === 'string') this.source = source
   },
 
   mounted() {
@@ -52,13 +47,9 @@ module.exports = {
     })
 
     marklet.$on('server.document', ({ value, path }) => {
-      if (this.files[path]) {
-        this.files[path].value = value
-      } else {
-        this.$set(this.files, path, new marklet.File({ path, value }))
-      }
-      if (this.currentPath === '__untitled__') {
-        this.currentPath = path
+      this.files.add({ value, path })
+      if (this.path === '__untitled__') {
+        this.path = path
       }
     })
 
@@ -67,13 +58,6 @@ module.exports = {
     })
 
     marklet.$on('monaco.loaded', (monaco) => {
-      const model = monaco.editor.createModel(this.source, 'marklet')
-      model.onDidChangeContent(() => this.checkChange())
-      const nodes = this.nodes
-      this.nodes = []
-      this.$nextTick(() => this.nodes = nodes)
-      this._model = model
-
       if (this._editor) return
       this._editor = monaco.editor.create(this.$refs.editor, {
         model: null,
@@ -90,61 +74,51 @@ module.exports = {
         this.row = event.position.lineNumber
         this.column = event.position.column
       })
-      this._editor.setModel(this._model)
-      this.$nextTick(() => this.layout())
-      this.loaded = true
-    })
-
-    addEventListener('beforeunload', () => {
-      localStorage.setItem('source', this.source)
+      this.$nextTick(() => this.activate())
     })
   },
 
   methods: {
+    parse(source = this.current.value) {
+      this.nodes = this._lexer.parse(source)
+    },
     switchTo(path) {
-      if (this.currentPath === path) return
-      if (!this.files[path]) return
-      this.currentFile.viewState = this._editor.saveViewState()
-      this.currentPath = path
+      if (this.path === path) return
+      if (!this.files.get(path)) return
+      this.current.viewState = this._editor.saveViewState()
+      this.path = path
       this.activate()
     },
-    openFile(doc) {
-      if (this.loaded) {
-        this._model.setValue(doc)
-      } else {
-        this.source = doc
-      }
+    openFile() {
+      // 
     },
     save() {
-      // try to use functional APIs instead of events
-      // TODO: maybe file name is needed. depend on backend impl
-      marklet.$emit('client.message', 'save', this.source)
+      console.log({
+        type: 'save',
+        value: this.current.value,
+      })
+      // marklet.$emit('client.message', 'save', this.source)
     },
     saveAs() {
       marklet.$emit('client.message', 'saveAs', {
-        source: this.source,
+        source: this.current.value,
         name: '' // TODO: read file name
       })
     },
     saveAll() {
       // TODO: unclear requirement
     },
-    checkChange(data) {
-      if (data !== undefined) this.origin = data
-      this.source = this._model.getValue()
-      this.changed = this.origin !== this.source
-    },
     activate() {
       if (!this._editor) return
       monaco.editor.setTheme(this.theme)
-      this._editor.setModel(this.currentFile.model)
-      if (this.currentFile.viewState) {
-        this._editor.restoreViewState(this.currentFile.viewState)
+      this._editor.setModel(this.current.model)
+      if (this.current.viewState) {
+        this._editor.restoreViewState(this.current.viewState)
       }
       const position = this._editor.getPosition()
       this.row = position.lineNumber
       this.column = position.column
-      this.nodes = this._lexer.parse(this.currentFile.value)
+      this.parse()
       this.layout()
     },
     layout(deltaTime = 0) {

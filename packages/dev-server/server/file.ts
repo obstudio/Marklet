@@ -26,6 +26,10 @@ export default class FileManager extends MarkletManager {
         this.debouncedUpdate()
       }
     })
+
+    this.on('client.save', ({ value }) => {
+      fs.writeFileSync(this.filepath, value)
+    })
   }
 
   public update() {

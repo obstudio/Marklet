@@ -20,7 +20,7 @@
     <div id="app"></div>
     <script>
       Vue.use(obui)
-      marklet.create('#app')
+      marklet.start('#app')
       if (marklet.serverType === 'edit') {
         require.config({ paths: { vs: '~/monaco-editor/min/vs' }})
         require(['vs/editor/editor.main'], () => {

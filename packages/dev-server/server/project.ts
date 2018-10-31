@@ -70,6 +70,10 @@ export default class ProjectManager extends MarkletManager {
         this.debouncedUpdate()
       }
     })
+
+    this.on('client.save', ({ path: filepath, value }) => {
+      fs.writeFileSync(path.resolve(this.config.baseDir, filepath), value)
+    })
   }
 
   private getConfig() {
