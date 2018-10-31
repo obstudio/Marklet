@@ -5,15 +5,16 @@
       "caption": "文件",
       "mnemonic": "F",
       "children": [
-        { "command": "open-file", "mnemonic": "O" },
+        { "command": "open-file", "mnemonic": "O", "show": false },
         { "caption": "-" },
         { "command": "save", "mnemonic": "S" },
-        { "command": "save-as", "mnemonic": "A" },
+        { "command": "save-as", "mnemonic": "A", "show": false },
         { "command": "save-all", "mnemonic": "L" }
       ]
     },
     {
       "caption": "编辑",
+      "show": "$_enableEdit",
       "mnemonic": "E",
       "children": [
         { "command": "undo", "mnemonic": "U" },
@@ -32,11 +33,11 @@
       "caption": "视图",
       "mnemonic": "V",
       "children": [
-        { "command": "trigger-explorer", "mnemonic": "R" },
-        { "command": "trigger-editor", "mnemonic": "E" },
+        { "command": "trigger-explorer", "mnemonic": "R", "show": "$_isProject" },
+        { "command": "trigger-editor", "mnemonic": "E", "show": "$_enableEdit" },
         { "command": "trigger-document", "mnemonic": "D" },
-        { "caption": "-" },
-        { "command": "command-palette", "mnemonic": "C" },
+        { "caption": "-", "show": "$_enableEdit" },
+        { "command": "command-palette", "mnemonic": "C", "show": "$_enableEdit" },
         { "caption": "-" },
         {
           "caption": "主题",

@@ -128,7 +128,7 @@ export default new class MarkletClient {
       this.$emit('ws.open')
     })
     this.$on('client.message', (data: object) => {
-      this.msgQueue.push(JSON.stringify({ data }))
+      this.msgQueue.push(JSON.stringify(data))
     })
   }
 

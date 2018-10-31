@@ -71,7 +71,7 @@ class MarkletModel {
 }
 
 export default class ContentManager {
-  public data: MarkletModel[] = []
+  private data: MarkletModel[] = []
   private marklet: typeof Marklet
 
   constructor(marklet: typeof Marklet) {
@@ -95,6 +95,7 @@ export default class ContentManager {
     if (instance) {
       // FIXME: handle other properties updating
       instance.value = options.value
+      if (instance.model) instance.model.setValue(options.value)
     } else {
       this.data.push(new MarkletModel(this.marklet, options))
     }
@@ -102,6 +103,10 @@ export default class ContentManager {
 
   get(path: string) {
     return this.data.find(instance => path === instance.path)
+  }
+
+  each(callback: (file: MarkletModel, index: number) => void) {
+    this.data.forEach(callback)
   }
 
   toJSON() {

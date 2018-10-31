@@ -1,11 +1,10 @@
 const { DocumentLexer, defaultConfig } = require('@marklet/parser')
+const saveAs = require('file-saver')
 
 module.exports = {
   data: () => ({
     tree: [],
     nodes: [],
-    origin: '',
-    changed: false,
     files: marklet.files,
     path: '__untitled__',
     config: {
@@ -90,23 +89,30 @@ module.exports = {
       this.activate()
     },
     openFile() {
-      // 
+      //
     },
     save() {
-      console.log({
+      marklet.$emit('client.message', {
         type: 'save',
+        path: this.path,
         value: this.current.value,
       })
-      // marklet.$emit('client.message', 'save', this.source)
     },
     saveAs() {
-      marklet.$emit('client.message', 'saveAs', {
-        source: this.current.value,
-        name: '' // TODO: read file name
+      const blob = new Blob([this.current.value], {
+        type: 'text/plain;charset=utf-8'
       })
+      saveAs(blob, this.path.match(/[^/]*$/)[0] || 'download.mkl')
     },
     saveAll() {
-      // TODO: unclear requirement
+      this.files.each((file) => {
+        if (!file.changed) return
+        marklet.$emit('client.message', {
+          type: 'save',
+          path: file.path,
+          value: file.value,
+        })
+      })
     },
     activate() {
       if (!this._editor) return
