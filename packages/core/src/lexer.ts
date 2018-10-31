@@ -69,23 +69,27 @@ export interface LexerRegexRule<
   eol?: boolean
 }
 
+interface MacroRegExp extends RegExp {
+  target?: RegExp
+  macro?: string
+}
+
 export class MacroMap {
-  private data: Record<string, { regex: RegExp, macro: string }> = {}
+  private data: Record<string, MacroRegExp> = {}
 
   constructor(macros: LexerMacros = {}, config: LexerConfig = {}) {
     if (typeof macros === 'function') macros = macros(config)
     for (const key in macros) {
-      this.data[key] = {
-        regex: new RegExp(`{{${key}}}`, 'g'),
-        macro: `(?:${getString(macros[key])})`,
-      }
+      this.data[key] = getRegExp(macros[key])
+      this.data[key].target = new RegExp(`{{${key}}}`, 'g')
+      this.data[key].macro = `(?:${getString(macros[key])})`
     }
   }
 
   resolve(source: StringLike): string {
     source = getString(source)
     for (const key in this.data) {
-      source = source.replace(this.data[key].regex, this.data[key].macro)
+      source = source.replace(this.data[key].target, this.data[key].macro)
     }
     return source
   }
@@ -96,6 +100,11 @@ const noMacro = new MacroMap()
 /** transform a string-like object into a raw string */
 export function getString(source: StringLike): string {
   return source instanceof RegExp ? source.source : source
+}
+
+/** transform a string-like object into a raw regexp */
+export function getRegExp(source: StringLike): RegExp {
+  return source instanceof RegExp ? source : new RegExp(source)
 }
 
 export function isStringLike(source: any): boolean {

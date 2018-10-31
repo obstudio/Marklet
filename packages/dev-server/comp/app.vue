@@ -6,40 +6,38 @@ const MIN_WIDTH = 0.1
 
 module.exports = {
   mixins: [
-    require('./menu'),
     require('./editor'),
   ],
 
+  components: {
+    fileTree: require('./tree.vue')
+  },
+
+  provide() {
+    return { $editor: this }
+  },
+
   data: () => ({
+    themes,
     theme: 'dark',
     dragging: false,
     display: {
       document: {
         show: true,
-        width: 0.35,
+        width: 0.4,
       },
       editor: {
         show: true,
-        width: 0.35,
+        width: 0.4,
       },
       explorer: {
         show: false,
-        width: 0.3,
+        width: 0.2,
       },
     },
   }),
 
   computed: {
-    lists() {
-      return {
-        themes: {
-          data: themes,
-          current: this.theme,
-          switch: 'setTheme',
-          prefix: '主题：',
-        },
-      }
-    },
     totalWidth() {
       return this.display.editor.width * this.display.editor.show
         + this.display.explorer.width * this.display.explorer.show
@@ -135,6 +133,14 @@ module.exports = {
     },
   },
 
+  created() {
+    this.$set(this.display.editor, 'show', this._enableEdit)
+    this.$set(this.display.explorer, 'show', this._isProject)
+
+    this.$registerCommands(require('./command'))
+    this.$registerMenus(require('./menus'))
+  },
+
   mounted() {
     window.vm = this
 
@@ -195,6 +201,9 @@ module.exports = {
       window.open(url)
     },
     triggerArea(area) {
+      if (area === 'explorer' && !this._isProject) return
+      if (area === 'editor' && !this._enableEdit) return
+      
       this.display[area].show = !this.display[area].show
       if (this.display.editor.show) {
         this.$nextTick(() => this.layout(300))
@@ -207,7 +216,7 @@ module.exports = {
       }
     },
     startDrag(position, event) {
-      this.hideContextMenus()
+      this.$menuManager.hideAllMenus()
       this.dragging = position
       this.$refs[position].classList.add('active')
       this.draggingLastX = event.clientX
@@ -218,16 +227,12 @@ module.exports = {
 </script>
 
 <template>
-  <div :class="[theme, { dragging }]" class="marklet"
-    @click="hideContextMenus" @contextmenu="hideContextMenus">
+  <div :class="[theme, { dragging }]" class="marklet">
     <div class="menubar">
-      <div v-for="(menu, index) in menuData.menubar.content" :key="index" class="item"
-        @click.stop="showMenu(index, $event)" @mouseover.stop="hoverMenu(index, $event)"
-        :class="{ active: menuData.menubar.embed[index] }" @contextmenu.stop>
-        {{ menu.name }} (<span>{{ menu.bind }}</span>)&nbsp;
-      </div>
+      <ob-menubar from="menubar"/>
+      <span class="title">{{ current.path || 'Untitled' }}</span>
     </div>
-    <div class="view explorer" :style="explorerStyle"/>
+    <file-tree class="view explorer" :style="explorerStyle" :tree="tree"/>
     <div class="border left" ref="left" :style="leftBorderStyle"
       @mousedown.stop="startDrag('left', $event)"/>
     <div class="view editor" ref="editor" :style="editorStyle"/>
@@ -236,11 +241,12 @@ module.exports = {
     <mkl-scroll class="view document" :style="documentStyle" :margin="4" :radius="6">
       <mkl-nodes ref="nodes" :content="nodes"/>
     </mkl-scroll>
-    <marklet-menu ref="menus" :data="menuData"/>
   </div>
 </template>
 
 <style lang="scss" scoped>
+
+$-menubar-height: 32px;
 
 & {
   top: 0;
@@ -252,29 +258,25 @@ module.exports = {
 }
 
 > .menubar {
-  overflow: hidden;
-  font-size: 14px;
-  left: 0;
-  height: 32px;
   width: 100%;
-  float: left;
-  z-index: 11;
-  user-select: none;
-  position: relative;
+  display: inline-flex;
+  height: $-menubar-height;
 
-  .item {
-    line-height: 24px;
-    padding: 4px;
-    transition:
-      color 0.3s ease,
-      background-color 0.3s ease;
-    display: inline-block;
+  > .ob-menubar {
+    width: auto;
+  }
+
+  > .title {
+    flex-grow: 1;
+    font-size: 14px;
+    text-align: center;
+    line-height: $-menubar-height;
   }
 }
 
 > .view, > .border {
   position: absolute;
-  top: 32px;
+  top: $-menubar-height;
   bottom: 0;
   z-index: 0;
   height: auto;

@@ -1,67 +1,67 @@
 const { DocumentLexer, defaultConfig } = require('@marklet/parser')
+const saveAs = require('file-saver')
 
 module.exports = {
   data: () => ({
+    tree: [],
     nodes: [],
-    origin: '',
-    source: '',
-    loading: 1,
-    changed: false,
-    config: defaultConfig,
+    files: marklet.files,
+    path: '__untitled__',
+    config: {
+      ...defaultConfig,
+      ...marklet.parseOptions,
+    },
   }),
 
+  computed: {
+    current() {
+      return this.files.get(this.path)
+    },
+  },
+
   watch: {
-    source(value) {
-      this.nodes = this._lexer.parse(value)
+    'current.value': 'parse',
+    path() {
+      if (!this._editor) return
+      this._editor.setModel(this.current.model)
     },
     config: {
       deep: true,
-      handler(value) {
-        this._lexer = new DocumentLexer(value)
-        this.nodes = this._lexer.parse(this.source)
+      handler(config) {
+        this._lexer = new DocumentLexer(config)
+        this.parse()
       },
-    },
-    loading(value) {
-      if (!value) {
-        this._editor.setModel(this._model)
-        this.$nextTick(() => this.layout())
-      }
     },
   },
 
   created() {
-    this._lexer = new DocumentLexer(defaultConfig)
-
-    const source = localStorage.getItem('source')
-    if (typeof source === 'string') this.source = source
-
-    this.$eventBus.$on('server.config', (config) => {
-      this.config = Object.assign(defaultConfig, config)
-    })
+    this._enableEdit = marklet.serverType === 'edit'
+    this._isProject = marklet.sourceType !== 'file'
+    this._lexer = new DocumentLexer(this.config)
   },
 
   mounted() {
-    this.$eventBus.$on('server.document', (doc) => {
-      this.openFile(doc)
+    marklet.$on('server.entries', ({ tree }) => {
+      this.tree = tree
     })
 
-    this.$eventBus.$on('monaco.theme.loaded', (monaco) => {
+    marklet.$on('server.document', ({ value, path }) => {
+      this.files.add({ value, path })
+      if (this.path === '__untitled__') {
+        this.path = path
+      }
+    })
+
+    marklet.$on('monaco.theme.loaded', (monaco) => {
       monaco.editor.setTheme(this.theme)
     })
 
-    this.$eventBus.$on('monaco.loaded', (monaco) => {
-      const model = monaco.editor.createModel(this.source, 'marklet')
-      model.onDidChangeContent(() => this.checkChange())
-      const nodes = this.nodes
-      this.nodes = []
-      this.$nextTick(() => this.nodes = nodes)
-      this._model = model
-
+    marklet.$on('monaco.loaded', (monaco) => {
       if (this._editor) return
       this._editor = monaco.editor.create(this.$refs.editor, {
         model: null,
         language: 'marklet',
-        lineDecorationsWidth: 4,
+        lineDecorationsWidth: 8,
         scrollBeyondLastLine: false,
         minimap: { enabled: false },
         scrollbar: {
@@ -73,40 +73,62 @@ module.exports = {
         this.row = event.position.lineNumber
         this.column = event.position.column
       })
-      this.loading = 0
-    })
-
-    addEventListener('beforeunload', () => {
-      localStorage.setItem('source', this.source)
+      this.$nextTick(() => this.activate())
     })
   },
 
   methods: {
-    openFile(doc) {
-      if (this.loading) {
-        this.source = doc
-      } else {
-        this._model.setValue(doc)
-      }
+    parse(source = this.current.value) {
+      this.nodes = this._lexer.parse(source)
+    },
+    switchTo(path) {
+      if (this.path === path) return
+      if (!this.files.get(path)) return
+      this.current.viewState = this._editor.saveViewState()
+      this.path = path
+      this.activate()
+    },
+    openFile() {
+      //
     },
     save() {
-      this.$eventBus.$emit('client.message', 'save', this.source) // TODO: maybe file name is needed. depend on backend impl
-    },
-    saveAs() {
-      this.$eventBus.$emit('client.message', 'saveAs', {
-        source: this.source,
-        name: '' // TODO: read file name
+      marklet.$emit('client.message', {
+        type: 'save',
+        path: this.path,
+        value: this.current.value,
       })
     },
-    saveAll() {
-      // TODO: unclear requirement
+    saveAs() {
+      const blob = new Blob([this.current.value], {
+        type: 'text/plain;charset=utf-8'
+      })
+      saveAs(blob, this.path.match(/[^/]*$/)[0] || 'download.mkl')
     },
-    checkChange(data) {
-      if (data !== undefined) this.origin = data
-      this.source = this._model.getValue()
-      this.changed = this.origin !== this.source
+    saveAll() {
+      this.files.each((file) => {
+        if (!file.changed) return
+        marklet.$emit('client.message', {
+          type: 'save',
+          path: file.path,
+          value: file.value,
+        })
+      })
+    },
+    activate() {
+      if (!this._editor) return
+      monaco.editor.setTheme(this.theme)
+      this._editor.setModel(this.current.model)
+      if (this.current.viewState) {
+        this._editor.restoreViewState(this.current.viewState)
+      }
+      const position = this._editor.getPosition()
+      this.row = position.lineNumber
+      this.column = position.column
+      this.parse()
+      this.layout()
     },
     layout(deltaTime = 0) {
+      if (!this._editor) return
       const now = performance.now(), self = this
       this._editor._configuration.observeReferenceElement()
       this._editor._view._actualRender()

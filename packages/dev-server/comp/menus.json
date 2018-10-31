@@ -1,0 +1,64 @@
+[{
+  "ref": "menubar",
+  "children": [
+    {
+      "caption": "文件",
+      "mnemonic": "F",
+      "children": [
+        { "command": "open-file", "mnemonic": "O", "show": false },
+        { "caption": "-" },
+        { "command": "save", "mnemonic": "S" },
+        { "command": "save-as", "mnemonic": "A", "show": false },
+        { "command": "save-all", "mnemonic": "L" }
+      ]
+    },
+    {
+      "caption": "编辑",
+      "show": "$_enableEdit",
+      "mnemonic": "E",
+      "children": [
+        { "command": "undo", "mnemonic": "U" },
+        { "command": "redo", "mnemonic": "R" },
+        { "caption": "-" },
+        { "command": "cut", "mnemonic": "T" },
+        { "command": "copy", "mnemonic": "C" },
+        { "command": "paste", "mnemonic": "P" },
+        { "caption": "-" },
+        { "command": "find", "mnemonic": "F" },
+        { "command": "find-next" },
+        { "command": "find-previous" }
+      ]
+    },
+    {
+      "caption": "视图",
+      "mnemonic": "V",
+      "children": [
+        { "command": "trigger-explorer", "mnemonic": "R", "show": "$_isProject" },
+        { "command": "trigger-editor", "mnemonic": "E", "show": "$_enableEdit" },
+        { "command": "trigger-document", "mnemonic": "D" },
+        { "caption": "-", "show": "$_enableEdit" },
+        { "command": "command-palette", "mnemonic": "C", "show": "$_enableEdit" },
+        { "caption": "-" },
+        {
+          "caption": "主题",
+          "mnemonic": "T",
+          "children": [
+            {
+              "role": "list",
+              "data": "$themes",
+              "current": "$theme",
+              "switch": "setTheme"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "caption": "链接",
+      "mnemonic": "L",
+      "children": [
+        { "command": "open-repository", "mnemonic": "R" }
+      ]
+    }
+  ]
+}]

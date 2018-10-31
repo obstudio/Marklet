@@ -1,4 +1,8 @@
 .monaco-editor {
+  .margin-view-overlays {
+    user-select: none;
+  }
+  
   .decorationsOverviewRuler {
     display: none;
   }

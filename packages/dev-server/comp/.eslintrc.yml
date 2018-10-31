@@ -1,3 +1,7 @@
 extends:
   - plugin:vue/essential
+
+globals:
+  monaco: true
+  marklet: true
   

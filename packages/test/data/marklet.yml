@@ -1,0 +1,9 @@
+extensions:
+  - .md
+  - .mkl
+
+editOptions:
+  line_ending: LF
+
+parseOptions:
+  default_language: marklet

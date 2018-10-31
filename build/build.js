@@ -37,13 +37,14 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
     entry: util.resolve(name, options.entry),
     resolve: {
       alias: {
-        '@': util.resolve(name, 'temp')
+        '@': util.resolve(name, 'temp'),
+        '@@': util.resolve('..'),
       }
     },
     output: {
       path: util.resolve(name, 'dist'),
       filename: options.output,
-      library: 'Marklet',
+      library: 'marklet',
       libraryTarget: 'umd',
       libraryExport: options.libraryExport,
       globalObject: 'typeof self !== \'undefined\' ? self : this'
@@ -51,6 +52,10 @@ const bundle = (name, options) => new Promise((resolve, reject) => {
   })
 
   new webpack.ProgressPlugin().apply(compiler)
+  
+  new webpack.DefinePlugin({
+    'process.env.MARKLET_ENV': JSON.stringify(env),
+  }).apply(compiler)
 
   compiler.run((error, stat) => {
     if (error) {
@@ -104,14 +109,15 @@ Promise.resolve().then(() => {
 }).then(() => {
   if (!program.server) return
   mkdirIfNotExists('dev-server/dist')
+  mkdirIfNotExists('dev-server/dist/themes')
 
   if (program.tsc) {
     util.exec('tsc -p packages/dev-server')
   }
 
-  function minifyHTML(type) {
-    const srcPath = util.resolve(`dev-server/src/${type}.html`)
-    const distPath = util.resolve(`dev-server/dist/${type}.html`)
+  function minifyHTML(src, dist) {
+    const srcPath = util.resolve(`dev-server/${src}/index.html`)
+    const distPath = util.resolve(`dev-server/${dist}/index.html`)
     if (program.prod) {
       fs.writeFileSync(
         distPath,
@@ -125,14 +131,9 @@ Promise.resolve().then(() => {
     }
   }
 
-  minifyHTML('edit')
-  minifyHTML('watch')
+  minifyHTML('server', 'dist')
 
   let css = ''
-  themes.forEach(({ key }) => {
-    const options = yaml.safeLoad(fs.readFileSync(util.resolve(`dev-server/themes/${key}.yaml`)))
-    fs.writeFileSync(util.resolve(`dev-server/themes/${key}.json`), JSON.stringify(options))
-  })
   
   return sfc2js.transpile({
     ...sfc2jsOptions,
@@ -143,10 +144,11 @@ Promise.resolve().then(() => {
     if (result.errors.length) throw result.errors.join('\n')
     return Promise.all(themes.map(({ key }) => new Promise((resolve, reject) => {
       const filepath = util.resolve('dev-server/themes/' + key)
+      const distpath = util.resolve('dev-server/dist/themes/' + key)
 
       try {
         const options = yaml.safeLoad(fs.readFileSync(filepath + '.yaml'))
-        fs.writeFileSync(filepath + '.json', JSON.stringify(options))
+        fs.writeFileSync(distpath + '.json', JSON.stringify(options))
       } catch (error) {
         reject(error)
       }
@@ -167,7 +169,7 @@ Promise.resolve().then(() => {
     fs.writeFileSync(util.resolve('dev-server/dist/themes.min.css'), css)
     return new Promise((resolve, reject) => {
       sass.render({
-        data: fs.readFileSync(util.resolve('dev-server/src/monaco.scss')).toString(),
+        data: fs.readFileSync(util.resolve('dev-server/client/monaco.scss')).toString(),
         outputStyle: 'compressed',
       }, (error, result) => {
         if (error) reject(error)
@@ -176,9 +178,9 @@ Promise.resolve().then(() => {
       })
     })
   }).then(() => bundle('dev-server', {
-    entry: 'dist/client.js',
+    entry: 'dist/client/index.js',
     output: 'client.min.js',
-    libraryExport: 'Marklet',
+    libraryExport: 'default',
   }))
 }).catch((error) => {
   console.log(error)
